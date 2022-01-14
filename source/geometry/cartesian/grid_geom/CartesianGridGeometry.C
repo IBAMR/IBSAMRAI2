@@ -349,7 +349,7 @@ template<int DIM> void CartesianGridGeometry<DIM>::setGeometryData(
       d_x_up[id] = x_up[id];
    }
 
-   setPhysicalDomain(domain);
+   this->setPhysicalDomain(domain);
 
    hier::Box<DIM> bigbox;
    for (int k =0 ; k < this -> getPhysicalDomain().getNumberOfBoxes(); k++)
@@ -380,32 +380,32 @@ template<int DIM> void CartesianGridGeometry<DIM>::makeStandardOperators()
     * Standard spatial coarsening operators.
     */
 
-   addSpatialCoarsenOperator(new CartesianCellComplexWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new CartesianEdgeComplexWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new CartesianFaceComplexWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new pdat::NodeComplexInjection<DIM>());
-   addSpatialCoarsenOperator(new CartesianOuterfaceComplexWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new CartesianSideComplexWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianCellComplexWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianEdgeComplexWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianFaceComplexWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new pdat::NodeComplexInjection<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianOuterfaceComplexWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianSideComplexWeightedAverage<DIM>());
 
-   addSpatialRefineOperator(new pdat::CellComplexConstantRefine<DIM>());
-   addSpatialRefineOperator(new CartesianCellComplexLinearRefine<DIM>());
-   addSpatialRefineOperator(new pdat::EdgeComplexConstantRefine<DIM>());
-   addSpatialRefineOperator(new pdat::FaceComplexConstantRefine<DIM>());
-   addSpatialRefineOperator(new CartesianNodeComplexLinearRefine<DIM>());
-   addSpatialRefineOperator(new pdat::OuterfaceComplexConstantRefine<DIM>());
-   addSpatialRefineOperator(new pdat::SideComplexConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::CellComplexConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianCellComplexLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::EdgeComplexConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::FaceComplexConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianNodeComplexLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::OuterfaceComplexConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::SideComplexConstantRefine<DIM>());
 
    /*
     * Standard linear time interpolation operators.
     */
 
-   addTimeInterpolateOperator(new pdat::CellComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::EdgeComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::FaceComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::NodeComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OuterfaceComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OutersideComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::SideComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::CellComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::EdgeComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::FaceComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::NodeComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OuterfaceComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OutersideComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::SideComplexLinearTimeInterpolateOp<DIM>());
 #endif
 
 #ifdef HAVE_FLOAT
@@ -413,85 +413,85 @@ template<int DIM> void CartesianGridGeometry<DIM>::makeStandardOperators()
     * Standard spatial coarsening operators.
     */
 
-   addSpatialCoarsenOperator(new CartesianCellFloatWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new CartesianEdgeFloatWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new CartesianFaceFloatWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new pdat::NodeFloatInjection<DIM>());
-   addSpatialCoarsenOperator(new CartesianOuterfaceFloatWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new CartesianSideFloatWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianCellFloatWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianEdgeFloatWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianFaceFloatWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new pdat::NodeFloatInjection<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianOuterfaceFloatWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianSideFloatWeightedAverage<DIM>());
 
    /*
     * Standard spatial refining operators.
     */
 
-   addSpatialRefineOperator(new CartesianCellFloatConservativeLinearRefine<DIM>());
-   addSpatialRefineOperator(new CartesianEdgeFloatConservativeLinearRefine<DIM>());
-   addSpatialRefineOperator(new pdat::EdgeFloatConstantRefine<DIM>());
-   addSpatialRefineOperator(new pdat::CellFloatConstantRefine<DIM>());
-   addSpatialRefineOperator(new CartesianCellFloatLinearRefine<DIM>());
-   addSpatialRefineOperator(new CartesianFaceFloatConservativeLinearRefine<DIM>());
-   addSpatialRefineOperator(new CartesianNodeFloatLinearRefine<DIM>());
-   addSpatialRefineOperator(new pdat::FaceFloatConstantRefine<DIM>());
-   addSpatialRefineOperator(new pdat::OuterfaceFloatConstantRefine<DIM>());
-   addSpatialRefineOperator(new pdat::OuterfaceIntegerConstantRefine<DIM>());
-   addSpatialRefineOperator(new CartesianSideFloatConservativeLinearRefine<DIM>());
-   addSpatialRefineOperator(new pdat::SideFloatConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianCellFloatConservativeLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianEdgeFloatConservativeLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::EdgeFloatConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::CellFloatConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianCellFloatLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianFaceFloatConservativeLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianNodeFloatLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::FaceFloatConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::OuterfaceFloatConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::OuterfaceIntegerConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianSideFloatConservativeLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::SideFloatConstantRefine<DIM>());
 
    /*
     * Standard linear time interpolation operators.
     */
 
-   addTimeInterpolateOperator(new pdat::CellFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::EdgeFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::FaceFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::NodeFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OuterfaceFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OutersideFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::SideFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::CellFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::EdgeFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::FaceFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::NodeFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OuterfaceFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OutersideFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::SideFloatLinearTimeInterpolateOp<DIM>());
 #endif
 
    /*
     * Standard spatial coarsening operators.
     */
-   addSpatialCoarsenOperator(new CartesianCellDoubleWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new CartesianEdgeDoubleWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new CartesianFaceDoubleWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new pdat::NodeDoubleInjection<DIM>());
-   addSpatialCoarsenOperator(new pdat::NodeIntegerInjection<DIM>());
-   addSpatialCoarsenOperator(new CartesianOuterfaceDoubleWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new pdat::OuternodeDoubleConstantCoarsen<DIM>());
-   addSpatialCoarsenOperator(new CartesianOutersideDoubleWeightedAverage<DIM>());
-   addSpatialCoarsenOperator(new CartesianSideDoubleWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianCellDoubleWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianEdgeDoubleWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianFaceDoubleWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new pdat::NodeDoubleInjection<DIM>());
+   this->addSpatialCoarsenOperator(new pdat::NodeIntegerInjection<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianOuterfaceDoubleWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new pdat::OuternodeDoubleConstantCoarsen<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianOutersideDoubleWeightedAverage<DIM>());
+   this->addSpatialCoarsenOperator(new CartesianSideDoubleWeightedAverage<DIM>());
 
    /*
     * Standard spatial refining operators.
     */
-   addSpatialRefineOperator(new CartesianCellDoubleConservativeLinearRefine<DIM>());
-   addSpatialRefineOperator(new pdat::CellDoubleConstantRefine<DIM>());
-   addSpatialRefineOperator(new CartesianCellDoubleLinearRefine<DIM>());
-   addSpatialRefineOperator(new CartesianEdgeDoubleConservativeLinearRefine<DIM>());
-   addSpatialRefineOperator(new pdat::EdgeDoubleConstantRefine<DIM>());
-   addSpatialRefineOperator(new pdat::EdgeIntegerConstantRefine<DIM>());
-   addSpatialRefineOperator(new pdat::CellIntegerConstantRefine<DIM>());
-   addSpatialRefineOperator(new CartesianFaceDoubleConservativeLinearRefine<DIM>());
-   addSpatialRefineOperator(new pdat::FaceDoubleConstantRefine<DIM>());
-   addSpatialRefineOperator(new pdat::FaceIntegerConstantRefine<DIM>());
-   addSpatialRefineOperator(new CartesianNodeDoubleLinearRefine<DIM>());
-   addSpatialRefineOperator(new pdat::OuterfaceDoubleConstantRefine<DIM>());
-   addSpatialRefineOperator(new CartesianSideDoubleConservativeLinearRefine<DIM>());
-   addSpatialRefineOperator(new pdat::SideDoubleConstantRefine<DIM>());
-   addSpatialRefineOperator(new pdat::SideIntegerConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianCellDoubleConservativeLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::CellDoubleConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianCellDoubleLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianEdgeDoubleConservativeLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::EdgeDoubleConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::EdgeIntegerConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::CellIntegerConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianFaceDoubleConservativeLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::FaceDoubleConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::FaceIntegerConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianNodeDoubleLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::OuterfaceDoubleConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new CartesianSideDoubleConservativeLinearRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::SideDoubleConstantRefine<DIM>());
+   this->addSpatialRefineOperator(new pdat::SideIntegerConstantRefine<DIM>());
 
    /*
     * Standard linear time interpolation operators.
     */
-   addTimeInterpolateOperator(new pdat::CellDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::EdgeDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::FaceDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::NodeDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OuterfaceDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OutersideDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::SideDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::CellDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::EdgeDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::FaceDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::NodeDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OuterfaceDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OutersideDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::SideDoubleLinearTimeInterpolateOp<DIM>());
 
 }
 
@@ -628,7 +628,7 @@ template<int DIM> void CartesianGridGeometry<DIM>::putToDatabase(
    db->putDoubleArray("d_x_lo", d_x_lo, DIM);
    db->putDoubleArray("d_x_up", d_x_up, DIM);
 
-   hier::IntVector<DIM> level0_shift = getPeriodicShift(hier::IntVector<DIM>(1));
+   hier::IntVector<DIM> level0_shift = this->getPeriodicShift(hier::IntVector<DIM>(1));
    int* temp_shift = level0_shift;
    db->putIntegerArray("d_periodic_shift", temp_shift, DIM);
 
@@ -710,7 +710,7 @@ template<int DIM> void CartesianGridGeometry<DIM>::getFromInput(
 
       setGeometryData(x_lo, x_up, domain);
 
-      initializePeriodicShift(per_bc);
+      this->initializePeriodicShift(per_bc);
 
    }
 }
@@ -752,12 +752,12 @@ template<int DIM> void CartesianGridGeometry<DIM>::getFromRestart()
    db->getDoubleArray("d_x_lo", x_lo, DIM);
    db->getDoubleArray("d_x_up", x_up, DIM);
 
-   setGeometryData(x_lo, x_up, domain);
+   this->setGeometryData(x_lo, x_up, domain);
 
    hier::IntVector<DIM> periodic_shift;
    int* temp_shift = periodic_shift;
    db->getIntegerArray("d_periodic_shift", temp_shift, DIM);
-   initializePeriodicShift(periodic_shift);
+   this->initializePeriodicShift(periodic_shift);
 
    d_using_original_locations = db->getBool("d_using_original_locations");
 }

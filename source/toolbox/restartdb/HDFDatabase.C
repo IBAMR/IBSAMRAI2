@@ -752,7 +752,7 @@ void HDFDatabase::putBoolArray(
    herr_t errf;
    if (nelements > 0) {
 
-      hsize_t dim[1] = {nelements};
+      hsize_t dim[1] = {static_cast<hsize_t>(nelements)};
       hid_t space = H5Screate_simple(1, dim, NULL);
 #ifdef ASSERT_HDF5_RETURN_VALUES
       TBOX_ASSERT( space >= 0 );
@@ -1367,7 +1367,7 @@ void HDFDatabase::putComplexArray(
       // Storage type
       hid_t stype = createCompoundComplex('s');
 
-      hsize_t dim[] = {nelements};
+      hsize_t dim[] = {static_cast<hsize_t>(nelements)};
       space = H5Screate_simple(1, dim, NULL);
 #ifdef ASSERT_HDF5_RETURN_VALUES
       TBOX_ASSERT( space >= 0 );
@@ -1579,7 +1579,7 @@ void HDFDatabase::putDoubleArray(
    herr_t errf;
    if (nelements > 0) {
 
-      hsize_t dim[] = {nelements};
+      hsize_t dim[] = {static_cast<hsize_t>(nelements)};
       hid_t space = H5Screate_simple(1, dim, NULL);
 #ifdef ASSERT_HDF5_RETURN_VALUES
       TBOX_ASSERT( space >= 0 );
@@ -1745,7 +1745,7 @@ void HDFDatabase::putFloatArray(
    herr_t errf;
    if (nelements > 0) {
 
-      hsize_t dim[] = {nelements};
+      hsize_t dim[] = {static_cast<hsize_t>(nelements)};
       hid_t space = H5Screate_simple(1, dim, NULL);
 #ifdef ASSERT_HDF5_RETURN_VALUES
       TBOX_ASSERT( space >= 0 );
@@ -1913,7 +1913,7 @@ void HDFDatabase::putIntegerArray(
    herr_t errf;
    if (nelements > 0) {
 
-      hsize_t dim[] = {nelements};
+      hsize_t dim[] = {static_cast<hsize_t>(nelements)};
       hid_t space = H5Screate_simple(1, dim, NULL);
 #ifdef ASSERT_HDF5_RETURN_VALUES
       TBOX_ASSERT(space >= 0);
@@ -2111,7 +2111,7 @@ void HDFDatabase::putStringArray(
       TBOX_ASSERT( errf >= 0 );
 #endif
 
-      hsize_t dim[] = {nelements};
+      hsize_t dim[] = {static_cast<hsize_t>(nelements)};
       hid_t space = H5Screate_simple(1, dim, NULL);
 #ifdef ASSERT_HDF5_RETURN_VALUES
       TBOX_ASSERT( space >= 0 );
@@ -2492,6 +2492,7 @@ void HDFDatabase::insertArray(
 
 #if (H5_VERS_MAJOR>1) || ((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR > 6))
    hid_t array = H5Tarray_create(member_id, ndims, dim);
+   NULL_USE(perm);
 #else	
    /*
     * Note that perm is NOT used by HDF, see HDF documentation.

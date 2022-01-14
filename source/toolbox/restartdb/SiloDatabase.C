@@ -22,13 +22,13 @@
  * Implementation notes.
  *
  * Silo can't have spaces in directory names.  SAMRAI key names are
- * mangled to remove spaces from keynames when put into the Silo 
+ * mangled to remove spaces from keynames when put into the Silo
  * database.
  *
  * Compound types in Silo have several listings in the directory
  * structure.  Rather than unscramble the different entries the
- * compound array types are stored in a subdirectory with that 
- * key name and the actual compound type is a variable in 
+ * compound array types are stored in a subdirectory with that
+ * key name and the actual compound type is a variable in
  * that subdirectory.
  *
  */
@@ -45,12 +45,12 @@ std::string nameMangle(std::string name) {
    std::string::size_type pos = 0;
    std::string searchString(" ");
    std::string replaceString("___");
-   
+
    while ( (pos = str.find(searchString, pos)) != std::string::npos ) {
       str.replace( pos, searchString.size(), replaceString );
       pos++;
    }
-   
+
    return str;
 }
 
@@ -60,19 +60,19 @@ std::string nameDemangle(std::string name) {
    std::string::size_type pos = 0;
    std::string searchString("___ ");
    std::string replaceString(" ");
-   
+
    while ( (pos = str.find(searchString, pos)) != std::string::npos ) {
       str.replace( pos, searchString.size(), replaceString );
       pos++;
    }
-   
+
    return str;
 }
-      
+
 /*
- * Public Silo database constructor creates an empty database with the 
- * specified name.  It sets the group_ID to a default value of -1.     
- * This data is used by member functions to track parent databases.     
+ * Public Silo database constructor creates an empty database with the
+ * specified name.  It sets the group_ID to a default value of -1.
+ * This data is used by member functions to track parent databases.
 */
 SiloDatabase::SiloDatabase(const std::string& name) :
    d_is_file(false),
@@ -87,8 +87,8 @@ SiloDatabase::SiloDatabase(const std::string& name) :
 }
 
 /*
- * Private Silo database constructor creates an empty database with the 
- * specified name.  
+ * Private Silo database constructor creates an empty database with the
+ * specified name.
  */
 SiloDatabase::SiloDatabase(
    const std::string& name,
@@ -124,7 +124,7 @@ SiloDatabase::~SiloDatabase()
 {
    if (d_is_file) {
       close();
-   } 
+   }
 }
 
 /*
@@ -142,12 +142,12 @@ bool SiloDatabase::create(const std::string& name) {
 
    bool status = false;
 
-   if(d_file) {	
+   if(d_file) {
       close();
    }
 
    d_file = DBCreate(name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB);
-   
+
    if (d_file == NULL) {
 
       TBOX_ERROR("Unable to open Silo file " << name << "\n");
@@ -178,12 +178,12 @@ bool SiloDatabase::open(const std::string& name) {
 
    bool status = false;
 
-   if(d_file) {	
+   if(d_file) {
       close();
    }
 
    d_file = DBOpen(name.c_str(), DB_UNKNOWN, DB_READ);
-   
+
    if (d_file == NULL) {
 
       TBOX_ERROR("Unable to open Silo file " << name << "\n");
@@ -241,16 +241,16 @@ bool SiloDatabase::attachToFile(DBfile *file, const std::string &directory)
       d_file = file;
       d_directory = directory;
 
-      std::string path = nameMangle(d_directory);      
+      std::string path = nameMangle(d_directory);
       if(!DBInqVarType(d_file, path.c_str()) == DB_DIR) {
 	 int err = DBMkdir(d_file, path.c_str());
 	 if(err < 0) {
 	    TBOX_ERROR("SiloDatabase: MkDir failed " << d_directory << std::endl );
 	 }
       }
-      
-   } else {      
-      TBOX_ERROR("SiloDatabase: Invalid file supplied to attachToFile" 
+
+   } else {
+      TBOX_ERROR("SiloDatabase: Invalid file supplied to attachToFile"
 		 << std::endl);
       status = false;
    }
@@ -314,7 +314,7 @@ Array<std::string> SiloDatabase::getAllKeys()
       DBtoc *toc = DBGetToc(d_file);
 
       tmp_keys.resizeArray(toc -> nvar + toc -> ndir);
-     
+
       for(int i = 0; i < toc -> nvar; i++) {
 	 tmp_keys[i] = toc -> var_names[i];
       }
@@ -327,7 +327,7 @@ Array<std::string> SiloDatabase::getAllKeys()
    } else {
       TBOX_ERROR("Not a database " << d_directory << std::endl );
    }
-   
+
    return(tmp_keys);
 }
 
@@ -345,13 +345,13 @@ enum Database::DataType SiloDatabase::getArrayType(const std::string& key)
 #endif
 
    enum Database::DataType type = Database::SAMRAI_INVALID;
-   
+
    std::string path = d_directory + "/" + key;
    path = nameMangle(path);
 
    DBObjectType var_type = DBInqVarType(d_file, path.c_str());
-   
-   if( var_type == DB_VARIABLE) { 
+
+   if( var_type == DB_VARIABLE) {
       int obj_type = DBGetVarType(d_file, path.c_str());
 
       switch (obj_type) {
@@ -372,8 +372,8 @@ enum Database::DataType SiloDatabase::getArrayType(const std::string& key)
 	    break;
       }
    } else if (var_type == DB_DIR) {
-      
-      // Note that some of the types are stored in subdirectories 
+
+      // Note that some of the types are stored in subdirectories
       // so check to see if this dir is one of the compound array types.
       std::string sub_path = path + COMPLEX_ARRAY_NAME;
       if(DBInqVarExists(d_file, sub_path.c_str())) {
@@ -382,21 +382,21 @@ enum Database::DataType SiloDatabase::getArrayType(const std::string& key)
 	 DBFreeCompoundarray(ca);
       } else {
 	 sub_path = path + STRING_ARRAY_NAME;
-	 if(DBInqVarExists(d_file, sub_path.c_str())) { 
+	 if(DBInqVarExists(d_file, sub_path.c_str())) {
 	    DBcompoundarray *ca = DBGetCompoundarray(d_file, sub_path.c_str());
 	    type = Database::SAMRAI_STRING;
 	    DBFreeCompoundarray(ca);
 	 } else {
 	    sub_path = path + DATABASE_BOX_NAME;
-	    if(DBInqVarExists(d_file, sub_path.c_str())) { 
-	       DBcompoundarray *ca = DBGetCompoundarray(d_file, 
+	    if(DBInqVarExists(d_file, sub_path.c_str())) {
+	       DBcompoundarray *ca = DBGetCompoundarray(d_file,
 							sub_path.c_str());
 	       type = Database::SAMRAI_BOX;
 	       DBFreeCompoundarray(ca);
 	    } else {
 	       type = Database::SAMRAI_DATABASE;
 	    }
-	 } 
+	 }
       }
    } else {
       // Unrecognized type return INVALID
@@ -422,19 +422,19 @@ int SiloDatabase::getArraySize(const std::string& key)
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!key.empty());
 #endif
-   
+
    int array_size = 0;
 
    std::string path = d_directory + "/" + key;
    path = nameMangle(path);
 
    DBObjectType var_type = DBInqVarType(d_file, path.c_str());
-   
-   if( var_type == DB_VARIABLE) { 
+
+   if( var_type == DB_VARIABLE) {
       array_size = getSiloSimpleTypeLength(key);
    } else if (var_type == DB_DIR) {
-      
-      // Note that some of the types are stored in subdirectories 
+
+      // Note that some of the types are stored in subdirectories
       // so check to see if this dir is one of the compound array types.
 
       std::string sub_path = path + COMPLEX_ARRAY_NAME;
@@ -444,21 +444,21 @@ int SiloDatabase::getArraySize(const std::string& key)
 	 DBFreeCompoundarray(ca);
       } else {
 	 sub_path = path + STRING_ARRAY_NAME;
-	 if(DBInqVarExists(d_file, sub_path.c_str())) { 
+	 if(DBInqVarExists(d_file, sub_path.c_str())) {
 	    DBcompoundarray *ca = DBGetCompoundarray(d_file, sub_path.c_str());
 	    array_size = ca -> nelems;
 	    DBFreeCompoundarray(ca);
 	 } else {
 	    sub_path = path + DATABASE_BOX_NAME;
-	    if(DBInqVarExists(d_file, sub_path.c_str())) { 
-	       DBcompoundarray *ca = DBGetCompoundarray(d_file, 
+	    if(DBInqVarExists(d_file, sub_path.c_str())) {
+	       DBcompoundarray *ca = DBGetCompoundarray(d_file,
 							sub_path.c_str());
 	       array_size = ca -> elemlengths[0];
 	       DBFreeCompoundarray(ca);
 	    } else {
 	       // Directory or some other unrecognized structure return 0
 	    }
-	 } 
+	 }
       }
    } else {
       // Unrecognized type return 0
@@ -493,7 +493,7 @@ bool SiloDatabase::isDatabase(const std::string& key)
 *************************************************************************
 */
 
-Pointer<Database> 
+Pointer<Database>
 SiloDatabase::putDatabase(const std::string& key)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -520,7 +520,7 @@ SiloDatabase::putDatabase(const std::string& key)
 ************************************************************************
 */
 
-Pointer<Database> 
+Pointer<Database>
 SiloDatabase::getDatabase(const std::string& key)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -566,8 +566,8 @@ bool SiloDatabase::isBool(const std::string& key)
 */
 
 void SiloDatabase::putBoolArray(
-   const std::string& key, 
-   const bool* const data, 
+   const std::string& key,
+   const bool* const data,
    const int nelements)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -577,7 +577,7 @@ void SiloDatabase::putBoolArray(
 
    short temp_array[nelements];
 
-   for(int i = 0; i < nelements; i++) { 	
+   for(int i = 0; i < nelements; i++) {
       temp_array[i] = data[i];
    }
 
@@ -602,17 +602,17 @@ Array<bool> SiloDatabase::getBoolArray(const std::string& key)
 #endif
    if (!isBool(key)) {
       TBOX_ERROR("SiloDatabase::getBoolArray() error in database "
-		 << d_database_name << std::endl 
+		 << d_database_name << std::endl
 		 << "    Key = " << key << " is not a bool array." << std::endl);
    }
- 
+
    Array<bool> boolArray(getSiloSimpleTypeLength(key));
 
    short temp_array[getSiloSimpleTypeLength(key)];
 
    getSiloSimpleType(key, temp_array);
 
-   for(int i = 0; i < getSiloSimpleTypeLength(key); i++) { 	
+   for(int i = 0; i < getSiloSimpleTypeLength(key); i++) {
       boolArray[i] = temp_array[i];
    }
 
@@ -646,12 +646,12 @@ bool SiloDatabase::isDatabaseBox(const std::string& key)
       path += DATABASE_BOX_NAME;
 
       DBcompoundarray *ca = DBGetCompoundarray(d_file, path.c_str());
-      
+
       if(ca != NULL) {
 	 if( ca -> datatype == DB_INT) {
 	    is_type = true;
 	 }
-      } 
+      }
 
       DBFreeCompoundarray(ca);
    }
@@ -668,7 +668,7 @@ bool SiloDatabase::isDatabaseBox(const std::string& key)
 */
 void SiloDatabase::putDatabaseBoxArray(
    const std::string& key,
-   const DatabaseBox* const data, 
+   const DatabaseBox* const data,
    const int nelements)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -684,7 +684,7 @@ void SiloDatabase::putDatabaseBoxArray(
    elemnames[2] = "lo";
 
    int size = 0;
-   for(int i = 0; i < nelements; i++) {	
+   for(int i = 0; i < nelements; i++) {
       size += data[i].d_data.d_dimension;
    }
 
@@ -712,13 +712,13 @@ void SiloDatabase::putDatabaseBoxArray(
       TBOX_ERROR("SiloDatabase: MkDir failed " << d_directory << std::endl );
    }
 
-   
+
    path = d_directory + "/" + key + DATABASE_BOX_NAME;
    path = nameMangle(path);
 
-   err = DBPutCompoundarray(d_file, path.c_str(), 
-		      const_cast<char **>(elemnames), elemlengths, 
-		      3, values.getPointer(), values.size(), 
+   err = DBPutCompoundarray(d_file, path.c_str(),
+		      const_cast<char **>(elemnames), elemlengths,
+		      3, values.getPointer(), values.size(),
 		      DB_INT, NULL);
    if(err < 0) {
       TBOX_ERROR("SiloDatabase: DBPutCompoundarray failed " << d_directory << std::endl );
@@ -762,7 +762,7 @@ Array<DatabaseBox> SiloDatabase::getDatabaseBoxArray(const std::string& key)
    }
 
    DBFreeCompoundarray(ca);
-   
+
    return boxArray;
 }
 
@@ -792,7 +792,7 @@ bool SiloDatabase::isChar(const std::string& key)
 
 void SiloDatabase::putCharArray(
    const std::string& key,
-   const char* const data, 
+   const char* const data,
    const int nelements)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -822,10 +822,10 @@ Array<char> SiloDatabase::getCharArray(const std::string& key)
 
    if (!isChar(key)) {
       TBOX_ERROR("SiloDatabase::getCharArray() error in database "
-		 << d_database_name << std::endl 
+		 << d_database_name << std::endl
 		 << "    Key = " << key << " is not a char array." << std::endl);
    }
- 
+
 
    Array<char> charArray(getSiloSimpleTypeLength(key));
 
@@ -861,12 +861,12 @@ bool SiloDatabase::isComplex(const std::string& key)
       path += COMPLEX_ARRAY_NAME;
 
       DBcompoundarray *ca = DBGetCompoundarray(d_file, path.c_str());
-      
+
       if(ca != NULL) {
 	 if( ca -> datatype == DB_DOUBLE) {
 	    is_type = true;
 	 }
-      } 
+      }
 
       DBFreeCompoundarray(ca);
    }
@@ -919,9 +919,9 @@ void SiloDatabase::putComplexArray(
    path = d_directory + "/" + key + COMPLEX_ARRAY_NAME;
    path = nameMangle(path);
 
-   err = DBPutCompoundarray(d_file, path.c_str(), 
-		      const_cast<char **>(elemnames), elemlengths, 2, 
-		      values.getPointer(), values.size(), 
+   err = DBPutCompoundarray(d_file, path.c_str(),
+		      const_cast<char **>(elemnames), elemlengths, 2,
+		      values.getPointer(), values.size(),
 		      DB_DOUBLE, NULL);
    if(err < 0) {
       TBOX_ERROR("SiloDatabase DBPutCompoundarray failed " << d_directory << std::endl );
@@ -957,10 +957,9 @@ Array<dcomplex> SiloDatabase::getComplexArray(const std::string& key)
 
    Array<dcomplex> complexArray(ca -> elemlengths[0]);
 
-   for(int i = 0; i < ca -> elemlengths[0]; i++) {
-      complexArray[i].real() = static_cast<double *>(ca -> values)[i];
-      complexArray[i].imag() = 
-	 static_cast<double *>(ca -> values)[i + ca -> elemlengths[0]];
+   for(int i = 0; i < ca->elemlengths[0]; i++) {
+     complexArray[i] = dcomplex(reinterpret_cast<double *>(ca->values)[i],
+                                reinterpret_cast<double *>(ca->values)[i + ca->elemlengths[0]]);
    }
 
    DBFreeCompoundarray(ca);
@@ -1087,10 +1086,10 @@ Array<float> SiloDatabase::getFloatArray(const std::string& key)
 #endif
    if (!isFloat(key)) {
       TBOX_ERROR("SiloDatabase::getFloatArray() error in database "
-		 << d_database_name << std::endl 
+		 << d_database_name << std::endl
 		 << "    Key = " << key << " is not a float array." << std::endl);
    }
- 
+
    Array<float> floatArray(getSiloSimpleTypeLength(key));
 
    getSiloSimpleType(key, floatArray.getPointer());
@@ -1124,15 +1123,15 @@ bool SiloDatabase::isInteger(const std::string& key)
 */
 
 void SiloDatabase::putIntegerArray(
-   const std::string& key, 
-   const int* const data, 
+   const std::string& key,
+   const int* const data,
    const int nelements)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!key.empty());
    TBOX_ASSERT(data != (int*)NULL);
 #endif
-   putSiloSimpleType(key, data, nelements, DB_INT);   
+   putSiloSimpleType(key, data, nelements, DB_INT);
 }
 
 /*
@@ -1154,7 +1153,7 @@ Array<int> SiloDatabase::getIntegerArray(const std::string& key)
 
    if (!isInteger(key)) {
       TBOX_ERROR("SiloDatabase::getIntegerArray() error in database "
-		 << d_database_name << std::endl 
+		 << d_database_name << std::endl
 		 << "    Key = " << key << " is not a integer array." << std::endl);
    }
 
@@ -1192,12 +1191,12 @@ bool SiloDatabase::isString(const std::string& key)
       path += STRING_ARRAY_NAME;
 
       DBcompoundarray *ca = DBGetCompoundarray(d_file, path.c_str());
-      
+
       if(ca != NULL) {
 	 if( ca -> datatype == DB_CHAR) {
 	    is_type = true;
 	 }
-      } 
+      }
 
       DBFreeCompoundarray(ca);
    }
@@ -1215,8 +1214,8 @@ bool SiloDatabase::isString(const std::string& key)
 */
 
 void SiloDatabase::putStringArray(
-   const std::string& key, 
-   const std::string* const data, 
+   const std::string& key,
+   const std::string* const data,
    const int nelements)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1249,9 +1248,9 @@ void SiloDatabase::putStringArray(
    path = d_directory + "/" + key + STRING_ARRAY_NAME;
    path = nameMangle(path);
 
-   DBPutCompoundarray(d_file, path.c_str(), 
-		      const_cast<char **>(elemnames), elemlengths, 
-		      nelements, const_cast<char *>(values.c_str()), values.size() + 1, 
+   DBPutCompoundarray(d_file, path.c_str(),
+		      const_cast<char **>(elemnames), elemlengths,
+		      nelements, const_cast<char *>(values.c_str()), values.size() + 1,
 		      DB_CHAR, NULL);
    if(err < 0) {
       TBOX_ERROR("SiloDatabase DBPutCompoundarray failed " << d_directory << std::endl );
@@ -1279,7 +1278,7 @@ Array<std::string> SiloDatabase::getStringArray(const std::string& key)
 
    if (!isString(key)) {
       TBOX_ERROR("SiloDatabase::getStringArray() error in database "
-		 << d_database_name << std::endl 
+		 << d_database_name << std::endl
 		 << "    Key = " << key << " is not a string array." << std::endl);
    }
 
@@ -1309,7 +1308,7 @@ Array<std::string> SiloDatabase::getStringArray(const std::string& key)
 *                                                                       *
 * Print contents of current database to the specified output stream.    *
 * Note that contents of subdatabases will not be printed.  This must    *
-* be done by iterating through all the subdatabases individually.       * 
+* be done by iterating through all the subdatabases individually.       *
 *                                                                       *
 *************************************************************************
 */
@@ -1320,10 +1319,10 @@ void SiloDatabase::printClassData(std::ostream& os)
    Array<std::string>  keys = getAllKeys();
 
    if (keys.getSize() == 0) {
-      os << "Database named `"<< d_database_name 
+      os << "Database named `"<< d_database_name
          << "' has zero keys..." << std::endl;
    } else {
-      os << "Printing contents of database named `" 
+      os << "Printing contents of database named `"
          << d_database_name << "'..." << std::endl;
    }
 
@@ -1331,59 +1330,59 @@ void SiloDatabase::printClassData(std::ostream& os)
       switch ( getArrayType(keys[i] ) ) {
 	 case Database::SAMRAI_INVALID: {
 	       os << "   Data entry `"<< keys[i] << "' is"
-		  << " invalid" << std::endl;   
+		  << " invalid" << std::endl;
 	       break;
 	    }
 	    case Database::SAMRAI_DATABASE: {
 	       os << "   Data entry `"<< keys[i] << "' is"
-		  << " a database" << std::endl;   
+		  << " a database" << std::endl;
 	       break;
 	    }
 	    case Database::SAMRAI_BOOL: {
 	       os << "   Data entry `"<< keys[i] << "' is"
-		  << " a boolean array" << std::endl;   
+		  << " a boolean array" << std::endl;
 	       break;
 	    }
 	    case Database::SAMRAI_CHAR: {
 	       os << "   Data entry `"<< keys[i] << "' is"
-		  << " a char array" << std::endl;   
+		  << " a char array" << std::endl;
 	       break;
 	    }
 	    case Database::SAMRAI_INT: {
 	       os << "   Data entry `"<< keys[i] << "' is"
-		  << " a integer array" << std::endl;   
+		  << " a integer array" << std::endl;
 	       break;
 	    }
 	    case Database::SAMRAI_COMPLEX: {
 	       os << "   Data entry `"<< keys[i] << "' is"
-		  << " a complex array" << std::endl;   
+		  << " a complex array" << std::endl;
 	       break;
 	    }
 	    case Database::SAMRAI_DOUBLE: {
 	       os << "   Data entry `"<< keys[i] << "' is"
-		  << " a complex array" << std::endl;   
+		  << " a complex array" << std::endl;
 	       break;
 	    }
 	    case Database::SAMRAI_FLOAT: {
 	       os << "   Data entry `"<< keys[i] << "' is"
-		  << " a float array" << std::endl;   
+		  << " a float array" << std::endl;
 	       break;
 	    }
 	    case Database::SAMRAI_STRING: {
 	       os << "   Data entry `"<< keys[i] << "' is"
-		  << " a string array" << std::endl;   
+		  << " a string array" << std::endl;
 	       break;
 	    }
 	    case Database::SAMRAI_BOX: {
 	       os << "   Data entry `"<< keys[i] << "' is"
-		  << " a datbase box array" << std::endl;   
+		  << " a datbase box array" << std::endl;
 	       break;
 	    }
 
       }
    }
 
-   
+
 }
 
 
@@ -1414,7 +1413,7 @@ bool SiloDatabase::isSiloSimpleType(const std::string& key, const int simple_typ
 
    bool is_type = false;
 
-   // First check to see if it is a variable, if so then check to 
+   // First check to see if it is a variable, if so then check to
    // see if it is the correct type of variable
    if(isSiloType(key, DB_VARIABLE)) {
       std::string path = d_directory + "/" + key;
@@ -1446,7 +1445,7 @@ bool SiloDatabase::putSiloSimpleType(const std::string& key, const void *data, c
       err = DBWrite(d_file, path.c_str(), const_cast<void *>(data), dims, 1, simple_type);
       if(err < 0) {
 	 TBOX_ERROR("SiloDatabase DBWrite failed " << key << std::endl);
-      } 
+      }
 
    return err < 0;
 }
@@ -1466,7 +1465,7 @@ bool SiloDatabase::getSiloSimpleType(const std::string& key, void *data)
    err = DBReadVar(d_file, path.c_str(), data);
    if(err < 0) {
       TBOX_ERROR("SiloDatabase DBRead failed " << key << std::endl);
-   } 
+   }
 
    return err < 0;
 }
