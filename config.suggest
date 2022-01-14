@@ -1,0 +1,303 @@
+#!/bin/sh
+##
+## File:        $URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/config.suggest $
+## Package:     SAMRAI
+## Copyright:   (c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:    $LastChangedRevision: 3273 $
+## Modified:    $LastChangedDate: 2009-06-16 13:42:46 -0700 (Tue, 16 Jun 2009) $
+## Description: script to suggest ways to configure SAMRAI
+##
+
+# Note to SAMRAI developers:
+#
+# This script lists known working configure options and associates
+# each configuration with an easy-to-remember index.  Its output can
+# be used as options to SAMRAI's configure script.
+#
+# To add an index, add another case in the case statement, but use the
+# following restrictions so that the help message works automatically:
+#
+# 1. Give your case an index name according to the naming convention.
+# 2. Insert your addition in alphabetical order by index name.
+# 3. Do not use * or | in the glob pattern.
+# 4. Follow the ) with # and a brief (one line) description of
+#    the index.  If you leave out the #, the case will be hidden from
+#    the help message.
+# 5. Add comment that you are maintaining the specific case you added,
+#    so that in case of an error, you can be notified.
+# 6. After adding a case, run this script without arguments to make
+#    sure the help message correctly lists your new addition.
+# 7. Try to list the configure options for each entry in the following order:
+#       C++ compiler       
+#       C compiler
+#       FORTRAN compiler
+#       compiler options
+#       HDF
+#       MPI
+#       Packages stuff (hypre, Sundials, etc.)
+#       SAMRAI specific options
+
+
+case $1 in
+
+#-----------------------------------------------------------------------------
+# CASC machines
+#-----------------------------------------------------------------------------
+
+
+casc_rh4_gnu3) # CASC RedHat 4, GNU-3.x.x compilers
+cat <<-EOF 
+      --with-CXX=/usr/bin/g++
+      --with-CC=/usr/bin/gcc
+      --with-F77=/usr/bin/g77
+      --with-hdf5=/usr/apps/hdf5/1.6.5/gcc3.4.6-serial
+      --with-silo=/usr/casc/samrai/silo/silo-4.6.1_rh4
+      --with-mpi-include=/usr/apps/mpich/1.2.7p1/include
+      --with-mpi-lib-dirs=/usr/apps/mpich/1.2.7p1/lib
+      --with-mpi-libs="mpich pmpich"
+      --with-parallel-run-bin=/usr/apps/mpich/1.2.7p1/bin/mpirun
+      --with-hypre=/usr/casc/samrai/local.tux_rh4/hypre/hypre-2.2.0b-gcc-3.3.2.opt
+      --with-sundials=/usr/casc/samrai/sundials/sundials-2.3.0.tux_rh4
+      --with-petsc=/usr/casc/samrai/petsc/petsc-2.3.3-p8
+      --with-petsc-arch=linux_gnu
+      --with-blaslapack=/usr/lib
+      --with-blaslapack-libs="-llapack -lblas"
+      --with-x
+EOF
+# Maintained by Steven Smith
+;;
+
+
+casc_rh4_gnu4) # CASC RedHat 4, GNU-4.x.x compilers
+cat <<-EOF 
+      --with-CXX=/usr/apps/gcc/4.2.2/bin/g++
+      --with-CC=/usr/apps/gcc/4.2.2/bin/gcc
+      --with-F77=/usr/apps/gcc/4.2.2/bin/gfortran
+      --with-hdf5=/usr/casc/samrai/hdf5/1.8.1-serial-tux
+      --with-silo=/usr/casc/samrai/silo/silo-4.6.1_rh4
+      --with-mpi-include=/usr/apps/mpich/1.2.7p1/include
+      --with-mpi-lib-dirs=/usr/apps/mpich/1.2.7p1/lib
+      --with-mpi-libs="mpich pmpich"
+      --with-parallel-run-bin=/usr/apps/mpich/1.2.7p1/bin/mpirun
+      --with-hypre=/usr/casc/samrai/local.tux_rh4/hypre/hypre-2.2.0b-gcc-4.2.2.opt
+      --with-sundials=/usr/casc/samrai/sundials/sundials-2.3.0.tux_rh4
+      --with-petsc=/usr/casc/samrai/petsc/petsc-2.3.3-p8
+      --with-petsc-arch=linux_gnu
+      --with-blaslapack=/usr/lib
+      --with-blaslapack-libs="-llapack -lblas"
+      --with-x
+EOF
+# Maintained by Steven Smith
+;;
+
+casc_rh4_icc) # CASC RedHat 4, Intel v9.1 compilers
+cat <<-EOF 
+      --with-CXX="/usr/apps/intel/cc/9.1.045/bin/icc -Kc++ -gcc-name=/usr/bin/gcc"
+      --with-CC="/usr/apps/intel/cc/9.1.045/bin/icc -gcc-name=/usr/bin/gcc"
+      --with-F77=/usr/apps/intel/fc/9.1.040/bin/ifort
+      --disable-template-depend
+      --enable-rpath=-Wl,-R
+      --with-hdf5=/usr/apps/hdf5/1.6.5/gcc3.4.6-serial
+      --with-silo=/usr/casc/samrai/silo/silo-4.6.1_rh4_gcc3
+      --with-mpi-include=/usr/apps/mpich/1.2.7p1/include
+      --with-mpi-lib-dirs=/usr/apps/mpich/1.2.7p1/lib
+      --with-mpi-libs="mpich pmpich"
+      --with-parallel-run-bin=/usr/apps/mpich/1.2.7p1/bin/mpirun
+      --with-hypre=/usr/casc/samrai/local.tux_rh4/hypre/hypre-2.2.0b-gcc-4.2.2.opt
+      --with-sundials=/usr/casc/samrai/sundials/sundials-2.3.0.tux_rh4
+      --with-petsc=/usr/casc/samrai/petsc/petsc-2.3.3-p8
+      --with-petsc-arch=linux_gnu
+      --with-blaslapack=/usr/lib
+      --with-blaslapack-libs="-llapack -lblas"
+      --with-x
+EOF
+# Maintained by Steven Smith
+;;
+
+casc_rh4_insure) # CASC Redhat 4, Insure with GNU-4.x.x compilers
+cat <<-EOF 
+      --with-CXX="/usr/apps/insure++/7.1.0/bin/insure /usr/apps/intel/cc/9.1.045/bin/icc -Kc++ -gcc-name=/usr/bin/gcc"
+      --with-CC="/usr/apps/insure++/7.1.0/bin/insure /usr/apps/intel/cc/9.1.045/bin/icc -gcc-name=/usr/bin/gcc"
+      --with-F77=/usr/apps/intel/fc/9.1.040/bin/ifort
+      --enable-rpath=-Wl,-R
+      --disable-template-depend
+      --with-hdf5=/usr/apps/hdf5/1.6.5/gcc3.4.6-serial
+      --with-silo=/usr/casc/samrai/silo/silo-4.6.1_rh4_gcc3
+      --with-mpi-include=/usr/apps/mpich/1.2.7p1/include
+      --with-mpi-lib-dirs=/usr/apps/mpich/1.2.7p1/lib
+      --with-mpi-libs="mpich pmpich"
+      --with-parallel-run-bin=/usr/apps/mpich/1.2.7p1/bin/mpirun
+      --with-hypre=/usr/casc/samrai/local.tux_rh4/hypre/hypre-2.2.0b-gcc-4.2.2.opt
+      --with-sundials=/usr/casc/samrai/sundials/sundials-2.3.0.tux_rh4
+      --with-petsc=/usr/casc/samrai/petsc/petsc-2.3.3-p8
+      --with-petsc-arch=linux_gnu
+      --with-blaslapack=/usr/lib
+      --with-blaslapack-libs="-llapack -lblas"
+      --without-x
+EOF
+# Maintained by Steven Smith
+;;
+
+#-----------------------------------------------------------------------------
+# LC machines
+#-----------------------------------------------------------------------------
+zeus_mpiicpc) # Zeus, Intel compilers with LLNL mpiicpc front ends
+cat <<-EOF
+	--with-CXX=/usr/local/bin/mpiicpc
+	--with-CC=/usr/local/bin/mpiicc
+	--with-F77=/usr/local/bin/mpiifort
+	--with-hdf5=/usr/local/tools/hdf5-intel-serial-1.6.5
+	--with-hypre=/usr/casc/aleamr/hypre/chaos4_x86_64_ib/hypre-2.2.0b
+	--without-sundials
+	--without-petsc
+	--without-blaslapack
+	--without-x
+	--enable-rpath=-Wl,-R
+	--disable-template-depend
+	EOF
+# Maintained by Brian Gunney
+;;
+
+yana_mpiicpc) # Yana, Intel MPI wrapper script
+cat <<-EOF
+	--with-CXX=/usr/local/bin/mpiicpc
+	--with-CC=/usr/local/bin/mpiicc
+	--with-F77=/usr/local/bin/mpiifort
+	--with-hdf5=/usr/local/tools/hdf5-intel-serial-1.6.5
+	--with-parallel-run-bin=/usr/bin/mpirun
+	--with-hypre=/usr/gapps/samrai/hypre/2.2.0b/chaos_4_x86_64
+	--without-sundials
+	--without-petsc
+	--without-blaslapack
+	--without-x
+	--enable-rpath=-Wl,-R
+	EOF
+# Maintained by Brian Gunney
+;;
+
+
+
+up_xlc) # uP, IBM xlC compilers, run configure with nopoe
+cat <<-EOF
+	--with-CXX=/usr/local/bin/newmpxlC
+	--with-CC=/usr/local/bin/newmpxlc
+	--with-F77=/usr/local/bin/newmpxlf
+	--with-hdf5=/usr/local/hdf5/hdf5-1.6.5/serial
+	--without-hypre
+        --without-sundials
+	--without-petsc
+	--without-blaslapack
+	--without-x
+        --disable-rpath
+	EOF
+# Maintained by Steven Smith
+;;
+
+atlas_mpiicpc) # Atlas, using Intel MPI wrappers
+cat <<-EOF
+	--with-CXX=/usr/local/bin/mpiicpc
+	--with-CC=/usr/local/bin/mpiicc
+	--with-F77=/usr/local/bin/mpiifort
+	--with-hdf5=/usr/local/tools/hdf5-intel-serial-1.6.5
+	--with-hypre=/usr/casc/aleamr/atlas-local/hypre-2.2.0b
+	--without-sundials
+	--without-petsc
+	--without-blaslapack
+	--without-x
+	--enable-rpath=-Wl,-R
+	--disable-template-depend
+	EOF
+# Maintained by Brian Gunney
+;;
+
+#-----------------------------------------------------------------------------
+# Misc other machines
+#-----------------------------------------------------------------------------
+
+
+pks_gnu)
+# PKS machine
+cat <<-EOF 
+      --with-CXX="ccache g++"
+      --with-CC="ccache gcc"
+      --with-F77=gfortran
+      --with-hdf5=/usr/apps/hdf5/hdf5-1.6.7
+      --with-mpi-include=/usr/apps/openmpi/openmpi-1.2.1/include
+      --with-mpi-lib-dirs=/usr/apps/openmpi/openmpi-1.2.1/lib
+      --with-mpi-libs="mpi"
+      --with-parallel-run-bin=mpirun
+      --without-hypre
+      --without-sundials
+      --without-petsc
+      --without-blaslapack
+      --without-x
+EOF
+# Maintained by Steven Smith
+;;
+
+
+macosx_gnu) # Apple Mac OS/X, gnu 4.2 compilers from DawrwinPorts
+cat <<-EOF
+      --with-CXX=g++-mp-4.3
+      --with-CC=gcc-mp-4.3
+      --with-F77=gfortran-mp-4.3
+      --with-hdf5=/opt/local 
+      --with-mpi-include=/usr/include 
+      --with-mpi-lib-dirs=/usr/lib 
+      --with-mpi-libs="mpi" 
+      --with-parallel-run-bin=/usr/bin/mpirun
+	EOF
+# Maintained by Steven Smith
+;;
+
+
+
+
+*) # Bad index or no index given, so provide help message.
+
+basename=`echo $0 | sed 's!.*/!!'`
+
+cat <<-EOF
+
+	Usage: $basename <config name>
+
+	This script suggests configure options for configuring SAMRAI
+	on platforms on which the SAMRAI team have some experience.
+
+	The output of this script, edited to suit your needs,
+	can be used as options for SAMRAI's configure script.
+	For example, you may want to add "--enable-opt --disable-debug"
+	for an optimized compile.  To remove packages you may not need,
+	say pvode, change "--with-pvode=/path/to/pvode" to "--without-pvode".
+
+	For an explanation of the configure script options,
+	use configure's --help option.
+
+	Valid configuration names are:
+
+	EOF
+
+sed -e '/^[ 	]\{0,\}[-_a-zA-Z0-9]\{1,\}[ 	]\{0,\})[ 	]\{0,\}#/!d' -e 's/^[ 	]\{0,\}\([-_a-zA-Z0-9]\{1,\}\)[ 	]\{0,\})[ 	]\{0,\}#[ 	]\{0,\}\(.\{0,\}\)/\1	\2/' -e h -e 's/^[^	]\{0,\}	//' -e x -e 's/	.\{0,\}$//' -e ':a' -e 's/^.\{1,15\}$/ &/' -e 'ta' -e G -e 's/\n/ = /' $0
+
+cat <<-EOF
+
+	Hints:
+
+	Shortcut to avoid having to manually paste the output
+	when you want to use it without modification:
+
+	  $basename <config name> | xargs /path/to/SAMRAI/configure
+	or
+	  eval /path/to/SAMRAI/configure \`$basename <config name>\`
+
+	To remove line-breaks for command line editing (less readable):
+
+	echo \`$basename <config name>\`
+
+	EOF
+test $# = 0 && exit	# Normal exit if no index was given.
+exit 1	# Error exit if given bad index.
+;;
+
+
+esac

@@ -1,0 +1,39 @@
+##
+## File:        $URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/tools/restart/Makefile.in $
+## Package:     SAMRAI tests
+## Copyright:   (c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:    $LastChangedRevision: 1917 $
+## Modified:    $LastChangedDate: 2008-01-25 13:28:01 -0800 (Fri, 25 Jan 2008) $
+## Description: makefile for SAMRAI patch hierarchy refine/coarsen tests
+##
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = tools/restart
+VPATH         = @srcdir@
+OBJECT        = ../..
+
+default: restart-redistribute	
+
+include $(OBJECT)/config/Makefile.config
+
+CXX_OBJS =	RedistributedRestartUtility.o \
+		main.o
+
+restart-redistribute:	$(CXX_OBJS) $(LIBSAMRAIDEPEND)
+			$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) \
+			$(LIBSAMRAI) $(LDLIBS) -o restart-redistribute
+			$(RM) $(BIN_SAM)/restart-resdistribute
+			cp restart-redistribute $(BIN_SAM)
+
+tools: restart-redistribute
+
+
+clean-check:
+		$(RM) restart-resdistribute
+		$(SAMCLEAN)
+
+clean:		clean-check
+		$(RM) redo
+
+include $(SRCDIR)/Makefile.depend

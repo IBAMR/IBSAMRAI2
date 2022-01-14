@@ -1,0 +1,85 @@
+##
+## File:        $URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/source/test/hierarchy/Makefile.in $
+## Package:     SAMRAI tests
+## Copyright:   (c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:    $LastChangedRevision: 1917 $
+## Modified:    $LastChangedDate: 2008-01-25 13:28:01 -0800 (Fri, 25 Jan 2008) $
+## Description: makefile for SAMRAI patch hierarchy refine/coarsen tests
+##
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/hierarchy
+VPATH         = @srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default: check	
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DNDIM=$(PDIM)  -DTESTING=1
+#LDFLAGS_EXTRA= --link_command_prefix "/usr/local/bin/purify4.5 -best-effort"
+
+NUM_TESTS = 4
+
+TEST_NPROCS = @TEST_NPROCS@
+
+CXX_OBJS      = HierarchyTester.o \
+		tbox_Pointer-HierarchyTester.o \
+		main.o
+
+test2d:
+		if test -f stamp-1d; then $(MAKE) clean-check; fi
+		if test -f stamp-3d; then $(MAKE) clean-check; fi
+		touch stamp-2d
+		$(MAKE) PDIM=2 main-2d
+
+main-2d:	$(CXX_OBJS) $(LIBSAMRAIDEPEND) 
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) \
+		$(LIBSAMRAI2D) $(LIBSAMRAI) $(LDLIBS) -o test2d
+
+test3d:
+		if test -f stamp-1d; then $(MAKE) clean-check; fi
+		if test -f stamp-2d; then $(MAKE) clean-check; fi
+		touch stamp-3d
+		$(MAKE) PDIM=3 test-3d
+
+test-3d:	$(CXX_OBJS) $(LIBSAMRAIDEPEND) 
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) \
+		$(LIBSAMRAI3D) $(LIBSAMRAI) $(LDLIBS) -o test3d
+
+
+check:
+		$(MAKE) check2d
+		$(MAKE) check3d
+
+checktest:
+		rm -rf makecheck.logfile
+		$(MAKE) check >& makecheck.logfile
+		cat makecheck.logfile
+		$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+		rm -rf makecheck.logfile
+
+check2d:	test2d
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+			./test2d hierarchy-refine2d.input; \
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+			./test2d hierarchy-coarsen2d.input
+
+check3d:	test3d
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+			./test3d hierarchy-refine3d.input; \
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+			./test3d hierarchy-coarsen3d.input
+
+clean-check:
+		$(SAMCLEAN)
+
+clean:		clean-check
+		$(RM) test*d
+
+redo:
+		$(RM) *core* test*d
+
+include $(SRCDIR)/Makefile.depend

@@ -1,0 +1,54 @@
+#!/bin/sh
+##
+## File:        $URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/source/scripts/copy-if-change $
+## Package:     SAMRAI templates
+## Copyright:   (c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:    $LastChangedRevision: 1917 $
+## Modified:    $LastChangedDate: 2008-01-25 13:28:01 -0800 (Fri, 25 Jan 2008) $
+## Description: copy files if there is a change (ignoring CVS comments)
+##
+
+PERL=${PERL:-perl}
+
+#
+# Check usage - must have at least two arguments
+#
+
+BIN=`dirname $0`
+if [ $# -le 1 ] ; then
+	echo "usage: copy-if-change <destination directory> <file1> ..."
+	exit 1
+fi
+
+#
+# Get destination directory - check to make sure directory exists
+#
+
+DIR=$1 ; shift
+if [ ! -d $DIR ] ; then
+	echo "usage: copy-if-change <destination directory> <file1> ..."
+	exit 1
+fi
+
+#
+# Copy SRC to DST if the two files are not the same
+#
+
+for FILE in $*; do
+	SRC=$FILE
+	DST=$DIR/`basename $FILE`
+	echo "Checking "$SRC
+	if [ -r $DST ] ; then
+		if $PERL $BIN/cmp.pl $SRC $DST ; then
+			foo=foo # do nothing
+		else
+			echo "   updating "$DST
+			cp -f $SRC $DST
+		fi
+	else
+		echo "   creating "$DST
+		cp $SRC $DST
+	fi
+done
+
+exit 0

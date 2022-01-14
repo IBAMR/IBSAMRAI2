@@ -1,0 +1,56 @@
+##
+## File:	$URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/source/test/vector/Makefile.in $
+## Package:	SAMRAI algorithm
+## Copyright:	(c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:	$LastChangedRevision: 1917 $
+## Modified:	$LastChangedDate: 2008-01-25 13:28:01 -0800 (Fri, 25 Jan 2008) $
+## Description:	makefile for test of patch data and vector operations
+##
+
+SAMRAI	      =	@top_srcdir@
+SRCDIR	      =	@srcdir@
+SUBDIR        = source/test/vector
+VPATH	      =	@srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default: library
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DTESTING=1
+
+pvtest:		pvtest.o $(FOBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) pvtest.o $(COBJS) \
+			$(LIBSAMRAI3D) $(LIBSAMRAI) $(LDLIBS) -o $@
+kvtest:		kvtest.o $(FOBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) kvtest.o \
+			$(LIBSAMRAI3D) $(LIBSAMRAI) $(LDLIBS) -o $@
+
+NUM_TESTS = 2
+
+TEST_NPROCS = @TEST_NPROCS@
+
+check:
+		$(MAKE) check2d
+		$(MAKE) check3d
+
+check2d:
+
+check3d:	kvtest pvtest
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./kvtest
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./pvtest
+
+checktest:
+		rm -rf makecheck.logfile
+		$(MAKE) check >& makecheck.logfile
+		cat makecheck.logfile
+		$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+		rm -rf makecheck.logfile
+
+
+clean: 
+	$(SAMCLEAN)
+	$(RM) *.f *vtest*
+
+include $(SRCDIR)/Makefile.depend

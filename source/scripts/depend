@@ -1,0 +1,59 @@
+#!/bin/sh
+##
+## File:        $URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/source/scripts/depend $
+## Package:     SAMRAI templates
+## Copyright:   (c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:    $LastChangedRevision: 1917 $
+## Modified:    $LastChangedDate: 2008-01-25 13:28:01 -0800 (Fri, 25 Jan 2008) $
+## Description: shell script to generate dependencies for SAMRAI files
+##
+
+##
+## Generate dependency information for all files in the current directory
+## and subdirectories.
+##
+
+BIN=`dirname $0`
+bindir=`cd $BIN && pwd`
+INC=$BIN/../../include
+
+PERL=${PERL:-perl}
+COMP="$PERL $BIN/cmp.pl"
+
+DIRS=`find . -type d -print | grep -v '\(to_be_implemented\|include\|noprefix\|CVS\|\.svn\)'`
+for DIR in $DIRS ; do
+
+   #
+   # Generate a dependency file in the subdirectory if *.C files exist
+   #
+
+   echo "Checking dependencies in directory "$DIR
+   FILES=`(cd $DIR; echo *.[fCc])`
+   if [ "*.[fCc]" != "$FILES" ] ; then
+      (cd $DIR && perl $bindir/depend.pl . '-' $FILES)
+
+      #
+      # If Makefile.depend does not exist, then create it
+      #
+
+      if [ ! -r $DIR/Makefile.depend ] ; then
+         echo "   creating "$DIR/Makefile.depend
+         mv -f $DIR/Makefile.depend.tmp $DIR/Makefile.depend
+
+      #
+      # Otherwise, copy if the two files are not the same.  Remove the CVS
+      # portions of the header to ignore changes in date/revision/modified.
+      #
+
+      else
+         if $COMP $DIR/Makefile.depend.tmp $DIR/Makefile.depend ; then
+            rm -f $DIR/Makefile.depend.tmp
+         else
+            echo "   updating "$DIR/Makefile.depend
+            mv -f $DIR/Makefile.depend.tmp $DIR/Makefile.depend
+         fi
+      fi
+   fi
+done
+
+exit 0

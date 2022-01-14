@@ -1,0 +1,73 @@
+##
+## File:	$URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/source/test/timers/Makefile.in $
+## Package:	SAMRAI timer test
+## Copyright:	(c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:	$LastChangedRevision: 1917 $
+## Modified:	$LastChangedDate: 2008-01-25 13:28:01 -0800 (Fri, 25 Jan 2008) $
+## Description:	makefile for timer and statistician test programs
+##
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/timers
+VPATH         = @srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DTESTING=1
+
+#LDFLAGS_EXTRA= -L/usr/local/vt151/lib
+#LDFLAGS_EXTRA= --link_command_prefix "/usr/local/bin/purify4.5 -best-effort"
+#LDLIBS_EXTRA= -lVT -lm
+
+
+timertest:
+	$(MAKE) timer_test
+
+statstest:
+	$(MAKE) stats_test
+
+timer_test:  main_timer.o Foo.o $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) main_timer.o Foo.o \
+	$(LIBSAMRAI) $(LDLIBS) -o timertest
+
+stats_test:  main_stats.o $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) main_stats.o \
+	$(LIBSAMRAI) $(LDLIBS) -o statstest
+
+NUM_TESTS = 3
+
+TEST_NPROCS = @TEST_NPROCS@
+
+check:  timertest statstest
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+                ./timertest input.file; \
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+                ./timertest input.file restart 0; \
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+                ./statstest 
+
+check2d:
+	$(MAKE) check
+
+check3d:
+	$(MAKE) check
+
+checktest:
+		rm -rf makecheck.logfile
+		$(MAKE) check >& makecheck.logfile
+		cat makecheck.logfile
+		$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+		rm -rf makecheck.logfile
+
+
+clean:
+	$(SAMCLEAN)
+	$(RM) timertest statstest timermaxtest
+	$(RM) -rf *.log.* stats
+
+include $(SRCDIR)/Makefile.depend

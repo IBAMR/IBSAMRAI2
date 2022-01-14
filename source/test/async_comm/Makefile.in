@@ -1,0 +1,55 @@
+##
+## File:	$URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/source/test/async_comm/Makefile.in $
+## Package:	SAMRAI test
+## Copyright:	(c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:	$LastChangedRevision: 1917 $
+## Modified:	$LastChangedDate: 2008-01-25 13:28:01 -0800 (Fri, 25 Jan 2008) $
+## Description:	makefile for the asynchromous communication class tests 
+##
+
+SAMRAI	      =	@top_srcdir@
+SRCDIR	      =	@srcdir@
+SUBDIR        = source/test/async_comm
+VPATH	      =	@srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+CPPFLAGS_EXTRA =  -DTESTING=1
+#LDFLAGS_EXTRA= --link_command_prefix "/usr/local/bin/purify4.5 -best-effort"
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+NUM_TESTS = 1
+
+TEST_NPROCS = @TEST_NPROCS@
+
+testasync_comm:
+		$(MAKE) main-async_comm
+
+main-async_comm:	main-async_comm.o $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) main-async_comm.o $(LIBSAMRAI) $(LDLIBS) -o testasync_comm
+
+
+check:		testasync_comm
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./testasync_comm $(SRCDIR)/default.input
+
+check2d:
+		$(MAKE) check
+
+check3d:
+		$(MAKE) check
+
+checktest:
+		rm -rf makecheck.logfile
+		$(MAKE) check >& makecheck.logfile
+		cat makecheck.logfile
+		$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+		rm -rf makecheck.logfile
+
+clean:
+		$(SAMCLEAN)
+		$(RM) testasync_comm
+
+include $(SRCDIR)/Makefile.depend

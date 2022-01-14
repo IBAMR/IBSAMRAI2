@@ -1,0 +1,39 @@
+##
+## File:        $URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/tools/scripts/conversion2.0/solv.data $
+## Package:     SAMRAI build scripts
+## Copyright:   (c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:    $LastChangedRevision: 1917 $
+## Modified:    $LastChangedDate: 2008-01-25 13:28:01 -0800 (Fri, 25 Jan 2008) $
+## Description: data file for sed substitutions to generate dim-dep. files
+##
+
+#
+# solvers package
+#
+
+solv_CartesianRobinBcHelper
+solv_FACOperatorStrategy
+solv_FACPreconditioner
+solv_GhostCellRobinBcCoefs
+solv_KINSOL_SAMRAIContext
+solv_LocationIndexRobinBcCoefs
+solv_NonlinearSolverStrategy
+solv_PETSc_SAMRAIVectorReal
+solv_CellPoissonFACSolver
+solv_PoissonHierarchySolver
+solv_PoissonHYPRESolver
+solv_PoissonLevelStrategy
+solv_Sundials_SAMRAIVector
+solv_RobinBcCoefStrategy
+solv_SimpleCellRobinBcCoefs
+solv_SAMRAIVectorReal
+solv_SAMRAIVectorRealSpecialized
+solv_CellPoissonHypreSolver
+solv_CellPoissonFACOps
+solv_SNES_SAMRAIContext
+solv_OuternodeSumAlgorithm
+solv_OuternodeSumTransaction
+solv_OuternodeSumTransactionFactory
+solv_PatchBoundaryNodeSum
+
+

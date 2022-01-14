@@ -1,0 +1,71 @@
+##
+## File:	$URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/source/test/dataaccess/Makefile.in $
+## Package:	SAMRAI tests
+## Copyright:	(c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:	$LastChangedRevision: 1917 $
+## Modified:	$LastChangedDate: 2008-01-25 13:28:01 -0800 (Fri, 25 Jan 2008) $
+## Description:	makefile for testing data access functionality
+##
+
+SAMRAI	      =	@top_srcdir@
+SRCDIR	      =	@srcdir@
+SUBDIR        = source/test/dataaccess
+VPATH	      =	@srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA	= -DNDIM=$(PDIM) -DTESTING=1
+#LDFLAGS_EXTRA= --link_command_prefix "/usr/local/bin/purify4.5 -best-effort"
+
+NUM_TESTS = 2
+
+TEST_NPROCS = @TEST_NPROCS@
+
+CXX_OBJS	= main.o
+
+datatest2:
+		if test -f stamp-3d; then $(MAKE) clean-check ; fi
+		touch stamp-2d
+		$(MAKE) PDIM=2 main-data2
+
+main-data2:	$(CXX_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) main.o \
+		$(LIBSAMRAI2D) $(LIBSAMRAI) $(LDLIBS) -o datatest2
+
+datatest3:
+		if test -f stamp-2d; then $(MAKE) clean-check ; fi
+		touch stamp-3d
+		$(MAKE) PDIM=3 main-data3
+
+main-data3:	$(CXX_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) main.o \
+		$(LIBSAMRAI3D) $(LIBSAMRAI) $(LDLIBS) -o datatest3
+
+check:
+		$(MAKE) check2d
+		$(MAKE) check3d
+
+check2d:	datatest2 
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./datatest2
+
+check3d:	datatest3 
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./datatest3
+
+checktest:
+		rm -rf makecheck.logfile
+		$(MAKE) check >& makecheck.logfile
+		cat makecheck.logfile
+		$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+		rm -rf makecheck.logfile
+
+clean-check:
+		$(SAMCLEAN)
+
+clean:		clean-check
+		$(RM) *.f datatest*
+
+include $(SRCDIR)/Makefile.depend

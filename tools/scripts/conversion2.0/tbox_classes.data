@@ -1,0 +1,58 @@
+##
+## File:        $URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/tools/scripts/conversion2.0/tbox_classes.data $
+## Package:     SAMRAI build scripts
+## Copyright:   (c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:    $LastChangedRevision: 1917 $
+## Modified:    $LastChangedDate: 2008-01-25 13:28:01 -0800 (Fri, 25 Jan 2008) $
+## Description: data file for sed substitutions to generate dim-dep. files
+##
+
+AbstractStream
+Arena
+ArenaManager
+Array
+Boolean
+Clock
+Complex
+ConstPointer
+ConstPointerBase
+Database
+DatabaseBox
+DescribedClass
+FileStream
+FixedArena
+Grammar
+HDFDatabase
+IEEE
+IOStream
+InputDatabase
+InputManager
+List
+MPI
+MathUtilities
+MemoryUtilities
+MessageStream
+NullDatabase
+PIO
+ParallelBuffer
+Parser
+Pointer
+PointerBase
+ReferenceCounter
+RestartManager
+SAMRAIManager
+Schedule
+ScratchArena
+Serializable
+ShutdownRegistry
+StandardArena
+StatTransaction
+Statistic
+Statistician
+String
+Timer
+TimerManager
+Tracer
+Transaction
+Utilities
+XDRStream

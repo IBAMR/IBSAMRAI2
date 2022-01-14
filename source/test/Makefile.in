@@ -1,0 +1,45 @@
+##
+## File:	$URL: file:///usr/casc/samrai/repository/SAMRAI/tags/v-2-4-4/source/test/Makefile.in $
+## Package:	SAMRAI test
+## Copyright:	(c) 1997-2008 Lawrence Livermore National Security, LLC
+## Revision:	$LastChangedRevision: 2249 $
+## Modified:	$LastChangedDate: 2008-07-03 08:17:20 -0700 (Thu, 03 Jul 2008) $
+## Description:	makefile for testing parts of SAMRAI library
+##
+
+SAMRAI	      = @top_srcdir@
+SRCDIR        = @srcdir@
+OBJECT        = ../..
+SUBDIR        = source/test
+
+SUBDIRS = logger async_comm \
+	applications boundary communication clustering dataops dataaccess \
+	dlbg emb_bdry FAC hierarchy hypre ieee inputdb restartdb  \
+	locally_active \
+	mblkcomm MblkLinAdv nonlinear patchbdrysum patch_configuration pointer \
+        sundials schedules timers variables vector indexdata
+
+default: check	
+
+include $(OBJECT)/config/Makefile.config
+
+library:
+lib1d:
+lib2d:
+lib3d:
+libXd:
+
+check:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+
+check2d:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+
+check3d:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+
+checktest:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+
+clean:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
