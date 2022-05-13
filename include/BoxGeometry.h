@@ -76,7 +76,7 @@ public:
    /**
     * The virtual destructor does nothing interesting.
     */
-   virtual ~BoxGeometry<DIM>();
+   virtual ~BoxGeometry();
 
    /**
     * Calculate the overlap between two box geometry objects given the

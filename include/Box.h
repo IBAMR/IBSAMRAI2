@@ -449,7 +449,7 @@ public:
    /**
     * Destructor for the box iterator.
     */
-   ~BoxIterator<DIM>();
+   ~BoxIterator();
 
    /**
     * @brief Initializer for the box iterator.
