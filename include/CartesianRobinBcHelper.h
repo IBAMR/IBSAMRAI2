@@ -93,7 +93,7 @@ public:
    /*!
     * @brief Destructor.
     */
-   virtual ~CartesianRobinBcHelper<DIM>(void);
+   virtual ~CartesianRobinBcHelper<DIM>();
 
 
 

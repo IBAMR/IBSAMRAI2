@@ -83,7 +83,7 @@ public:
    /*!
     * @brief Destructor.
     */
-   virtual ~GhostCellRobinBcCoefs<DIM>(void);
+   virtual ~GhostCellRobinBcCoefs<DIM>();
 
 
    /*!
