@@ -52,7 +52,7 @@ public:
     */
    PatchSideDataOpsInteger();
 
-   virtual ~PatchSideDataOpsInteger<DIM>();
+   virtual ~PatchSideDataOpsInteger();
 
    /**
     * Return the number of data values for the side-centered data object

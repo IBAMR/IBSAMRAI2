@@ -54,7 +54,7 @@ public:
    /*!
     * @brief The virtual destructor does nothing interesting.
     */
-   virtual ~MultiblockGriddingTagger<DIM>();
+   virtual ~MultiblockGriddingTagger();
 
    /*!
     * @brief Set the patch data index for tag data.  This routine

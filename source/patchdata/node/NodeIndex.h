@@ -85,7 +85,7 @@ public:
    /**
     * The node index destructor does nothing interesting.
     */
-   ~NodeIndex<DIM>();
+   ~NodeIndex();
 
    /**
     * Plus-equals operator for a node index and an integer vector.

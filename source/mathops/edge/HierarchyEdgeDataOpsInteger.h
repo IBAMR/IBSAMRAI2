@@ -77,7 +77,7 @@ public:
    /**
     * Virtual destructor for the HierarchyEdgeDataOpsInteger<DIM> class.
     */
-   virtual ~HierarchyEdgeDataOpsInteger<DIM>();
+   virtual ~HierarchyEdgeDataOpsInteger();
 
    /**
     * Reset patch hierarchy over which operations occur.

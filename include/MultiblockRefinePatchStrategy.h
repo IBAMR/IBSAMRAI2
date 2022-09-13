@@ -46,7 +46,7 @@ public:
    /*!
     * The virtual destructor for refine strategy does nothing interesting.
     */
-   virtual ~MultiblockRefinePatchStrategy<DIM>();
+   virtual ~MultiblockRefinePatchStrategy();
 
    /*!
     * @brief Set the physical boundary conditions.

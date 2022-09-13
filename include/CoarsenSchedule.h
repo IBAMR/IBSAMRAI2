@@ -122,7 +122,7 @@ public:
    /*!
     * The virtual destructor for the schedule releases all internal storage.
     */
-   virtual ~CoarsenSchedule<DIM>();
+   virtual ~CoarsenSchedule();
 
    /*!
     * Reset this coarsen schedule to perform data transfers asssociated with

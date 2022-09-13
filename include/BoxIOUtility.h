@@ -60,7 +60,7 @@ public:
    /**
     * Virtual destructor.
     */
-   virtual ~BoxIOUtility<DIM>();
+   virtual ~BoxIOUtility();
 
    /**
     * Pulls refinement boxes corresponding to the provided level and 

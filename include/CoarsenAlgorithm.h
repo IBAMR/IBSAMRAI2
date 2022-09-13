@@ -117,7 +117,7 @@ public:
    /*!
     * The virtual destructor for the algorithm releases all internal storage.
     */
-   virtual ~CoarsenAlgorithm<DIM>();
+   virtual ~CoarsenAlgorithm();
 
    /*!
     * Register a coarsening operation with the coarsening algorithm.  Data

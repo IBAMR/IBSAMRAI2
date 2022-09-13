@@ -55,7 +55,7 @@ public:
    /**
     * Virtual destructor for the HierarchyDataOpsComplex<DIM> class.
     */
-   virtual ~HierarchyDataOpsComplex<DIM>();
+   virtual ~HierarchyDataOpsComplex();
 
    /**
     * Reset patch hierarchy over which operations occur.

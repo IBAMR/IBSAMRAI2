@@ -203,7 +203,7 @@ public:
    /*!
     * Virtual destructor for the schedule releases all internal storage.
     */
-   virtual ~LocallyActiveDataRefineSchedule<DIM>();
+   virtual ~LocallyActiveDataRefineSchedule();
 
    /*!
     * @brief Execute the stored communication schedule and perform

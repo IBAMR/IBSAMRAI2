@@ -71,7 +71,7 @@ public:
    /**
     * Virtual destructor for HyperbolicPatchStrategy<DIM>.
     */
-   virtual ~HyperbolicPatchStrategy<DIM>();
+   virtual ~HyperbolicPatchStrategy();
 
    /**
     * Register specific variables needed in the numerical routines with the 

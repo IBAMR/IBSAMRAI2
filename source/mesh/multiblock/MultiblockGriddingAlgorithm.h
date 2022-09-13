@@ -297,7 +297,7 @@ public:
    /*!
     * Virtual destructor for MultiblockGriddingAlgorithm<DIM>.
     */
-   virtual ~MultiblockGriddingAlgorithm<DIM>();
+   virtual ~MultiblockGriddingAlgorithm();
 
    /*!
     * @brief Create level 0 for a hierarchy

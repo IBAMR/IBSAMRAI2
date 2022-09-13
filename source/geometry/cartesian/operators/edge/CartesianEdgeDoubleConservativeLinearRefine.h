@@ -51,7 +51,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianEdgeDoubleConservativeLinearRefine<DIM>();
+   virtual ~CartesianEdgeDoubleConservativeLinearRefine();
 
    /**
     * Return true if the variable and name string match edge-centered 

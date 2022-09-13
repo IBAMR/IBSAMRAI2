@@ -79,7 +79,7 @@ public:
    /*!
     * The destructor releases all box and locally-active data storage.
     */
-   virtual ~LocallyActiveDataFillBox<DIM>();
+   virtual ~LocallyActiveDataFillBox();
 
    /*!
     * Return constant reference to box maintained by this object.

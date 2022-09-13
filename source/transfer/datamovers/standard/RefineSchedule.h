@@ -197,7 +197,7 @@ public:
    /*!
     * Virtual destructor for the schedule releases all internal storage.
     */
-   virtual ~RefineSchedule<DIM>();
+   virtual ~RefineSchedule();
 
    /*!
     * @brief Reset this refine schedule to perform data transfers

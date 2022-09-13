@@ -93,7 +93,7 @@ public:
     * The virtual destructor for the copy transaction releases all
     * memory associated with the transaction.
     */
-   virtual ~CoarsenCopyTransaction<DIM>();
+   virtual ~CoarsenCopyTransaction();
 
    /*!
     * Return a boolean indicating whether this transaction can estimate

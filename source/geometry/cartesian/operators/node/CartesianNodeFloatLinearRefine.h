@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianNodeFloatLinearRefine<DIM>();
+   virtual ~CartesianNodeFloatLinearRefine();
 
    /**
     * Return true if the variable and name string match node-centered 

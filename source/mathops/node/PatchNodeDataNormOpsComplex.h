@@ -64,7 +64,7 @@ public:
     */
    PatchNodeDataNormOpsComplex();
 
-   virtual ~PatchNodeDataNormOpsComplex<DIM>();
+   virtual ~PatchNodeDataNormOpsComplex();
 
    /**
     * Return the number of data values for the node-centered data object

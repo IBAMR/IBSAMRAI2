@@ -54,7 +54,7 @@ public:
    /**
     * The virtual destructor for the patch geometry base class.
     */
-   virtual ~PatchGeometry<DIM>();
+   virtual ~PatchGeometry();
 
    /**
     * Return const reference to patch boundary information.

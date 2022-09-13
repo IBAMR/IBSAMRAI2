@@ -47,7 +47,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~SkeletonCoarsen<DIM>();
+   virtual ~SkeletonCoarsen();
 
    /**
     * Return true if the variable and name string match cell-centered 

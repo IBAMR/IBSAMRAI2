@@ -74,7 +74,7 @@ public:
     * The virtual destructor for a patch descriptor deallocates the
     * internal data structures.
     */
-   virtual ~PatchDescriptor<DIM>();
+   virtual ~PatchDescriptor();
 
    /*!
     * Add a new patch data factory and name string identifier to the patch 

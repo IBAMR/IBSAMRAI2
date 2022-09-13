@@ -67,7 +67,7 @@ public:
    /**
     * Virtual destructor for the side data factory class.
     */
-   virtual ~SideDataFactory<DIM,TYPE>();
+   virtual ~SideDataFactory();
 
    /**
     * @brief Abstract virtual function to clone a patch data factory.

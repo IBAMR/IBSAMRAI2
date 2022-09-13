@@ -50,7 +50,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~NodeIntegerInjection<DIM>();
+   virtual ~NodeIntegerInjection();
 
    /**
     * Return true if the variable and name string match the node-centered

@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianCellComplexWeightedAverage<DIM>();
+   virtual ~CartesianCellComplexWeightedAverage();
 
    /**
     * Return true if the variable and name string match cell-centered 

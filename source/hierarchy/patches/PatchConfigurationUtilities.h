@@ -98,7 +98,7 @@ public:
    /*!
     * Virtual destructor for utilities objects.
     */
-   virtual ~PatchConfigurationUtilities<DIM>();
+   virtual ~PatchConfigurationUtilities();
 
    /*!
     * Check whether information is set for given level number. 

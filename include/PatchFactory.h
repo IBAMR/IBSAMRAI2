@@ -43,7 +43,7 @@ public:
    /**
     * Virtual destructor for patch factory objects.
     */
-   virtual ~PatchFactory<DIM>();
+   virtual ~PatchFactory();
 
    /**
     * Allocate a patch with the specified domain and patch descriptor.

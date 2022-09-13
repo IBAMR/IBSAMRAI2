@@ -51,7 +51,7 @@ public:
    /**
     * Destructor for SkeletonPatchGeometry.
     */
-   ~SkeletonPatchGeometry<DIM>();
+   ~SkeletonPatchGeometry();
 
    /**
     * Print SkeletonPatchGeometry class data.

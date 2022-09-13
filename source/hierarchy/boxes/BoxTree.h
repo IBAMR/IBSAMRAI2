@@ -124,7 +124,7 @@ public:
    /*!
     * The dtor does nothing interesting.
     */
-   ~BoxTree<DIM>();
+   ~BoxTree();
 
    //! @{
    /*!

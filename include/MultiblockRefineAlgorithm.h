@@ -64,7 +64,7 @@ public:
    /*!
     * @brief Destructor
     */
-   ~MultiblockRefineAlgorithm<DIM>();
+   ~MultiblockRefineAlgorithm();
 
    /*!
     * Register a refine operation with the refine algorithm object.  This

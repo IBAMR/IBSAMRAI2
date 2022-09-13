@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~OuterfaceIntegerConstantRefine<DIM>();
+   virtual ~OuterfaceIntegerConstantRefine();
 
    /**
     * Return true if the variable and name string match outerface 

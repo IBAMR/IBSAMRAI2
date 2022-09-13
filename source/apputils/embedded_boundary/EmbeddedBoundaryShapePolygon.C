@@ -39,7 +39,7 @@ EmbeddedBoundaryShapePolygon<DIM>::EmbeddedBoundaryShapePolygon(
 }
 
 template<int DIM>      
-EmbeddedBoundaryShapePolygon<DIM>::~EmbeddedBoundaryShapePolygon<DIM>()
+EmbeddedBoundaryShapePolygon<DIM>::~EmbeddedBoundaryShapePolygon()
 {  
 }
 

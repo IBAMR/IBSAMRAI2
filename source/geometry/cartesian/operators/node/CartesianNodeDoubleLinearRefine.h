@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianNodeDoubleLinearRefine<DIM>();
+   virtual ~CartesianNodeDoubleLinearRefine();
 
    /**
     * Return true if the variable and name string match node-centered 

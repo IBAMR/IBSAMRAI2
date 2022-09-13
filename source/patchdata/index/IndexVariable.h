@@ -54,7 +54,7 @@ public:
    /**
     * Virtual destructor for index variable objects.
     */
-   virtual ~IndexVariable<DIM,TYPE,BOX_GEOMETRY>();
+   virtual ~IndexVariable();
 
    /**
     * Return true so that the index data quantities will always be treated as cell-

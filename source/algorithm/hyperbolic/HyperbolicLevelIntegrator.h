@@ -218,7 +218,7 @@ public:
     * The destructor for HyperbolicLevelIntegrator<DIM> unregisters 
     * the integrator object with the restart manager when so registered.
     */
-   virtual ~HyperbolicLevelIntegrator<DIM>();
+   virtual ~HyperbolicLevelIntegrator();
 
    /**
     * Initialize level integrator by by setting the number of time levels 

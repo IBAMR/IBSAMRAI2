@@ -68,7 +68,7 @@ public:
     */
    PatchCellDataNormOpsReal();
 
-   virtual ~PatchCellDataNormOpsReal<DIM,TYPE>();
+   virtual ~PatchCellDataNormOpsReal();
 
    /**
     * Return the number of data values for the cell-centered data object

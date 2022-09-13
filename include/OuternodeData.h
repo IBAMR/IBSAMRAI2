@@ -143,7 +143,7 @@ public:
    /*!
     * @brief Virtual destructor for a outernode data object.
     */
-   virtual ~OuternodeData<DIM,TYPE>();
+   virtual ~OuternodeData();
 
    /*!
     * @brief Return the depth (e.g., the number of components at each spatial

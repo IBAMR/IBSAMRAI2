@@ -138,7 +138,7 @@ public:
    /*!
     * @brief Destructor.
     */
-   ~CellPoissonFACSolver<DIM>();
+   ~CellPoissonFACSolver();
 
 
 

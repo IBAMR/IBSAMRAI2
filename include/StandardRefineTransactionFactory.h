@@ -47,7 +47,7 @@ public:
    /*!
     * @brief Virtual destructor.
     */
-   virtual ~StandardRefineTransactionFactory<DIM>();
+   virtual ~StandardRefineTransactionFactory();
 
    /*!
     * @brief Set the array of RefineClass::Data items used by the transactions.

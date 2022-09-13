@@ -47,7 +47,7 @@ public:
    /*!
     * @brief Virtual destructor.
     */
-   virtual ~StandardLocallyActiveDataCoarsenTransactionFactory<DIM>();
+   virtual ~StandardLocallyActiveDataCoarsenTransactionFactory();
 
    /*!
     * @brief Set the array of CoarsenClass::Data items used by the transactions.

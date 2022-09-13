@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianFaceDoubleWeightedAverage<DIM>();
+   virtual ~CartesianFaceDoubleWeightedAverage();
 
    /**
     * Return true if the variable and name string match the face-centered 

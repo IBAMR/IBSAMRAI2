@@ -48,7 +48,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianFaceComplexWeightedAverage<DIM>();
+   virtual ~CartesianFaceComplexWeightedAverage();
 
    /**
     * Return true if the variable and name string match the face-centered 

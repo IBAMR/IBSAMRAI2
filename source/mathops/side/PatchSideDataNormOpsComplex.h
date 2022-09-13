@@ -64,7 +64,7 @@ public:
     */
    PatchSideDataNormOpsComplex();
 
-   virtual ~PatchSideDataNormOpsComplex<DIM>();
+   virtual ~PatchSideDataNormOpsComplex();
 
    /**
     * Return the number of data values for the side-centered data object

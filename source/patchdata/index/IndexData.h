@@ -120,7 +120,7 @@ public:
    /**
     * The virtual destructor for an IndexData object.
     */
-   virtual ~IndexData<DIM,TYPE,BOX_GEOMETRY>();
+   virtual ~IndexData();
 
    /**
     * A fast copy between the source and destination.  All data is copied
@@ -390,7 +390,7 @@ public:
       IndexDataNode<DIM,TYPE,BOX_GEOMETRY> *n,
       IndexDataNode<DIM,TYPE,BOX_GEOMETRY> *p);
 
-   virtual ~IndexDataNode<DIM,TYPE,BOX_GEOMETRY>();
+   virtual ~IndexDataNode();
 
 private:
    hier::Index<DIM> d_index;
@@ -451,7 +451,7 @@ public:
    /**
     * Destructor for the index list iterator.
     */
-   ~IndexIterator<DIM,TYPE,BOX_GEOMETRY>();
+   ~IndexIterator();
 
    /**
     * Return the current item in the irregular index set.
@@ -577,7 +577,7 @@ public:
    /**
     * Destructor for the index list iterator.
     */
-   ~ConstIndexIterator<DIM,TYPE,BOX_GEOMETRY>();
+   ~ConstIndexIterator();
 
    /**
     * Return the current item in the irregular index set.

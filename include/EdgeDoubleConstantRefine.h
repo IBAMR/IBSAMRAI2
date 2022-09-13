@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~EdgeDoubleConstantRefine<DIM>();
+   virtual ~EdgeDoubleConstantRefine();
 
    /**
     * Return true if the variable and name string match edge-centered 

@@ -67,7 +67,7 @@ public:
    /**
     * Destructor for the edge iterator.
     */
-   ~EdgeIterator<DIM>();
+   ~EdgeIterator();
 
    /**
     * Extract the edge index corresponding to the iterator position in the box.

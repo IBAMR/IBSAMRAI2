@@ -109,7 +109,7 @@ public:
     * @brief The virtual destructor for the schedule releases all internal
     *        storage.
     */
-   virtual ~MultiblockCoarsenSchedule<DIM>();
+   virtual ~MultiblockCoarsenSchedule();
 
    /*!
     * @brief Execute the stored communication schedule and perform the data

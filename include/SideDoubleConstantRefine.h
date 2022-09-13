@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~SideDoubleConstantRefine<DIM>();
+   virtual ~SideDoubleConstantRefine();
 
    /**
     * Return true if the variable and name string match side-centered 

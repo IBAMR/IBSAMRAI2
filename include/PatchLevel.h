@@ -127,7 +127,7 @@ public:
    /**
     * The virtual destructor for patch level deallocates all patches.
     */
-   virtual ~PatchLevel<DIM>();
+   virtual ~PatchLevel();
 
    /**
     * Return the number of this level in a hierarchy, or the number of
@@ -633,7 +633,7 @@ public:
    /**
     * Destructor for the patch level iterator.
     */
-   ~PatchLevelIterator<DIM>();
+   ~PatchLevelIterator();
 
    /**
     * Extract the integer patch index corresponding to the current patch 

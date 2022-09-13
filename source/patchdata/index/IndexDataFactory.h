@@ -51,7 +51,7 @@ public:
    /**
     * Virtual destructor for the irregular data factory class.
     */
-   virtual ~IndexDataFactory<DIM,TYPE,BOX_GEOMETRY>();
+   virtual ~IndexDataFactory();
 
    /**
     * @brief Abstract virtual function to clone a patch data factory.

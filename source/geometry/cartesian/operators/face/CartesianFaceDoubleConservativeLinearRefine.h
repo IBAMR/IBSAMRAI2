@@ -51,7 +51,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianFaceDoubleConservativeLinearRefine<DIM>();
+   virtual ~CartesianFaceDoubleConservativeLinearRefine();
 
    /**
     * Return true if the variable and name string match face-centered 

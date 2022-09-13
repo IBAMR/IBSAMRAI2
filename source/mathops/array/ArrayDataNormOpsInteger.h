@@ -41,7 +41,7 @@ public:
     */
    ArrayDataNormOpsInteger();
 
-   ~ArrayDataNormOpsInteger<DIM>();
+   ~ArrayDataNormOpsInteger();
 
    /**
     * Set destination component to absolute value of source component.  

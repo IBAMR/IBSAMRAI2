@@ -49,7 +49,7 @@ public:
    /*!
     * @brief Virtual destructor.
     */
-   virtual ~FACOperatorStrategy<DIM>();
+   virtual ~FACOperatorStrategy();
 
    //@{
    /*!

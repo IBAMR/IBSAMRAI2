@@ -78,7 +78,7 @@ public:
    /**
     * Virtual destructor for the HierarchyFaceDataOpsReal<DIM> class.
     */
-   virtual ~HierarchyFaceDataOpsReal<DIM,TYPE>();
+   virtual ~HierarchyFaceDataOpsReal();
 
    /**
     * Reset patch hierarchy over which operations occur.

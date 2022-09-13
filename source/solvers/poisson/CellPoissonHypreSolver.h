@@ -115,7 +115,7 @@ public:
    /*!
     * The Poisson destructor releases all internally managed data.
     */
-   ~CellPoissonHypreSolver<DIM>();
+   ~CellPoissonHypreSolver();
 
    /*!
     * @brief Initialize to a given hierarchy.

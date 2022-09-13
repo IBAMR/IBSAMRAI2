@@ -59,7 +59,7 @@ public:
    /*!
     * @brief The virtual destructor does nothing interesting.
     */
-   virtual ~CellGeometry<DIM>();
+   virtual ~CellGeometry();
 
    /*!
     * @brief Compute the overlap in cell-centered index space between 

@@ -229,7 +229,7 @@ public:
     * Destructor for solve_SNES_SAMRAIContext destroys the SNES 
     * and the PETSc solution vector wrapper.
     */
-   ~SNES_SAMRAIContext<DIM>();
+   ~SNES_SAMRAIContext();
 
    /*!
     * Return the PETSc nonlinear solver object.

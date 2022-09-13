@@ -173,7 +173,7 @@ protected:
     * The destructor for HierarchyDataOpsManager<DIM> is protected.  
     * See the comments for the constructor.
     */
-   virtual ~HierarchyDataOpsManager<DIM>();
+   virtual ~HierarchyDataOpsManager();
 
    /**
     * Initialize Singleton instance with instance of subclass.  This function

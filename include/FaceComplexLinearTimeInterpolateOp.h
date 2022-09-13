@@ -46,7 +46,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~FaceComplexLinearTimeInterpolateOp<DIM>();
+   virtual ~FaceComplexLinearTimeInterpolateOp();
 
    /**
     * Return true if the variable and name string match the standard

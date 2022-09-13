@@ -120,7 +120,7 @@ public:
     * Destructor for SkeletonGridGeometry unregisters the object 
     * with the restart manager if previously registered.
     */
-   virtual ~SkeletonGridGeometry<DIM>();
+   virtual ~SkeletonGridGeometry();
    
    /**
     * Create and return a pointer to a refined version of this Cartesian grid

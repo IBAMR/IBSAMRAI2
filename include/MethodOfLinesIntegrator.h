@@ -152,7 +152,7 @@ public:
     * The destructor for MethodOfLinesIntegrator<DIM> unregisters
     * the integrator object with the restart manager when so registered.
     */
-   virtual ~MethodOfLinesIntegrator<DIM>();
+   virtual ~MethodOfLinesIntegrator();
 
    /*!
     * Initialize integrator by setting the number of time levels

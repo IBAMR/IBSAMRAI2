@@ -67,7 +67,7 @@ public:
    /*!
     * @brief Destructor for VisDerivedDataStrategy<DIM>.
     */
-   virtual ~VisDerivedDataStrategy<DIM>();
+   virtual ~VisDerivedDataStrategy();
 
    /*!
     * @brief This function calculates and packs derived
