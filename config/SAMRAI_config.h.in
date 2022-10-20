@@ -1,4 +1,4 @@
-/* config/SAMRAI_config.h.in.  Generated from configure.in by autoheader.  */
+/* config/SAMRAI_config.h.in.  Generated from configure.ac by autoheader.  */
 
 
 
@@ -126,9 +126,6 @@
 /* HAVE_MEMBER_FUNCTION_SPECIALIZATION */
 #undef HAVE_MEMBER_FUNCTION_SPECIALIZATION
 
-/* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
-
 /* MPI library is present */
 #undef HAVE_MPI
 
@@ -158,6 +155,9 @@
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#undef HAVE_STDIO_H
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H

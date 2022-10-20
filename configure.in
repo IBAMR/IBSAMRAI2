@@ -7,8 +7,9 @@ dnl Modified:    $LastChangedDate: 2009-06-18 14:43:43 -0700 (Thu, 18 Jun 2009) 
 dnl Description: autoconfig configuration file
 dnl
 
-AC_INIT(COPYRIGHT)
-AC_CONFIG_HEADER(include/SAMRAI_config.h:config/SAMRAI_config.h.in)
+AC_INIT
+AC_CONFIG_SRCDIR([COPYRIGHT])
+AC_CONFIG_HEADERS([include/SAMRAI_config.h:config/SAMRAI_config.h.in])
 dnl
 dnl Autoheader stuff
 AH_TOP([
@@ -68,7 +69,7 @@ BTNG_AC_LOG_VAR(CONFIG_SHELL)
 AC_CONFIG_AUX_DIR(config)
 
 # Get system type.
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 BTNG_AC_LOG_VAR(target_cpu target_vendor target_os)
 
 dnl SAMRAI has some code specific for the Solaris operating system.
@@ -197,7 +198,7 @@ BTNG_AC_LOG_VAR(with_CXX CXX CCC, after running compiler search)
 
 dnl
 dnl Set up the C compiler.  This macro must come first and be followed
-dnl AC_ISC_POSIX before other compiler tests are run.  See the autoconfig
+dnl AC_SEARCH_LIBS([strerror],[cposix]) before other compiler tests are run.  See the autoconfig
 dnl manual for details.
 dnl
 
@@ -207,7 +208,7 @@ else
    AC_PROG_CC
 fi
 
-AC_ISC_POSIX
+AC_SEARCH_LIBS([strerror],[cposix])
 
 
 dnl
@@ -620,7 +621,7 @@ your LD_LIBRARY_PATH appropriately and run it.
 done
 
 
-if test "$ac_cv_prog_g77" = "yes"; then
+if test "$ac_cv_f77_compiler_gnu" = "yes"; then
    F77_FLAGS="-Wall -Wimplicit -Wunused $F77_FLAGS"
 else
    case $ARCH in
@@ -869,27 +870,23 @@ dnl
 AC_LANG_PUSH([C++])
 BTNG_TYPE_NAMESPACE
 AC_MSG_CHECKING(type ostringstream)
-AC_TRY_COMPILE([#include STL_SSTREAM_HEADER_FILE
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include STL_SSTREAM_HEADER_FILE
 #ifndef NAMESPACE_IS_BROKEN
 using namespace std;
 #endif
-], [ostringstream oss; oss << 10;]
-,
-AC_MSG_RESULT(ok),
-AC_MSG_RESULT(broken)
+]], [[ostringstream oss; oss << 10;
+]])],[AC_MSG_RESULT(ok)],[AC_MSG_RESULT(broken)
 AC_DEFINE(OSTRINGSTREAM_TYPE_IS_BROKEN,1,The type ostringstream is broken)
-)
+])
 AC_MSG_CHECKING(type ostrstream)
-AC_TRY_COMPILE([#include STL_SSTREAM_HEADER_FILE
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include STL_SSTREAM_HEADER_FILE
 #ifndef NAMESPACE_IS_BROKEN
 using namespace std;
 #endif
-], [ostrstream oss; oss << 10;]
-,
-AC_MSG_RESULT(ok),
-AC_MSG_RESULT(broken)
+]], [[ostrstream oss; oss << 10;
+]])],[AC_MSG_RESULT(ok)],[AC_MSG_RESULT(broken)
 AC_DEFINE(OSTRSTREAM_TYPE_IS_BROKEN,1,The type ostrstream is broken)
-)
+])
 AC_LANG_POP([C++])
 
 dnl
@@ -903,11 +900,9 @@ dnl
 dnl Checking for mallinfo
 dnl
 AC_MSG_CHECKING(for mallinfo)
-AC_TRY_COMPILE([#include <malloc.h>], void *x=mallinfo,
-  AC_DEFINE(HAVE_MALLINFO, 1, Define if you have the 'mallinfo' function.)
-  AC_MSG_RESULT(yes),
-  AC_MSG_RESULT(no)
-)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <malloc.h>]], [[void *x=mallinfo]])],[AC_DEFINE(HAVE_MALLINFO, 1, Define if you have the 'mallinfo' function.)
+  AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)
+])
 
 CASC_CXX_ISNAN
 
@@ -1520,37 +1515,37 @@ define(samrai_typical_example_files,['(' \
 -name '*README*' -o -name '*.C' -o -name '*.h' -o -name '*.depend' -o -name '*.i' -o -name '*.m4' -o -name '*.input' \
 -o -name '*.tri' -o -name '*.gzxml' ')'])
 
-SAMRAI_LINK_FILES([ esyscmd(find examples/boundary      samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/communication samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/ConvDiff      samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/dataops       samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/Euler         samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/emb_bdry      samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/nonlinear     samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/hypre_poisson samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/FAC           samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/LinAdv        samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/mblkcomm      samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/MblkEuler     samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/MblkLinAdv    samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/memory        samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/sundials      samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/patchbdrysum  samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
-SAMRAI_LINK_FILES([ esyscmd(find examples/timers        samrai_find_excludes samrai_typical_example_files | sort | sed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/boundary      samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/communication samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/ConvDiff      samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/dataops       samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/Euler         samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/emb_bdry      samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/nonlinear     samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/hypre_poisson samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/FAC           samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/LinAdv        samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/mblkcomm      samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/MblkEuler     samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/MblkLinAdv    samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/memory        samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/sundials      samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/patchbdrysum  samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find examples/timers        samrai_find_excludes samrai_typical_example_files | sort | gsed 's/.*/\0:\0/') ])
 
 SAMRAI_LINK_FILES([ source/test/async_comm/default.input:source/test/async_comm/default.input ])
 SAMRAI_LINK_FILES([ source/test/clustering/async_br/front2d.input:source/test/clustering/async_br/front2d.input
                     source/test/clustering/async_br/front3d.input:source/test/clustering/async_br/front3d.input ])
 SAMRAI_LINK_FILES([ source/test/dlbg/front2d.input:source/test/dlbg/front2d.input
                     source/test/dlbg/front3d.input:source/test/dlbg/front3d.input ])
-SAMRAI_LINK_FILES([ esyscmd(find source/test/hypre -name \*.input | sort | sed 's/.*/\0:\0/') ])
+SAMRAI_LINK_FILES([ esyscmd(find source/test/hypre -name \*.input | sort | gsed 's/.*/\0:\0/') ])
 SAMRAI_LINK_FILES([ source/test/FAC/inputs:source/test/FAC/inputs ])
 
 dnl Optionally configure with performance directory if it is included.
 define( [performance_dir_exists], [esyscmd( if test -d performance; then echo -n yes; else echo -n no; fi )])
 m4_if(performance_dir_exists, [yes],
 performance_dir=performance
-SAMRAI_LINK_FILES([ esyscmd(find performance/LinAdv        samrai_find_excludes samrai_typical_example_files 2>/dev/null | sort | sed 's/.*/\0:\0/') ]),
+SAMRAI_LINK_FILES([ esyscmd(find performance/LinAdv        samrai_find_excludes samrai_typical_example_files 2>/dev/null | sort | gsed 's/.*/\0:\0/') ]),
 unset performance_dir
 )
 
@@ -1572,12 +1567,13 @@ $MKDIR_P $subdirs
 
 undefine([performance_dir_exists])
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 Makefile
 config/Makefile.config config/Makefile.config.install
 docs/Makefile docs/Doxyfile docs/devDoxyfile
 ${makefiles}
-],[
+])
+AC_CONFIG_COMMANDS([default],[
 dnl These are the commands that will execute after the file generations.
 dnl They are run by the generated config.status script.
 
@@ -1630,8 +1626,7 @@ for i in $readme; do
    $INSTALL  $srcdir/$i $i
 done
 
-],
-[
+],[
 
 dnl These commands set the environment for commands executing
 dnl after file generations.
@@ -1641,6 +1636,7 @@ sundials_dir=$sundials_dir
 if test ! `cd $srcdir && pwd -P` = `pwd -P`; then
   source_tree_is_not_compile_tree=1
 fi
-]
 
-)
+
+])
+AC_OUTPUT
