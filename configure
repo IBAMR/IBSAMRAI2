@@ -7840,7 +7840,7 @@ else $as_nop
   fi
     rm -f conftest.f conftest.o conftest
 
-  FLIBS="$flibs_result"
+  FLIBS="" # We never use FLIBS and it sometimes has quotes it in it, so disable it completely
 
          for casc_flag in $flibs_result; do
 
@@ -8664,7 +8664,7 @@ else $as_nop
   fi
     rm -f conftest.f conftest.o conftest
 
-  FLIBS="$flibs_result"
+  FLIBS="" # We never use FLIBS and it sometimes has quotes it in it, so disable it completely
 
          for casc_flag in $flibs_result; do
 
@@ -9482,7 +9482,7 @@ else $as_nop
   fi
     rm -f conftest.f conftest.o conftest
 
-  FLIBS="$flibs_result"
+  FLIBS="" # We never use FLIBS and it sometimes has quotes it in it, so disable it completely
 
          for casc_flag in $flibs_result; do
 
@@ -10733,7 +10733,7 @@ fi # test "x$[]_AC_LANG_PREFIX[]LIBS" = "x"
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_f77_libs" >&5
 printf "%s\n" "$ac_cv_f77_libs" >&6; }
-FLIBS="$ac_cv_f77_libs"
+FLIBS="" # We never use FLIBS and it sometimes has quotes it in it, so disable it completely
 
 
 ac_ext=c
@@ -14338,7 +14338,7 @@ fi # test "x$[]_AC_LANG_PREFIX[]LIBS" = "x"
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_f77_libs" >&5
 printf "%s\n" "$ac_cv_f77_libs" >&6; }
-FLIBS="$ac_cv_f77_libs"
+FLIBS="" # We never use FLIBS and it sometimes has quotes it in it, so disable it completely
 
 
 ac_ext=c
