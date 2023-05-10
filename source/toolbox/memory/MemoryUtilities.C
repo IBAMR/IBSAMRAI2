@@ -84,7 +84,8 @@ void MemoryUtilities::printMemoryInfo(std::ostream& os)
       << number_allocated << " allocs, "
       << reserved_mem/(1024.0*1024.0) << "MB reserved ("
       << free_mem << " unused)" << std::endl;
-
+#else
+   NULL_USE(os);
 #endif
 }
 
