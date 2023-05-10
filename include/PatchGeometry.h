@@ -46,7 +46,7 @@ public:
    /**
     * The default constructor for the patch geometry base class.
     */
-   PatchGeometry<DIM>(
+   PatchGeometry(
       const IntVector<DIM>& ratio_to_level_zero,
       const tbox::Array< tbox::Array<bool> >& touches_regular_bdry,
       const tbox::Array< tbox::Array<bool> >& touches_periodic_bdry);
@@ -54,7 +54,7 @@ public:
    /**
     * The virtual destructor for the patch geometry base class.
     */
-   virtual ~PatchGeometry<DIM>();
+   virtual ~PatchGeometry();
 
    /**
     * Return const reference to patch boundary information.

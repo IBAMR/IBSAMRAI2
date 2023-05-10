@@ -51,7 +51,7 @@ template<int DIM>  BoundaryLookupTable<DIM>::BoundaryLookupTable()
       s_lookup_table_instance = NULL;
    }
    if(s_registered_callback == false) {
-      s_lookup_table_instance = false;
+      s_lookup_table_instance = NULL;
    }
 
    if (d_table[0].isNull()) {

@@ -54,7 +54,7 @@ public:
    /**
     * The cell index destructor does nothing interesting.
     */
-   ~CellIndex<DIM>();
+   ~CellIndex();
 
    /**
     * Plus-equals operator for a cell index and an integer vector.

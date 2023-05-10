@@ -20,10 +20,6 @@
 
 #ifdef HAVE_PETSC
 
-#ifdef MPICH_SKIP_MPICXX
-#undef MPICH_SKIP_MPICXX
-#endif
-
 extern "C" {
 #ifdef PETSC2028
 #include "snes.h"
@@ -31,10 +27,6 @@ extern "C" {
 #include "petscsnes.h"
 #endif
 }
-
-#ifndef MPICH_SKIP_MPICXX
-#define MPICH_SKIP_MPICXX
-#endif
 
 #endif
 

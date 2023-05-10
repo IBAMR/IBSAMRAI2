@@ -88,7 +88,7 @@ public:
    /**
     * The BoxArray destructor releases the box array data.
     */
-   ~BoxArray<DIM>();
+   ~BoxArray();
 
    /**
     * Return the number of boxes in the array.

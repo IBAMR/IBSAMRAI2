@@ -25,16 +25,7 @@
 
 #include "tbox/SAMRAI_MPI.h"
 
-/* petsc defines skip so avoid redefining */
-#ifdef MPICH_SKIP_MPICXX
-#undef MPICH_SKIP_MPICXX
-#endif
-
 #include "petscvec.h"
-
-#ifndef MPICH_SKIP_MPICXX
-#define MPICH_SKIP_MPICXX
-#endif
 
 namespace SAMRAI {
     namespace solv {

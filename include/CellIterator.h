@@ -67,7 +67,7 @@ public:
    /**
     * Destructor for the cell iterator.
     */
-   ~CellIterator<DIM>();
+   ~CellIterator();
 
    /**
     * Extract the cell index corresponding to the iterator position in the box.
