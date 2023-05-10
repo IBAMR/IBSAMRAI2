@@ -11,29 +11,9 @@
 #define included_tbox_SAMRAI_MPI
 
 #include "SAMRAI_config.h"
-#ifdef HAVE_MPI
-#ifndef included_mpi
-#define included_mpi
 
-/*
- * Prevent inclusion of mpi C++ bindings in mpi.h includes
- */
-#ifndef MPI_NO_CPPBIND
-#define MPI_NO_CPPBIND
-#endif
+#include <mpi.h>
 
-#ifndef MPICH_SKIP_MPICXX
-#define MPICH_SKIP_MPICXX
-#endif
-
-#ifndef OMPI_SKIP_MPICXX
-#define OMPI_SKIP_MPICXX
-#endif
-
-#include "mpi.h"
-
-#endif
-#endif
 #include "tbox/Complex.h"
 
 #include "tbox/Utilities.h"
