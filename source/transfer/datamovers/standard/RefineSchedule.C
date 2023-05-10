@@ -41,18 +41,6 @@ namespace SAMRAI {
 #define BIG_GHOST_CELL_WIDTH  (10)
 
 
-/*!
- * Timer objects for performance measurement.
- */
-static tbox::Pointer<tbox::Timer> t_fill_data;
-static tbox::Pointer<tbox::Timer> t_recursive_fill;
-static tbox::Pointer<tbox::Timer> t_refine_scratch_data;
-static tbox::Pointer<tbox::Timer> t_gen_sched_n_squared;
-static tbox::Pointer<tbox::Timer> t_gen_sched_box_graph;
-static tbox::Pointer<tbox::Timer> t_gen_sched_box_tree; 
-static tbox::Pointer<tbox::Timer> t_gen_comm_sched;
-static tbox::Pointer<tbox::Timer> t_finish_sched_const;
-
 /*
 *************************************************************************
 *                                                                       *
@@ -67,6 +55,22 @@ template<int DIM> const hier::IntVector<DIM>
    RefineSchedule<DIM>::s_constant_one_intvector = hier::IntVector<DIM>(1);
 template<int DIM> std::string
    RefineSchedule<DIM>::s_schedule_generation_method = "BOX_TREE";
+template<int DIM> tbox::Pointer<tbox::Timer>
+   RefineSchedule<DIM>::t_fill_data;
+template<int DIM> tbox::Pointer<tbox::Timer>
+   RefineSchedule<DIM>::t_recursive_fill;
+template<int DIM> tbox::Pointer<tbox::Timer>
+   RefineSchedule<DIM>::t_refine_scratch_data;
+template<int DIM> tbox::Pointer<tbox::Timer>
+   RefineSchedule<DIM>::t_gen_sched_n_squared;
+template<int DIM> tbox::Pointer<tbox::Timer>
+   RefineSchedule<DIM>::t_gen_sched_box_graph;
+template<int DIM> tbox::Pointer<tbox::Timer>
+   RefineSchedule<DIM>::t_gen_sched_box_tree;
+template<int DIM> tbox::Pointer<tbox::Timer>
+   RefineSchedule<DIM>::t_gen_comm_sched;
+template<int DIM> tbox::Pointer<tbox::Timer>
+   RefineSchedule<DIM>::t_finish_sched_const;
 
 /*
  * ************************************************************************
@@ -810,6 +814,19 @@ template<int DIM> void RefineSchedule<DIM>::fillData(
    d_transaction_factory->setRefineItems(d_refine_items, d_number_refine_items);
 
    /*
+    * Set the destination level number for the variable fill pattern
+    * objects.
+    */
+   const int num_equiv_classes =
+      d_refine_classes->getNumberOfEquivalenceClasses();
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(
+         d_dst_level->getLevelNumber());
+   }
+
+   /*
     * Check whether scratch data needs to be allocated on the destination
     * level.  Keep track of those allocated components so that they may be
     * deallocated later.
@@ -839,6 +856,16 @@ template<int DIM> void RefineSchedule<DIM>::fillData(
     */
 
    d_dst_level->deallocatePatchData(allocate_vector);
+
+   /*
+    * Reset the destination level number for the variable fill pattern
+    * objects.
+    */
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(-1);
+   }
 
    /*
     * Unset the refine items for all transactions.  These items are
@@ -1887,12 +1914,14 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
             hier::Box<DIM> src_mask( hier::Box<DIM>::shift( test_mask,-shift) );
 
             tbox::Pointer< hier::BoxOverlap<DIM> > overlap =
-               rep_item.d_var_fill_pattern->calculateOverlap(
+               rep_item.d_var_fill_pattern->calculateOverlapOnLevel(
                   *dst_pdf->getBoxGeometry(dst_box),
                   *src_pdf->getBoxGeometry(src_box),
                   dst_box,
                   src_mask,
-                  true, shift);
+                  true, shift,
+                  dst_level->getLevelNumber(),
+                  src_level->getLevelNumber());
 /*	    tbox::Pointer< hier::BoxOverlap<DIM> > overlap =
 	       dst_pdf->getBoxGeometry(dst_box)
 		      ->calculateOverlap(
@@ -2230,6 +2259,8 @@ template<int DIM> void RefineSchedule<DIM>::printClassData(std::ostream& stream)
 
 /*
 ***********************************************************************
+Allocate static timers and register freeTimers with the shutdown
+registry.
 ***********************************************************************
 */
 template<int DIM>

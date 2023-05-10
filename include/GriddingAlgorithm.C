@@ -1215,6 +1215,10 @@ template<int DIM> void GriddingAlgorithm<DIM>::regridFinerLevel(
          hierarchy->makeNewPatchLevel(fine_level_number, ratio,
                                       fine_boxes, mapping);
 
+         if (d_check_overlapping_patches != 'i') {
+            checkOverlappingPatches( hierarchy->getPatchLevel(fine_level_number) );
+         }
+
          // "false" argument": const bool initial_time = false;
          d_tag_init_strategy->initializeLevelData(hierarchy,
                                                   fine_level_number,
@@ -2624,7 +2628,7 @@ template<int DIM> void GriddingAlgorithm<DIM>::getFromInput(
    }
 
    d_check_overlapping_patches =
-      db->getCharWithDefault( "check_overplapping_patches",
+      db->getCharWithDefault( "check_overlapping_patches",
                               d_check_overlapping_patches );
    if ( d_check_overlapping_patches != 'i' &&
         d_check_overlapping_patches != 'w' &&

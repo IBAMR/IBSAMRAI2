@@ -287,7 +287,7 @@ template<int DIM> void StandardTagAndInitialize<DIM>::tagCellsForRefinement(
    if (d_use_refine_boxes) {
 
       hier::BoxArray<DIM> refine_boxes;
-      getUserSuppliedRefineBoxes(refine_boxes, level_number, regrid_time); 
+      this->getUserSuppliedRefineBoxes(refine_boxes, level_number, regrid_time); 
 
       tbox::Pointer< hier::PatchLevel<DIM> > level = 
          hierarchy->getPatchLevel(level_number);
