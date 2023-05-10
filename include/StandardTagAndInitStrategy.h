@@ -69,7 +69,7 @@ public:
     * Empty destructor for 
     * StandardTagAndInitStrategy<DIM>.
     */
-   virtual ~StandardTagAndInitStrategy<DIM>();
+   virtual ~StandardTagAndInitStrategy();
 
    /**
     * Determine time increment to advance data on level. The 

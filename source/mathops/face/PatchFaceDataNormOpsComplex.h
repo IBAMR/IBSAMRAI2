@@ -64,7 +64,7 @@ public:
     */
    PatchFaceDataNormOpsComplex();
 
-   virtual ~PatchFaceDataNormOpsComplex<DIM>();
+   virtual ~PatchFaceDataNormOpsComplex();
 
    /**
     * Return the number of data values for the face-centered data object

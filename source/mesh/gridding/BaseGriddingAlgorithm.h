@@ -45,7 +45,7 @@ public:
    /*!
     * @brief Virtual destructor for BaseGriddingAlgorithm<DIM>.
     */
-   virtual ~BaseGriddingAlgorithm<DIM>();
+   virtual ~BaseGriddingAlgorithm();
 
    /*!
     * @brief Construct the coarsest level in a hierarchy (i.e., level 0).

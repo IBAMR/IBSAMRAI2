@@ -47,7 +47,7 @@ public:
    /**
     * Empty destructor for ImplicitEquationStrategy<DIM>
     */
-   virtual ~ImplicitEquationStrategy<DIM>();
+   virtual ~ImplicitEquationStrategy();
 
    /**
     * Add components to the solution vector to define the state of the 

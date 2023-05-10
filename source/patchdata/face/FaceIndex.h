@@ -59,7 +59,7 @@ public:
    /**
     * The face index destructor does nothing interesting.
     */
-   ~FaceIndex<DIM>();
+   ~FaceIndex();
 
    /**
     * Get the axis for which this face index is defined (X=0, Y=1, Z=2).

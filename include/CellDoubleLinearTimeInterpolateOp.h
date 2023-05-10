@@ -46,7 +46,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CellDoubleLinearTimeInterpolateOp<DIM>();
+   virtual ~CellDoubleLinearTimeInterpolateOp();
 
    /**
     * Return true if the variable and name string match the standard

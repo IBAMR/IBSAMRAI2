@@ -55,7 +55,7 @@ public:
    /*!
     * @brief Virtual destructor for outernode variable objects.
     */
-   virtual ~OuternodeVariable<DIM,TYPE>();
+   virtual ~OuternodeVariable();
  
    /*!
     * @brief Return a boolean true value indicating that fine patch

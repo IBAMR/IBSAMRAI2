@@ -178,7 +178,7 @@ public:
    /*!
     * The virtual destructor releases all internal storage.
     */
-   virtual ~LoadBalancer<DIM>();
+   virtual ~LoadBalancer();
 
    /*!
     * Set the max workload factor for either the specified level or all

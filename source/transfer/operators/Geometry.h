@@ -67,7 +67,7 @@ public:
     * The virtual destructor for the geometry base class does
     * nothing interesting.
     */
-   virtual ~Geometry<DIM>();
+   virtual ~Geometry();
 
    /**
     * Add concrete spatial coarsening operator instance to appropriate

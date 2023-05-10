@@ -78,7 +78,7 @@ public:
    /**
     * Virtual destructor for the HierarchyEdgeDataOpsReal<DIM> class.
     */
-   virtual ~HierarchyEdgeDataOpsReal<DIM,TYPE>();
+   virtual ~HierarchyEdgeDataOpsReal();
 
    /**
     * Reset patch hierarchy over which operations occur.

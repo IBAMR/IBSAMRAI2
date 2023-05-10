@@ -560,7 +560,7 @@ public:
    /*!
     * Destructor for the iterator releases all internal storage.
     */
-   ~LocallyActiveDataPatchLevelIterator<DIM>();
+   ~LocallyActiveDataPatchLevelIterator();
 
    /*!
     * Extract the integer patch index corresponding to the current patch in 

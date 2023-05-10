@@ -69,7 +69,7 @@ public:
    /*!
     * @brief Destructor for multiblock
     */
-   ~MultiblockPatchHierarchy<DIM>();
+   ~MultiblockPatchHierarchy();
 
    /*!
     * @brief Get a pointer to a single patch hierarchy represented by

@@ -78,7 +78,7 @@ public:
    /*!
     * The dtor does nothing even slightly interesting.
     */
-   ~BoxTreeNode<DIM>();
+   ~BoxTreeNode();
 
    /*!
     * @brief Compute the box array indices of boxes that overlap the given \b box.

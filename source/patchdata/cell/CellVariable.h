@@ -50,7 +50,7 @@ public:
    /*!
     * @brief Virtual destructor for cell variable objects.
     */
-   virtual ~CellVariable<DIM,TYPE>();
+   virtual ~CellVariable();
 
    /*!
     * @brief Return true indicating that cell data quantities will always 

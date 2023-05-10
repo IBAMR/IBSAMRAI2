@@ -42,7 +42,7 @@ public:
    /**
     * Empty constructor for algs::NonlinearSolverStrategy.
     */
-   virtual ~NonlinearSolverStrategy<DIM>();
+   virtual ~NonlinearSolverStrategy();
 
    /**
     * Initialize the solver state.  The vector argument represents the

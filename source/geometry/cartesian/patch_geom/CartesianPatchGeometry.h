@@ -55,7 +55,7 @@ public:
     * Destructor for CartesianPatchGeometry deallocates the
     * storage for spatial coordinates on patch.
     */
-   ~CartesianPatchGeometry<DIM>();
+   ~CartesianPatchGeometry();
 
    /**
     * Return const pointer to dx array for patch. 

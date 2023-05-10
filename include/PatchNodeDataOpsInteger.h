@@ -52,7 +52,7 @@ public:
     */
    PatchNodeDataOpsInteger();
 
-   virtual ~PatchNodeDataOpsInteger<DIM>();
+   virtual ~PatchNodeDataOpsInteger();
 
    /**
     * Return the number of data values for the node-centered data object

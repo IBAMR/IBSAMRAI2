@@ -67,7 +67,7 @@ public:
    /**
     * Destructor for the node iterator.
     */
-   ~NodeIterator<DIM>();
+   ~NodeIterator();
 
    /**
     * Extract the node index corresponding to the iterator position in the box.

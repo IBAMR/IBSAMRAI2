@@ -170,7 +170,7 @@ public:
     *
     * Deallocate internal data.
     */
-   ~CellPoissonFACOps<DIM>(void);
+   ~CellPoissonFACOps();
 
 
 

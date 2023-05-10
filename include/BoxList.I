@@ -30,14 +30,14 @@ template<int DIM> inline
 void BoxList<DIM>::unionBoxes(const Box<DIM>& box)
 {
    if (!box.empty()) {
-      appendItem(box);
+      this->appendItem(box);
    }
 }
 
 template<int DIM> inline
 void BoxList<DIM>::unionBoxes(const BoxList<DIM>& boxes)
 {
-   copyItems(boxes);
+   this->copyItems(boxes);
 }
 
 template<int DIM> inline

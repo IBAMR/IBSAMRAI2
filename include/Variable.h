@@ -87,7 +87,7 @@ public:
    /**
     * Virtual destructor for variable objects.
     */
-   virtual ~Variable<DIM>();
+   virtual ~Variable();
 
    /**
     * Return the instance identifier for this particular variable object.

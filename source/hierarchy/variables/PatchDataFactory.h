@@ -83,7 +83,7 @@ public:
     * @brief Virtual destructor for the patch data factory class.
     *
     */
-   virtual ~PatchDataFactory<DIM>();
+   virtual ~PatchDataFactory();
 
    /**
     * @brief Abstract virtual function to clone a patch data factory.

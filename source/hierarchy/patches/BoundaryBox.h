@@ -59,7 +59,7 @@ public:
    /**
     * The destructor for BoundaryBox.
     */
-   ~BoundaryBox<DIM>();
+   ~BoundaryBox();
 
    /**
     * Return a reference to the Box<DIM> member of the boundary box

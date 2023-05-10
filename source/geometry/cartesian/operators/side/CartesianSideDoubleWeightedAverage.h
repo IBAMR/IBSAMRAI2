@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianSideDoubleWeightedAverage<DIM>();
+   virtual ~CartesianSideDoubleWeightedAverage();
 
    /**
     * Return true if the variable and name string match the side-centered 

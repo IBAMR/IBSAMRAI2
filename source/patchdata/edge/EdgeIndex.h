@@ -60,7 +60,7 @@ public:
    /**
     * The edge index destructor does nothing interesting.
     */
-   ~EdgeIndex<DIM>();
+   ~EdgeIndex();
 
    /**
     * Get the axis for which this edge index is defined (X=0, Y=1, Z=2).

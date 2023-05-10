@@ -106,7 +106,7 @@ protected:
    /*
     * Virtual destructor for Sundials_SAMRAIVector<DIM>.
     */
-   virtual ~Sundials_SAMRAIVector<DIM>();
+   virtual ~Sundials_SAMRAIVector();
 
 private:
    /*

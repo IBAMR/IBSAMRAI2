@@ -93,7 +93,7 @@ public:
    /**
     * Empty destructor for ImplicitIntegrator<DIM>
     */
-   virtual ~ImplicitIntegrator<DIM>();
+   virtual ~ImplicitIntegrator();
 
    /**
     * Initialize state of time integrator.  This includes creating

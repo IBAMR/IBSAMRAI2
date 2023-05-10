@@ -128,7 +128,7 @@ public:
    /*!
     * @brief Virtual destructor for a outerside data object.
     */
-   virtual ~OutersideData<DIM,TYPE>();
+   virtual ~OutersideData();
 
    /*!
     * @brief Return the depth (i.e., the number of data values for

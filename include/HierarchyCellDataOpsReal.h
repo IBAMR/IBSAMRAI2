@@ -77,7 +77,7 @@ public:
    /**
     * Virtual destructor for the HierarchyCellDataOpsReal<DIM> class.
     */
-   virtual ~HierarchyCellDataOpsReal<DIM,TYPE>();
+   virtual ~HierarchyCellDataOpsReal();
 
    /**
     * Reset patch hierarchy over which operations occur.

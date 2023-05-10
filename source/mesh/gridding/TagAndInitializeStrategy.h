@@ -123,7 +123,7 @@ public:
    /*!
     * Empty destructor for TagAndInitializeStrategy<DIM>.
     */
-   virtual ~TagAndInitializeStrategy<DIM>();
+   virtual ~TagAndInitializeStrategy();
 
    /*!
     * Return user supplied set of refine boxes for specified level number

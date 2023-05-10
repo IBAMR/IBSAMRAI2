@@ -324,7 +324,7 @@ EmbeddedBoundaryGeometry<DIM>::EmbeddedBoundaryGeometry(
 */
 
 template<int DIM> 
-EmbeddedBoundaryGeometry<DIM>::~EmbeddedBoundaryGeometry<DIM>()
+EmbeddedBoundaryGeometry<DIM>::~EmbeddedBoundaryGeometry()
 {
 }
 

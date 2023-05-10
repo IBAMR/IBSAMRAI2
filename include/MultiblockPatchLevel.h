@@ -51,7 +51,7 @@ public:
    /*!
     * Destructor is uninteresting
     */
-   ~MultiblockPatchLevel<DIM>();
+   ~MultiblockPatchLevel();
 
    /*!
     * @brief Return a pointer to the hier::PatchLevel<DIM> associated with the

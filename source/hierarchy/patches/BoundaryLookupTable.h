@@ -186,7 +186,7 @@ protected:
     *
     * The destructor deallocates lookup table contents.
     */
-   ~BoundaryLookupTable<DIM>();
+   ~BoundaryLookupTable();
 
 private:
 

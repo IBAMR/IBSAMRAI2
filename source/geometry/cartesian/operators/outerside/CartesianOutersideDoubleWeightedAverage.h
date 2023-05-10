@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianOutersideDoubleWeightedAverage<DIM>();
+   virtual ~CartesianOutersideDoubleWeightedAverage();
 
    /**
     * Return true if the variable and name string match the outerside

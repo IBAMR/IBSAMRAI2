@@ -63,7 +63,7 @@ public:
    /*!
     * @brief Destructor for VisMaterialsDataStrategy<DIM>.
     */
-   virtual ~VisMaterialsDataStrategy<DIM>();
+   virtual ~VisMaterialsDataStrategy();
 
    /*!
     * @brief Enumerated type for the allowable return values

@@ -81,7 +81,7 @@ public:
    /*!
     * The destructor releases privately held resources.
     */
-   ~BoxTop<DIM>();
+   ~BoxTop();
 
    /*!
     * @brief Compute the set of boxes that overlap with the specified \b box.

@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianCellDoubleLinearRefine<DIM>();
+   virtual ~CartesianCellDoubleLinearRefine();
 
    /**
     * Return true if the variable and name string match cell-centered 

@@ -58,7 +58,7 @@ public:
    /*!
     * @brief The virtual destructor does nothing interesting.
     */
-   virtual ~OuternodeGeometry<DIM>();
+   virtual ~OuternodeGeometry();
  
    /*!
     * @brief Compute the overlap in node-centered index space on the

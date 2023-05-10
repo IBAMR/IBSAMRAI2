@@ -153,7 +153,7 @@ public:
     * data describing grid geometry and unregisters the object with
     * the restart manager if previously registered.
     */
-   virtual ~CartesianGridGeometry<DIM>();
+   virtual ~CartesianGridGeometry();
 
    
    /**

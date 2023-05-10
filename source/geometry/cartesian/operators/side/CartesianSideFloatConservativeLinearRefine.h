@@ -51,7 +51,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianSideFloatConservativeLinearRefine<DIM>();
+   virtual ~CartesianSideFloatConservativeLinearRefine();
 
    /**
     * Return true if the variable and name string match side-centered 

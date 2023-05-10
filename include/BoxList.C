@@ -39,13 +39,13 @@ namespace SAMRAI {
 template<int DIM>  BoxList<DIM>::BoxList(const Box<DIM>& box)
 :  tbox::List< Box<DIM> >()
 {
-   addItem(box);
+   this ->addItem(box);
 }
 
 template<int DIM>  BoxList<DIM>::BoxList(const BoxList<DIM>& list)
 :  tbox::List< Box<DIM> >()
 {
-   copyItems(list);
+   this ->copyItems(list);
 }
       
 template<int DIM>  BoxList<DIM>::BoxList(const BoxArray<DIM>& array)
@@ -53,7 +53,7 @@ template<int DIM>  BoxList<DIM>::BoxList(const BoxArray<DIM>& array)
 {
    const int n = array.getNumberOfBoxes();
    for (int i = 0; i < n; i++) {
-      appendItem(array[i]);
+      this ->appendItem(array[i]);
    }
 }
 
@@ -61,7 +61,7 @@ template<int DIM> BoxList<DIM>& BoxList<DIM>::operator=(const BoxList<DIM>& list
 {
    if (this != &list) {
       this -> clearItems();
-      copyItems(list);
+      this ->copyItems(list);
    }
    return(*this);
 }
@@ -145,10 +145,10 @@ template<int DIM> void BoxList<DIM>::simplifyBoxes()
          // Otherwise, burst tryMe and andMe and put on noncanonical
 
             if (!combineDaPuppies) {
-               appendItem(tryMe);
+               this ->appendItem(tryMe);
             } else {
                Box<DIM> andMe = l();
-               removeItem(l);
+               this ->removeItem(l);
                const Index<DIM>& bl = tryMe.lower();
                const Index<DIM>& bh = tryMe.upper();
                Index<DIM> il = andMe.lower();
@@ -199,13 +199,13 @@ template<int DIM> void BoxList<DIM>::burstBoxes(const Box<DIM>& bursty,
       if (bursth(d) > solidh(d)) {
          Index<DIM> newl = burstl;
          newl(d) = solidh(d) + 1;
-         appendItem(Box<DIM>(newl, bursth));
+         this ->appendItem(Box<DIM>(newl, bursth));
          bursth(d) = solidh(d);
       }
       if (burstl(d) < solidl(d)) {
          Index<DIM> newh = bursth;
          newh(d) = solidl(d) - 1;
-         appendItem(Box<DIM>(burstl, newh));
+         this ->appendItem(Box<DIM>(burstl, newh));
          burstl(d) = solidl(d);
       }
    }
@@ -231,7 +231,7 @@ template<int DIM> void BoxList<DIM>::removeIntersections(const Box<DIM>& takeawa
          fragments.burstBoxes(tryme, takeaway, DIM);
       }
    }
-   catenateItems(fragments);
+   this ->catenateItems(fragments);
 }
 
 template<int DIM> void BoxList<DIM>::removeIntersections(const Box<DIM>& box,
@@ -251,7 +251,7 @@ template<int DIM> void BoxList<DIM>::removeIntersections(const Box<DIM>& box,
    if (!(box * takeaway).empty()) {
       BoxList<DIM>::burstBoxes(box, takeaway, DIM);
    } else {
-      appendItem(box);
+      this ->appendItem(box);
    }
 
 }
@@ -284,7 +284,7 @@ template<int DIM> void BoxList<DIM>::intersectBoxes(const Box<DIM>& box)
          intersection.appendItem(overlap);
       }
    }
-   catenateItems(intersection);
+   this ->catenateItems(intersection);
 }
 
 template<int DIM> void BoxList<DIM>::intersectBoxes(const BoxList<DIM>& boxes)
@@ -300,7 +300,7 @@ template<int DIM> void BoxList<DIM>::intersectBoxes(const BoxList<DIM>& boxes)
          }
       }
    }
-   catenateItems(intersection);
+   this ->catenateItems(intersection);
 }
 
 /*
@@ -334,7 +334,7 @@ template<int DIM> void BoxList<DIM>::coalesceBoxes()
 
          if ( tb2().coalesceWith(tb()) ) {
             found_match = true;
-            removeItem(tb);
+            this ->removeItem(tb);
          }
 
          tb2++;

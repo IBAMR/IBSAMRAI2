@@ -218,7 +218,7 @@ public:
     *
     * The destructor for the writer does nothing interesting.
     */
-   virtual ~VisItDataWriter<DIM>();
+   virtual ~VisItDataWriter();
 
    /*!
     * @brief This method sets the default data writer to use for derived

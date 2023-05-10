@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~FaceFloatConstantRefine<DIM>();
+   virtual ~FaceFloatConstantRefine();
 
    /**
     * Return true if the variable and name string match face-centered 

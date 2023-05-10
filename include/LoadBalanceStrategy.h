@@ -46,7 +46,7 @@ public:
    /*!
     * This virtual destructor does nothing interesting.
     */
-   virtual ~LoadBalanceStrategy<DIM>();
+   virtual ~LoadBalanceStrategy();
 
    /*!
     * Indicate whether load balancing procedure for given level depends on

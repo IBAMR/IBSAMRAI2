@@ -69,7 +69,7 @@ public:
    /**
     * Destructor for patch hierarchy objects.
     */
-   ~PatchHierarchy<DIM>();
+   ~PatchHierarchy();
 
 
   /**

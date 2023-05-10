@@ -64,7 +64,7 @@ CubesPatchInterface<DIM>::CubesPatchInterface(
 *******************************************************************
 */
 template<int DIM> 
-CubesPatchInterface<DIM>::~CubesPatchInterface<DIM>()
+CubesPatchInterface<DIM>::~CubesPatchInterface()
 {
 
 }

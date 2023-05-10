@@ -64,7 +64,7 @@ public:
     * The virtual destructor destroys the coarsen data items owned
     * by this object (and the associated CoarsenAlgorithm<DIM> object).
     */
-   virtual ~CoarsenClasses<DIM>();
+   virtual ~CoarsenClasses();
 
    /**
     * Return number of equivalence classes maintained by this object

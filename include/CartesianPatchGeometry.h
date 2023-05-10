@@ -43,7 +43,7 @@ public:
     * patch boundary information to hier::PatchGeometry base class constructor
     * and allocates storage for spatial coordinates on patch.
     */
-   CartesianPatchGeometry<DIM>(
+   CartesianPatchGeometry(
       const hier::IntVector<DIM>& ratio_to_level_zero,
       const tbox::Array< tbox::Array<bool> >& touches_regular_bdry,
       const tbox::Array< tbox::Array<bool> >& touches_periodic_bdry,
@@ -55,7 +55,7 @@ public:
     * Destructor for CartesianPatchGeometry deallocates the
     * storage for spatial coordinates on patch.
     */
-   ~CartesianPatchGeometry<DIM>();
+   ~CartesianPatchGeometry();
 
    /**
     * Return const pointer to dx array for patch. 

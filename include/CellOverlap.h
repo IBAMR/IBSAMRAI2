@@ -48,7 +48,7 @@ public:
     * The virtual destructor does nothing interesting except deallocate
     * box data.
     */
-   virtual ~CellOverlap<DIM>();
+   virtual ~CellOverlap();
 
    /**
     * Return whether there is an empty intersection between the two

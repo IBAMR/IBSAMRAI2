@@ -64,7 +64,7 @@ public:
     */
    PatchEdgeDataNormOpsComplex();
 
-   virtual ~PatchEdgeDataNormOpsComplex<DIM>();
+   virtual ~PatchEdgeDataNormOpsComplex();
 
    /**
     * Return the number of data values for the edge-centered data object
