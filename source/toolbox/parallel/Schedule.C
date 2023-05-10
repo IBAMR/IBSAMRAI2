@@ -12,6 +12,8 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Timer.h"
 
+#include <vector>
+
 namespace SAMRAI {
    namespace tbox {
 
@@ -163,6 +165,24 @@ void Schedule::beginCommunication()
 void Schedule::finalizeCommunication()
 {
    performLocalCopies();
+
+#ifdef HAVE_MPI
+   std::vector<MPI_Request> requests;
+   // Wait for both sends and recvs to complete
+   for (int p = 0; p < d_nnodes; p++) {
+      if (d_incoming[p].d_stream_in_use) {
+         requests.push_back(d_incoming[p].d_request_id);
+         d_incoming[p].d_request_id = MPI_REQUEST_NULL;
+      }
+      if (d_outgoing[p].d_stream_in_use) {
+         requests.push_back(d_outgoing[p].d_request_id);
+         d_outgoing[p].d_request_id = MPI_REQUEST_NULL;
+      }
+   }
+   int ierr = MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
+   TBOX_ASSERT(ierr == 0);
+#endif
+
    processIncomingMessages();
    deallocateSendBuffers();
 }
@@ -220,7 +240,10 @@ void Schedule::calculateReceiveSizes()
     * If the size of the receive message cannot be determined from local
     * information, then post a message receive from the sending processor.
     */
-
+#ifdef HAVE_MPI
+   int ierr = 0;
+   std::vector<MPI_Request> requests;
+#endif
    for (int p = 0; p < d_nnodes; p++) {
       int bytes = 0;
       bool needs_bytes = false;
@@ -241,13 +264,15 @@ void Schedule::calculateReceiveSizes()
          d_incoming[p].d_stream_in_use              = true;
 #ifdef HAVE_MPI
          SAMRAI_MPI::updateIncomingStatistics(1, sizeof(int));
-         (void) MPI_Irecv(&d_incoming[p].d_bytes_in_stream,
+         ierr = MPI_Irecv(&d_incoming[p].d_bytes_in_stream,
                           1,
                           MPI_INT,
                           p,
                           SCHEDULE_SIZE_TAG,
                           SAMRAI_MPI::getCommunicator(),
                           &d_incoming[p].d_request_id);
+         TBOX_ASSERT(ierr == 0);
+         requests.push_back(d_incoming[p].d_request_id);
 #endif
       }
    }
@@ -261,27 +286,32 @@ void Schedule::calculateReceiveSizes()
       if (d_outgoing[q].d_must_communicate_byte_size) {
 #ifdef HAVE_MPI
          SAMRAI_MPI::updateOutgoingStatistics(1, sizeof(int));
-         (void) MPI_Send(&d_outgoing[q].d_bytes_in_stream,
-                         1,
-                         MPI_INT,
-                         q,
-                         SCHEDULE_SIZE_TAG,
-                         SAMRAI_MPI::getCommunicator());
+         ierr = MPI_Isend(&d_outgoing[q].d_bytes_in_stream,
+                          1,
+                          MPI_INT,
+                          q,
+                          SCHEDULE_SIZE_TAG,
+                          SAMRAI_MPI::getCommunicator(),
+                          &d_outgoing[q].d_request_id);
+         TBOX_ASSERT(ierr == 0);
+         requests.push_back(d_outgoing[q].d_request_id);
 #endif
       }
    }
 
-   /*
-    * Wait for all message receives to complete
-    */
+#ifdef HAVE_MPI
+   ierr = MPI_Waitall(static_cast<int>(requests.size()),
+                      requests.data(),
+                      MPI_STATUSES_IGNORE);
+   TBOX_ASSERT(ierr == 0);
+#endif
 
    for (int w = 0; w < d_nnodes; w++) {
       if (d_incoming[w].d_stream_in_use) {
-#ifdef HAVE_MPI
-         MPI_Status status;
-         (void) MPI_Wait(&d_incoming[w].d_request_id, &status);
-#endif
          d_incoming[w].d_stream_in_use = false;
+      }
+      if (d_outgoing[w].d_stream_in_use) {
+         d_outgoing[w].d_stream_in_use = false;
       }
    }
 }
@@ -306,13 +336,14 @@ void Schedule::postMessageReceives()
             new MessageStream(bytes, MessageStream::Read);
 #ifdef HAVE_MPI
          SAMRAI_MPI::updateIncomingStatistics(1, bytes);
-         (void) MPI_Irecv(d_incoming[p].d_stream->getBufferStart(),
-                          bytes,
-                          MPI_BYTE,
-                          p,
-                          SCHEDULE_DATA_TAG,
-                          SAMRAI_MPI::getCommunicator(),
-                          &d_incoming[p].d_request_id);
+         int ierr = MPI_Irecv(d_incoming[p].d_stream->getBufferStart(),
+                              bytes,
+                              MPI_BYTE,
+                              p,
+                              SCHEDULE_DATA_TAG,
+                              SAMRAI_MPI::getCommunicator(),
+                              &d_incoming[p].d_request_id);
+         TBOX_ASSERT(ierr == 0);
 #endif
       }
    }
@@ -342,13 +373,14 @@ void Schedule::sendMessages()
          }
 #ifdef HAVE_MPI
          SAMRAI_MPI::updateOutgoingStatistics(1, bytes);
-         (void) MPI_Isend(d_outgoing[p].d_stream->getBufferStart(),
-                          d_outgoing[p].d_stream->getCurrentSize(),
-                          MPI_BYTE,
-                          p,
-                          SCHEDULE_DATA_TAG,
-                          SAMRAI_MPI::getCommunicator(),
-                          &d_outgoing[p].d_request_id);
+         int ierr = MPI_Isend(d_outgoing[p].d_stream->getBufferStart(),
+                              d_outgoing[p].d_stream->getCurrentSize(),
+                              MPI_BYTE,
+                              p,
+                              SCHEDULE_DATA_TAG,
+                              SAMRAI_MPI::getCommunicator(),
+                              &d_outgoing[p].d_request_id);
+         TBOX_ASSERT(ierr == 0);
 #endif
       }
    }
@@ -380,32 +412,15 @@ void Schedule::performLocalCopies()
 
 void Schedule::processIncomingMessages()
 {
-   int nwait = 0;
    for (int p = 0; p < d_nnodes; p++) {
-      if (d_incoming[p].d_stream_in_use) nwait++;
-   }
-
-   int index = -1;
-   while (nwait > 0) {
-
-      int gotit = 0;
-      while (!gotit) {
-         index = (index + 1) % d_nnodes;
-         if (d_incoming[index].d_stream_in_use) {
-#ifdef HAVE_MPI
-            MPI_Status status;
-            (void) MPI_Test(&d_incoming[index].d_request_id, &gotit, &status);
-#endif
+      if (d_incoming[p].d_stream_in_use) {
+         for (ITERATOR recv(d_recv_set[p]); recv; recv++) {
+            recv()->unpackStream(*d_incoming[p].d_stream);
          }
-      }
 
-      for (ITERATOR recv(d_recv_set[index]); recv; recv++) {
-         recv()->unpackStream(*d_incoming[index].d_stream);
+         d_incoming[p].d_stream_in_use = false;
+         d_incoming[p].d_stream.setNull();
       }
-
-      d_incoming[index].d_stream_in_use = false;
-      d_incoming[index].d_stream.setNull();
-      nwait--;
    }
 }
 
@@ -421,10 +436,6 @@ void Schedule::deallocateSendBuffers()
 {
    for (int p = 0; p < d_nnodes; p++) {
       if (d_outgoing[p].d_stream_in_use) {
-#ifdef HAVE_MPI
-         MPI_Status status;
-         (void) MPI_Wait(&d_outgoing[p].d_request_id, &status);
-#endif
          d_outgoing[p].d_stream_in_use = false;
          d_outgoing[p].d_stream.setNull();
       }
