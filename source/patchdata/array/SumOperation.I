@@ -29,13 +29,10 @@ SumOperation<TYPE>::~SumOperation()
 }
 
 template <class TYPE> inline
-void SumOperation<TYPE>::operator()(TYPE& vdst, const TYPE& vsrc) const
+void SumOperation<TYPE>::operator()(TYPE* vdst, const TYPE* vsrc, const int size) const
 {
-// Disable Intel warning about conversions
-#ifdef __INTEL_COMPILER
-#pragma warning (disable:810)
-#endif
-   vdst += vsrc;
+   for (int i = 0; i < size; ++i)
+      vdst[i] += vsrc[i];
 }
 
 #ifdef DEBUG_NO_INLINE

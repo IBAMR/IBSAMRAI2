@@ -167,11 +167,7 @@ void ArrayData<DIM,TYPE>::copy(const ArrayData<DIM,TYPE>& src,
 
       TYPE* const dst_ptr = d_array.getPointer();
       const TYPE* const src_ptr = src.d_array.getPointer();
-      const int n = d_offset * d_depth;
-      for (int i = 0; i < n; i++) {
-         copyop(dst_ptr[i], src_ptr[i]);
-      }
-
+      copyop(dst_ptr, src_ptr, d_offset * d_depth);
    } else {
 
       const hier::Box<DIM> copybox = box * d_box * src.d_box;
@@ -303,9 +299,7 @@ void ArrayData<DIM,TYPE>::copyDepth(int dst_depth,
 
      TYPE* const dst_ptr_d = dst_ptr + dst_depth*d_offset;
      const TYPE* const src_ptr_d = src_ptr + src_depth*d_offset;
-      for (int i = 0; i < d_offset; i++) {
-         copyop(dst_ptr_d[i], src_ptr_d[i]);
-      }
+     copyop(dst_ptr_d, src_ptr_d, d_offset);
 
    } else {
 
@@ -364,11 +358,7 @@ void ArrayData<DIM,TYPE>::sum(const ArrayData<DIM,TYPE>& src,
 
       TYPE* const dst_ptr = d_array.getPointer();
       const TYPE* const src_ptr = src.d_array.getPointer();
-      const int n = d_offset * d_depth;
-      for (int i = 0; i < n; i++) {
-         sumop(dst_ptr[i], src_ptr[i]);
-      }
-
+      sumop(dst_ptr, src_ptr, d_offset * d_depth);
    } else {
 
       const hier::Box<DIM> copybox = box * d_box * src.d_box;
