@@ -262,10 +262,20 @@ private:
    tbox::Pointer< hier::PatchHierarchy<DIM> > d_hierarchy;
    int  d_coarsest_level;
    int  d_finest_level; 
-   tbox::Array< tbox::Array< hier::BoxList<DIM> > > d_nonoverlapping_node_boxes;
+   mutable tbox::Array< tbox::Array< hier::BoxList<DIM> > > d_nonoverlapping_node_boxes;
 
    PatchNodeDataOpsInteger<DIM> d_patch_ops;
 
+   /*!
+    * Set d_nonoverlapping_side_boxes to the correct value.
+    *
+    * d_nonoverlapping_side_boxes is extremely expensive to compute, and for
+    * whatever reason SAMRAI calls resetLevels() in most linear algebra
+    * functions: this results in, for problems with lots of patches, the
+    * majority of runtime being spent recomputing overlap repeatedly in
+    * solvers when we never actually need the information.
+    */
+   void maybeResetOverlappingBoxLists() const;
 };
 
 }

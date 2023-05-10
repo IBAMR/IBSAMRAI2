@@ -75,7 +75,6 @@ void HierarchySideDataOpsReal<DIM,TYPE>::resetLevels(
    const int coarsest_level,
    const int finest_level)
 {
-   int i;
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!d_hierarchy.isNull());
    TBOX_ASSERT(   (coarsest_level >= 0)
@@ -87,6 +86,16 @@ void HierarchySideDataOpsReal<DIM,TYPE>::resetLevels(
    d_finest_level = finest_level;
 
    for (int d = 0; d < DIM; d++) {
+      d_nonoverlapping_side_boxes[d].resizeArray(0);
+   }
+}
+
+template<int DIM, class TYPE>
+void HierarchySideDataOpsReal<DIM,TYPE>::maybeResetOverlappingBoxLists() const
+{
+   if (d_nonoverlapping_side_boxes[0].size() > 0)
+      return;
+   for (int d = 0; d < DIM; d++) {
       d_nonoverlapping_side_boxes[d].resizeArray(d_finest_level+1);
    }
 
@@ -97,7 +106,7 @@ void HierarchySideDataOpsReal<DIM,TYPE>::resetLevels(
 
       for (int nd = 0; nd < DIM; nd++) {
          side_boxes = level->getBoxes();
-         for (i = 0; i < n; i++) {
+         for (int i = 0; i < n; i++) {
             side_boxes[i] =
                pdat::SideGeometry<DIM>::toSideBox(side_boxes[i], nd);
          }
@@ -682,6 +691,7 @@ int HierarchySideDataOpsReal<DIM,TYPE>::numberOfEntries(
           && (d_finest_level >= d_coarsest_level)
           && (d_finest_level <= d_hierarchy->getFinestLevelNumber()) );
 #endif
+   maybeResetOverlappingBoxLists();
 
    int entries = 0;
 

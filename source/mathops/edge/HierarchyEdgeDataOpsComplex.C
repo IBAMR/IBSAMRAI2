@@ -67,11 +67,11 @@ template<int DIM> void HierarchyEdgeDataOpsComplex<DIM>::setPatchHierarchy(
    d_hierarchy = hierarchy;
 }
 
-template<int DIM> void HierarchyEdgeDataOpsComplex<DIM>::resetLevels(
+template<int DIM>
+void HierarchyEdgeDataOpsComplex<DIM>::resetLevels(
    const int coarsest_level,
    const int finest_level)
 {
-   int i;
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!d_hierarchy.isNull());
    TBOX_ASSERT(   (coarsest_level >= 0)
@@ -83,6 +83,16 @@ template<int DIM> void HierarchyEdgeDataOpsComplex<DIM>::resetLevels(
    d_finest_level = finest_level;
 
    for (int d = 0; d < DIM; d++) {
+      d_nonoverlapping_edge_boxes[d].resizeArray(0);
+   }
+}
+
+template<int DIM>
+void HierarchyEdgeDataOpsComplex<DIM>::maybeResetOverlappingBoxLists() const
+{
+   if (d_nonoverlapping_edge_boxes[0].size() > 0)
+      return;
+   for (int d = 0; d < DIM; d++) {
       d_nonoverlapping_edge_boxes[d].resizeArray(d_finest_level+1);
    }
 
@@ -93,7 +103,7 @@ template<int DIM> void HierarchyEdgeDataOpsComplex<DIM>::resetLevels(
       for (int nd = 0; nd < DIM; nd++ ) {
          edge_boxes = level->getBoxes();
          const int n = edge_boxes.getNumberOfBoxes();
-         for (i = 0; i < n; i++) {
+         for (int i = 0; i < n; i++) {
             edge_boxes[i] =
                pdat::EdgeGeometry<DIM>::toEdgeBox(edge_boxes[i], nd);
          }
@@ -633,6 +643,7 @@ template<int DIM> int HierarchyEdgeDataOpsComplex<DIM>::numberOfEntries(
           && (d_finest_level >= d_coarsest_level)
           && (d_finest_level <= d_hierarchy->getFinestLevelNumber()) );
 #endif
+   maybeResetOverlappingBoxLists();
 
    int entries = 0;
 

@@ -81,6 +81,14 @@ template<int DIM> void HierarchyNodeDataOpsComplex<DIM>::resetLevels(
    d_coarsest_level = coarsest_level;
    d_finest_level = finest_level;
 
+   d_nonoverlapping_node_boxes.resizeArray(0);
+}
+
+template<int DIM>
+void HierarchyNodeDataOpsComplex<DIM>::maybeResetOverlappingBoxLists() const
+{
+   if (d_nonoverlapping_node_boxes.size() > 0)
+      return;
    d_nonoverlapping_node_boxes.resizeArray(d_finest_level+1);
 
    for (int ln = d_coarsest_level; ln <= d_finest_level; ln++) {
@@ -627,6 +635,7 @@ template<int DIM> int HierarchyNodeDataOpsComplex<DIM>::numberOfEntries(
           && (d_finest_level >= d_coarsest_level)
           && (d_finest_level <= d_hierarchy->getFinestLevelNumber()) );
 #endif
+   maybeResetOverlappingBoxLists();
 
    int entries = 0;
 
