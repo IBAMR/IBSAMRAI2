@@ -48,7 +48,7 @@ public:
     */
    ArrayDataNormOpsComplex();
 
-   ~ArrayDataNormOpsComplex<DIM>();
+   ~ArrayDataNormOpsComplex();
 
    /**
     * Set destination component to norm of source component.  That is, 

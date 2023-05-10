@@ -52,7 +52,7 @@ public:
     */ 
    ArrayDataBasicOps();
 
-   ~ArrayDataBasicOps<DIM,TYPE>();
+   ~ArrayDataBasicOps();
 
    /**
     * Set dst = alpha * src, elementwise.

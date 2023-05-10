@@ -158,7 +158,7 @@ public:
    /*!
     * The destructor releases privately held resources.
     */
-   ~BoxGraph<DIM>();
+   ~BoxGraph();
 
    /*!
     * @brief Compute the indices of boxes from the src_box_array

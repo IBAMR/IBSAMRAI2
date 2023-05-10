@@ -52,7 +52,7 @@ public:
    /**
     * Destructor for BlockPatchGeometry.
     */
-   ~BlockPatchGeometry<DIM>();
+   ~BlockPatchGeometry();
 
    /**
     * Get the block number for the block on which the patch lies. 

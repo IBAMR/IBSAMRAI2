@@ -52,7 +52,7 @@ public:
     */
    PatchEdgeDataOpsInteger();
 
-   virtual ~PatchEdgeDataOpsInteger<DIM>();
+   virtual ~PatchEdgeDataOpsInteger();
 
    /**
     * Return the number of data values for the edge-centered data object

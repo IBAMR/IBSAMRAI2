@@ -119,6 +119,20 @@ const TYPE& IndexIterator<DIM,TYPE,BOX_GEOMETRY>::operator()() const
 
 template<int DIM, class TYPE, class BOX_GEOMETRY>
 inline
+TYPE& IndexIterator<DIM,TYPE,BOX_GEOMETRY>::getItem()
+{
+   return(*d_node->d_item);
+}
+
+template<int DIM, class TYPE, class BOX_GEOMETRY>
+inline
+const hier::Index<DIM>& IndexIterator<DIM,TYPE,BOX_GEOMETRY>::getIndex() const
+{
+    return(d_node->d_index);
+}
+
+template<int DIM, class TYPE, class BOX_GEOMETRY>
+inline
 IndexIterator<DIM,TYPE,BOX_GEOMETRY>::operator bool() const
 {
    return(d_node ? true : false);

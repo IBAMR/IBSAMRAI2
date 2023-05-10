@@ -49,7 +49,7 @@ public:
    /**
     * The virtual destructor does nothing interesting.
     */
-   virtual ~BoxOverlap<DIM>();
+   virtual ~BoxOverlap();
 
    /**
     * Return true if intersecting boxes have no communication dependencies.

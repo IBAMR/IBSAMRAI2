@@ -50,7 +50,7 @@ public:
    /*!
     * The virtual destructor for coarsen strategy does nothing interesting.
     */
-   virtual ~MultiblockCoarsenPatchStrategy<DIM>();
+   virtual ~MultiblockCoarsenPatchStrategy();
 
    /*!
     * Return maximum stencil width needed over all user-defined

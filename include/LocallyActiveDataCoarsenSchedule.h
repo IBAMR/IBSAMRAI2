@@ -127,7 +127,7 @@ public:
    /*!
     * The virtual destructor for the schedule releases all internal storage.
     */
-   virtual ~LocallyActiveDataCoarsenSchedule<DIM>();
+   virtual ~LocallyActiveDataCoarsenSchedule();
 
    /*!
     * Execute the stored communication schedule and perform the data movement.

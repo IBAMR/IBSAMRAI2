@@ -56,7 +56,7 @@ public:
    /**
     * Virtual destructor for the HierarchyDataOpsReal<DIM> class.
     */
-   virtual ~HierarchyDataOpsReal<DIM,TYPE>();
+   virtual ~HierarchyDataOpsReal();
 
    /**
     * Reset patch hierarchy over which operations occur.
@@ -328,6 +328,13 @@ public:
                     const int data2_id, 
                     const int vol_id = -1,
 		    bool local_only=false) const = 0;
+
+   /**
+    * Return the integral of the function represented by the data array.
+    * The return value is the sum \f$\sum_i ( data_i * vol_i )\f$.
+    */
+   virtual TYPE integral(const int data_id,
+                         const int vol_id) const = 0;
 
    /**
     * Return 1 if \f$\|data2_i\| > 0\f$ and \f$data1_i * data2_i \leq 0\f$, for

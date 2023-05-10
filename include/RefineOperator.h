@@ -75,7 +75,7 @@ public:
     * The virtual destructor for the refinement operator does
     * nothing interesting.
     */
-   virtual ~RefineOperator<DIM>();
+   virtual ~RefineOperator();
 
    /**
     * Return true if the refinement operation matches the variable and

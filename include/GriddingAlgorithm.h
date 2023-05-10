@@ -335,7 +335,7 @@ public:
    /*!
     * Virtual destructor for GriddingAlgorithm<DIM>.
     */
-   virtual ~GriddingAlgorithm<DIM>();
+   virtual ~GriddingAlgorithm();
 
    /*!
     * This routine will attempt to construct the coarsest level in an AMR

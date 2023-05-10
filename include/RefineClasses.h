@@ -66,7 +66,7 @@ public:
     * The virtual destructor destroys the refinement data items owned 
     * by this object (and the associated RefineAlgorithm<DIM> object).
     */
-   virtual ~RefineClasses<DIM>();
+   virtual ~RefineClasses();
 
    /**
     * Return number of equivalence classes maintained by this object

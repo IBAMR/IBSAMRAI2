@@ -61,7 +61,7 @@ public:
    /*!
     * Virtual destructor for MethodOfLinesPatchStrategy<DIM>.
     */
-   virtual ~MethodOfLinesPatchStrategy<DIM>() = 0;
+   virtual ~MethodOfLinesPatchStrategy() = 0;
 
    /*!
     * Register variables specific to the problem to be solved with the 

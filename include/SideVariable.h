@@ -70,7 +70,7 @@ public:
    /*!
     * @brief Virtual destructor for side variable objects.
     */
-   virtual ~SideVariable<DIM,TYPE>();
+   virtual ~SideVariable();
 
    /*!
     * @brief Return constant reference to vector describing which coordinate

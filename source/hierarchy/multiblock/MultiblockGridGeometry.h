@@ -38,7 +38,7 @@ public:
    /*!
     * @brief The virtual destructor does nothing interesting.
     */
-   virtual ~MultiblockGridGeometry<DIM>();
+   virtual ~MultiblockGridGeometry();
 
    tbox::Pointer< hier::GridGeometry<DIM> >& getBlockGeometry(const int block)
    {

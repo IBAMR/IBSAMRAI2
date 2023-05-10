@@ -120,7 +120,7 @@ public:
    /*!
     * The virtual destructor for the algorithm releases all internal storage.
     */
-   virtual ~RefineAlgorithm<DIM>();
+   virtual ~RefineAlgorithm();
 
    /*!
     * Register a refine operation with the refine algorithm object.  This 

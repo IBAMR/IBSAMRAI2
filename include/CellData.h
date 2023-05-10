@@ -110,7 +110,7 @@ public:
    /*!
     * @brief The virtual destructor for a cell data object.
     */
-   virtual ~CellData<DIM,TYPE>();
+   virtual ~CellData();
 
    /*!
     * @brief Return the depth (e.g., the number of components in each spatial

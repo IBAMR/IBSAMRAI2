@@ -159,7 +159,7 @@ public:
    /*!
     * Virtual destructor
     */
-   virtual ~MultiblockRefineSchedule<DIM>();
+   virtual ~MultiblockRefineSchedule();
 
    /*!
     * @brief Execute the stored communication schedule and perform the

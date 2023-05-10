@@ -33,7 +33,7 @@ public:
    /*!
     * @brief The virtual destructor does nothing interesting.
     */
-   virtual ~MultiblockNodeDataTranslator<DIM,TYPE>();
+   virtual ~MultiblockNodeDataTranslator();
 
    virtual void translateAndCopyData(
       hier::Patch<DIM>& dst_patch,

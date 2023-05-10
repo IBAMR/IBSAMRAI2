@@ -61,7 +61,7 @@ public:
     * Destructor for BlockGridGeometry unregisters the object 
     * with the restart manager if previously registered.
     */
-   virtual ~BlockGridGeometry<DIM>();
+   virtual ~BlockGridGeometry();
    
    /**
     * Create and return a pointer to a refined version of this Cartesian grid

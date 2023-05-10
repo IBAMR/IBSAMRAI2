@@ -183,7 +183,7 @@ public:
     * The destructor for TimeRefinementIntegrator<DIM> unregisters 
     * the integrator object with the restart manager when so registered.
     */
-   ~TimeRefinementIntegrator<DIM>();
+   ~TimeRefinementIntegrator();
 
    /*!
     * Set AMR patch hierarchy configuration and data at start of simulation.

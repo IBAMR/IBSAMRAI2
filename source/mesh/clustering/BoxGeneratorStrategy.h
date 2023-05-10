@@ -41,7 +41,7 @@ public:
    /**
     * Virtual destructor.
     */
-   virtual ~BoxGeneratorStrategy<DIM>();
+   virtual ~BoxGeneratorStrategy();
 
    /**
     * Create list of boxes whose union covers all integer tags on the patch 

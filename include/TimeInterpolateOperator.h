@@ -70,7 +70,7 @@ public:
     * The virtual destructor for the coarsening operator does
     * nothing interesting.
     */
-   virtual ~TimeInterpolateOperator<DIM>();
+   virtual ~TimeInterpolateOperator();
 
    /**
     * Return true if the time interpolation operation matches the

@@ -33,7 +33,7 @@ template<int DIM> EmbeddedBoundaryShape<DIM>::EmbeddedBoundaryShape()
 {
 }
 
-template<int DIM> EmbeddedBoundaryShape<DIM>::~EmbeddedBoundaryShape<DIM>()
+template<int DIM> EmbeddedBoundaryShape<DIM>::~EmbeddedBoundaryShape()
 {   
 }
 

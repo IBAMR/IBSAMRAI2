@@ -52,7 +52,7 @@ public:
     */
    PatchFaceDataOpsInteger();
 
-   virtual ~PatchFaceDataOpsInteger<DIM>();
+   virtual ~PatchFaceDataOpsInteger();
 
    /**
     * Return the number of data values for the face-centered data object

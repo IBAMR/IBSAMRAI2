@@ -64,7 +64,7 @@ public:
    /*!
     * @brief The virtual destructor does nothing interesting.
     */
-   virtual ~FaceGeometry<DIM>();
+   virtual ~FaceGeometry();
 
    /*!
     * @brief Compute the overlap in face-centered index space between

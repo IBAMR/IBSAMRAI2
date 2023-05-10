@@ -56,7 +56,7 @@ public:
     */
    PatchFaceDataBasicOps();
 
-   virtual ~PatchFaceDataBasicOps<DIM,TYPE>();
+   virtual ~PatchFaceDataBasicOps();
 
    /**
     * Set dst = alpha * src, elementwise.

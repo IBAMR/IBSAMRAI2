@@ -62,7 +62,7 @@ public:
    /*!
     * @brief The virtual destructor does nothing interesting.
     */
-   virtual ~EdgeGeometry<DIM>();
+   virtual ~EdgeGeometry();
 
    /*!
     * @brief Compute the overlap in edge-centered index space between

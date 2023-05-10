@@ -53,7 +53,7 @@ public:
     */
    PatchCellDataOpsInteger();
 
-   virtual ~PatchCellDataOpsInteger<DIM>();
+   virtual ~PatchCellDataOpsInteger();
 
    /**
     * Return the number of data values for the cell-centered data object

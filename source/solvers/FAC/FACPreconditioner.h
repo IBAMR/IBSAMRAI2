@@ -71,7 +71,7 @@ public:
    /*!
     * Virtual destructor.
     */
-   virtual ~FACPreconditioner<DIM>();
+   virtual ~FACPreconditioner();
 
    /*!
     * @brief Solve linear system Au=f using the FAC algorithm.

@@ -42,7 +42,7 @@ public:
    /**
     * Virtual destructor for patch level factory objects.
     */
-   virtual ~PatchLevelFactory<DIM>();
+   virtual ~PatchLevelFactory();
 
    /**
     * Allocate a patch level with the specified boxes and processor mappings.

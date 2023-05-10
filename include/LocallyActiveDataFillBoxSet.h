@@ -63,7 +63,7 @@ public:
    /*!
     * The destructor releases all box and locally-active data storage.
     */
-   virtual ~LocallyActiveDataFillBoxSet<DIM>();
+   virtual ~LocallyActiveDataFillBoxSet();
 
    /*!
     * Clears all existing box and locally-active data information for calling object 

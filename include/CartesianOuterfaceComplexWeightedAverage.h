@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianOuterfaceComplexWeightedAverage<DIM>();
+   virtual ~CartesianOuterfaceComplexWeightedAverage();
 
    /**
     * Return true if the variable and name string match the outerface

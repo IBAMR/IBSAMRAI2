@@ -62,7 +62,7 @@ public:
    /*!
     * The destructor does nothing.
     */
-   ~EmbeddedBoundaryShapeSphere<DIM>();
+   ~EmbeddedBoundaryShapeSphere();
 
    /*!
     * Concrete implementation of the isInside() method defined by the

@@ -67,7 +67,7 @@ public:
    /**
     * Destructor for the array data iterator.
     */
-   ~ArrayDataIterator<DIM>();
+   ~ArrayDataIterator();
 
    /**
     * Extract the index corresponding to the iterator position in the box.

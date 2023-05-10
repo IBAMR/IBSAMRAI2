@@ -46,7 +46,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~SideDoubleLinearTimeInterpolateOp<DIM>();
+   virtual ~SideDoubleLinearTimeInterpolateOp();
 
    /**
     * Return true if the variable and name string match the standard

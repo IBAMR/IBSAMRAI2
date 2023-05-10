@@ -48,7 +48,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~OutersideFloatLinearTimeInterpolateOp<DIM>();
+   virtual ~OutersideFloatLinearTimeInterpolateOp();
 
    /**
     * Return true if the variable and name string match the standard

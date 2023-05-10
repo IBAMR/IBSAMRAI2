@@ -100,7 +100,7 @@ public:
    /*!
     * Virtual destructor for StandardTagAndInitialize<DIM>.
     */
-   virtual ~StandardTagAndInitialize<DIM>();
+   virtual ~StandardTagAndInitialize();
 
    /*!
     * Specifies whether the chosen method advances the solution data 

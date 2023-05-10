@@ -67,7 +67,7 @@ public:
    /**
     * Destructor for the face iterator.
     */
-   ~FaceIterator<DIM>();
+   ~FaceIterator();
 
    /**
     * Extract the face index corresponding to the iterator position in the box.

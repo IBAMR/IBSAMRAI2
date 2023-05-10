@@ -51,7 +51,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianCellFloatConservativeLinearRefine<DIM>();
+   virtual ~CartesianCellFloatConservativeLinearRefine();
 
    /**
     * Return true if the variable and name string match cell-centered 

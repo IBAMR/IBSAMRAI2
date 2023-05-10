@@ -36,7 +36,7 @@ public:
    /*!
     * Virtual destructor does nothing
     */
-   virtual ~MBUtilities<DIM>();
+   virtual ~MBUtilities();
 
    /*!
     * @brief Copy patch data from src to dst using the shift and rotate

@@ -102,7 +102,7 @@ public:
       int ln,
       const IntVector<DIM>& max_ghost_width);
 
-   ~CoarseFineBoundary<DIM>();
+   ~CoarseFineBoundary();
 
    /*!
     * @brief Construct a CoarseFineBoundary<DIM> object for the specified

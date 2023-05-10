@@ -31,7 +31,7 @@ int main( int argc, char *argv[] )
 //   TAU_PROFILE_SET_NODE(tbox::SAMRAI_MPI::getRank());
 #endif
 
-   tbox::pout << "\n\nAllocating memory in 1MB chunks until we run out...\n" << endl;
+   tbox::pout << "\n\nAllocating memory in 1MB chunks until we run out...\n" << std::endl;
 
    for (int chunk = 1; chunk < MAX_TEST; chunk++) {
       
@@ -39,7 +39,7 @@ int main( int argc, char *argv[] )
  
       double* array = new double[chunk*doubles_in_one_mb];
       if (!array) {
-         tbox::pout << "\nRan out of memory!!" << endl;
+         tbox::pout << "\nRan out of memory!!" << std::endl;
          break;
       }
 
@@ -53,7 +53,7 @@ int main( int argc, char *argv[] )
          
       tbox::pout << "Successfully allocated " << chunk << "MB chunk (" 
            << doubles_in_one_mb*chunk << " doubles)"
-           << endl;
+           << std::endl;
 
       tbox::MemoryUtilities::printMemoryInfo(tbox::pout);
       tbox::MemoryUtilities::recordMemoryInfo();

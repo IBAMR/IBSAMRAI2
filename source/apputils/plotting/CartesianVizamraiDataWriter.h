@@ -143,7 +143,7 @@ public:
    /*!
     * The destructor for the writer does nothing interesting.
     */
-   virtual ~CartesianVizamraiDataWriter<DIM>();
+   virtual ~CartesianVizamraiDataWriter();
 
    /*!
     * Set the finest hierarchy level to write to a Vizamrai file. 

@@ -59,7 +59,7 @@ public:
    /**
     * The side index destructor does nothing interesting.
     */
-   ~SideIndex<DIM>();
+   ~SideIndex();
 
    /**
     * Get the axis for which this side index is defined (X=0, Y=1, Z=2).

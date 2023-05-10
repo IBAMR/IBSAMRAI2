@@ -45,7 +45,7 @@ public:
    /**
     * The destructor does nothing of public interest.
     */
-   ~BinaryTree<DIM>();
+   ~BinaryTree();
 
    /**
     * Returns true if "box" intersects a patch that is local 

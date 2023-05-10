@@ -127,7 +127,7 @@ public:
    /*!
     * @brief Virtual destructor for a outerface data object.
     */
-   virtual ~OuterfaceData<DIM,TYPE>();
+   virtual ~OuterfaceData();
 
    /*!
     * @brief Return the depth (i.e., the number of data values for

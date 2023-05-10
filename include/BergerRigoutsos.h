@@ -74,7 +74,7 @@ public:
    /*!
     * Virtual destructor.
     */
-   virtual ~BergerRigoutsos<DIM>();
+   virtual ~BergerRigoutsos();
 
 
    /*!

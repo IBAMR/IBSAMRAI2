@@ -74,7 +74,7 @@ public:
    /**
     * Virtual destructor for patch objects.
     */
-   virtual ~Patch<DIM>();
+   virtual ~Patch();
 
    /**
     * Return the box over which this patch is defined.  The components on a

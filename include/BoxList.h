@@ -72,7 +72,7 @@ public:
    /**
     * The destructor releases all list storage.
     */
-   ~BoxList<DIM>();
+   ~BoxList();
 
    /**
     * Return integer number of boxes in the box list.  Note that this 

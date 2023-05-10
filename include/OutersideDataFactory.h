@@ -51,7 +51,7 @@ public:
    /**
     * Virtual destructor for the outerside data factory class.
     */
-   virtual ~OutersideDataFactory<DIM,TYPE>();
+   virtual ~OutersideDataFactory();
 
    /**
     * @brief Abstract virtual function to clone a patch data factory.

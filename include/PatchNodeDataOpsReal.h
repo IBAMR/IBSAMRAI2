@@ -62,7 +62,7 @@ public:
     */
    PatchNodeDataOpsReal();
 
-   virtual ~PatchNodeDataOpsReal<DIM,TYPE>();
+   virtual ~PatchNodeDataOpsReal();
 
    /**
     * Copy dst data to src data over given box.

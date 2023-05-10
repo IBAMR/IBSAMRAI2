@@ -127,7 +127,7 @@ public:
    /**
     * The virtual destructor for patch level deallocates all patches.
     */
-   virtual ~PatchLevel<DIM>();
+   virtual ~PatchLevel();
 
    /**
     * Return the number of this level in a hierarchy, or the number of
@@ -479,7 +479,10 @@ private:
     */
    void setPatchTouchesBoundaryArrays();
 
-   void initializeTimers();
+   /*!
+    * Allocate static timers.
+    */
+   static void initializeTimers();
 
    /*!
     * Free static timers.
@@ -565,6 +568,11 @@ private:
     * Manages communications in clustering algorithms
     */
    tbox::Pointer< BinaryTree<DIM> > d_binary_tree;
+
+   /*
+    * Timer objects for performance measurement.
+    */
+   static tbox::Pointer<tbox::Timer> t_level_constructor;
 };
 
 /**
@@ -625,7 +633,7 @@ public:
    /**
     * Destructor for the patch level iterator.
     */
-   ~PatchLevelIterator<DIM>();
+   ~PatchLevelIterator();
 
    /**
     * Extract the integer patch index corresponding to the current patch 

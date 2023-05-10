@@ -58,7 +58,7 @@ public:
    /*!
     * @brief The virtual destructor does nothing interesting.
     */
-   virtual ~OutersideGeometry<DIM>();
+   virtual ~OutersideGeometry();
 
    /*!
     * @brief Compute the overlap in side-centered index space on the

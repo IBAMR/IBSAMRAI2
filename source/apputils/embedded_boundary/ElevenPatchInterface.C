@@ -56,7 +56,7 @@ ElevenPatchInterface<DIM>::ElevenPatchInterface(
 *******************************************************************
 */
 template<int DIM> 
-ElevenPatchInterface<DIM>::~ElevenPatchInterface<DIM>()
+ElevenPatchInterface<DIM>::~ElevenPatchInterface()
 {
   
 }

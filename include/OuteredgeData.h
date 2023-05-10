@@ -168,7 +168,7 @@ public:
    /*!
     * @brief Virtual destructor for a outeredge data object.
     */
-   virtual ~OuteredgeData<DIM,TYPE>();
+   virtual ~OuteredgeData();
 
    /*!
     * @brief Return the depth (i.e., the number of data values for 

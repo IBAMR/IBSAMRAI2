@@ -92,7 +92,7 @@ public:
    /*!
     * @brief Destructor.
     */
-   virtual ~LocationIndexRobinBcCoefs<DIM>(void);
+   virtual ~LocationIndexRobinBcCoefs();
 
 
    /*!

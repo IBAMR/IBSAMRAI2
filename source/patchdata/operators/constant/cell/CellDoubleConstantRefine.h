@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CellDoubleConstantRefine<DIM>();
+   virtual ~CellDoubleConstantRefine();
 
    /**
     * Return true if the variable and name string match cell-centered 

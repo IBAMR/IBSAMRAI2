@@ -55,7 +55,7 @@ public:
    /**
     * Virtual destructor for the edge data factory class.
     */
-   virtual ~EdgeDataFactory<DIM,TYPE>();
+   virtual ~EdgeDataFactory();
 
    /**
     * @brief Abstract virtual function to clone a patch data factory.

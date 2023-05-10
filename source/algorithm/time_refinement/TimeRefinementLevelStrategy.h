@@ -65,7 +65,7 @@ public:
    /**
     * Virtual destructor for TimeRefinementLevelStrategy<DIM>.
     */
-   virtual ~TimeRefinementLevelStrategy<DIM>();
+   virtual ~TimeRefinementLevelStrategy();
 
    /**
     * Initialize the state of the integrator that performs time 

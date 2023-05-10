@@ -60,7 +60,7 @@ public:
    /*!
     * @brief Virtual destructor for outerface variable objects.
     */
-   virtual ~OuterfaceVariable<DIM,TYPE>();
+   virtual ~OuterfaceVariable();
  
    /*!
     * @brief Return a boolean true value indicating that fine patch

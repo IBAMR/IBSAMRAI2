@@ -57,7 +57,7 @@ public:
     */
    PatchEdgeDataOpsComplex();
 
-   virtual ~PatchEdgeDataOpsComplex<DIM>();
+   virtual ~PatchEdgeDataOpsComplex();
 
    /**
     * Copy dst data to src data over given box.

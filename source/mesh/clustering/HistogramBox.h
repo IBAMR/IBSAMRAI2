@@ -69,7 +69,7 @@ public:
    /**
     * Destructor for the HistogramBox.
     */
-   ~HistogramBox<DIM>();
+   ~HistogramBox();
 
    /*!
     * Given histogram information in a box region, determine smallest

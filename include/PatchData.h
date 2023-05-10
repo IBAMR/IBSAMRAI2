@@ -67,7 +67,7 @@ public:
    /**
     * The virtual destructor for a patch data object.
     */
-   virtual ~PatchData<DIM>();
+   virtual ~PatchData();
 
    /**
     * Return the box over which this patch data object is defined.  All

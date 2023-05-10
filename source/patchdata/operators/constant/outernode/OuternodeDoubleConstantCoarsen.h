@@ -54,7 +54,7 @@ public:
    /*!
     * @brief Uninteresting virtual destructor.
     */
-   virtual ~OuternodeDoubleConstantCoarsen<DIM>();
+   virtual ~OuternodeDoubleConstantCoarsen();
 
    /*!
     * @brief Determine if object is for coarsening the specified

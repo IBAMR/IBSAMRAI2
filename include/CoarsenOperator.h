@@ -75,7 +75,7 @@ public:
     * The virtual destructor for the coarsening operator does
     * nothing interesting.
     */
-   virtual ~CoarsenOperator<DIM>();
+   virtual ~CoarsenOperator();
 
    /**
     * Return true if the coarsening operation matches the variable and

@@ -47,7 +47,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~SkeletonRefine<DIM>();
+   virtual ~SkeletonRefine();
 
    /**
     * Return true if the variable and name string match cell-centered 

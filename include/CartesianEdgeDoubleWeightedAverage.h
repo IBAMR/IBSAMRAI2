@@ -49,7 +49,7 @@ public:
    /**
     * Uninteresting virtual destructor.
     */
-   virtual ~CartesianEdgeDoubleWeightedAverage<DIM>();
+   virtual ~CartesianEdgeDoubleWeightedAverage();
 
    /**
     * Return true if the variable and name string match the edge-centered 

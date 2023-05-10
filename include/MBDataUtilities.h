@@ -45,7 +45,7 @@ public:
     */
    MBDataUtilities();
 
-   virtual ~MBDataUtilities<DIM,TYPE>();
+   virtual ~MBDataUtilities();
 
    /*!
     * @brief Translate and copy cell data from src to dst according the shift

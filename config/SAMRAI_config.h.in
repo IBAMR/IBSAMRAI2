@@ -1,4 +1,4 @@
-/* config/SAMRAI_config.h.in.  Generated from configure.in by autoheader.  */
+/* config/SAMRAI_config.h.in.  Generated from configure.ac by autoheader.  */
 
 
 
@@ -126,9 +126,6 @@
 /* HAVE_MEMBER_FUNCTION_SPECIALIZATION */
 #undef HAVE_MEMBER_FUNCTION_SPECIALIZATION
 
-/* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
-
 /* MPI library is present */
 #undef HAVE_MPI
 
@@ -158,6 +155,9 @@
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#undef HAVE_STDIO_H
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
@@ -313,19 +313,19 @@
 #undef OSTRSTREAM_TYPE_IS_BROKEN
 
 /* Define to the address where bug reports for this package should be sent. */
-#undef PACKAGE_BUGREPORT
+/* #undef PACKAGE_BUGREPORT */
 
 /* Define to the full name of this package. */
-#undef PACKAGE_NAME
+/* #undef PACKAGE_NAME */
 
 /* Define to the full name and version of this package. */
-#undef PACKAGE_STRING
+/* #undef PACKAGE_STRING */
 
 /* Define to the one symbol short name of this package. */
-#undef PACKAGE_TARNAME
+/* #undef PACKAGE_TARNAME */
 
 /* Define to the version of this package. */
-#undef PACKAGE_VERSION
+/* #undef PACKAGE_VERSION */
 
 /* Define if restrict is not properly supported */
 #undef RESTRICT_IS_BROKEN

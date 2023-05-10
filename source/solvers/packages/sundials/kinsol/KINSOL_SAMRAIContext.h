@@ -175,7 +175,7 @@ public:
     * Destructor for algs::KINSOL_SAMRAIContext destroys the KINSOL 
     * C++ wrapper object and the KINSOL solution vector wrapper.
     */
-   ~KINSOL_SAMRAIContext<DIM>();
+   ~KINSOL_SAMRAIContext();
 
    /**
     * Initialize the state of KINSOL based on vector argument representing 

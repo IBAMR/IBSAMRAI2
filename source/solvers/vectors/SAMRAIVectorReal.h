@@ -151,7 +151,7 @@ public:
     * some pre-existing patch data objects that must live beyond the 
     * destruction of the vector object.
     */
-   virtual ~SAMRAIVectorReal<DIM,TYPE>();
+   virtual ~SAMRAIVectorReal();
 
    /**
     * Set string identifier for this vector object.

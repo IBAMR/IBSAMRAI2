@@ -67,7 +67,7 @@ public:
    /**
     * Destructor for the side iterator.
     */
-   ~SideIterator<DIM>();
+   ~SideIterator();
 
    /**
     * Extract the side index corresponding to the iterator position in the box.

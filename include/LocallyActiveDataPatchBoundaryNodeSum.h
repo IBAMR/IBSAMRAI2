@@ -115,7 +115,7 @@ public:
    /*!
     *  @brief Destructor for the schedule releases all internal storage.
     */
-   ~LocallyActiveDataPatchBoundaryNodeSum<DIM>();
+   ~LocallyActiveDataPatchBoundaryNodeSum();
 
    /*!
     *  @brief Register node data with given patch data identifier for summing.
