@@ -54,7 +54,7 @@ SideVariable<DIM,TYPE>::SideVariable(
       for (int id = 0; id < DIM; id++) {
          d_directions(id) = ( (direction == id) ? 1 : 0 );  
       }  
-      setPatchDataFactory(new SideDataFactory<DIM,TYPE>(
+      this->setPatchDataFactory(new SideDataFactory<DIM,TYPE>(
                              depth,
                              hier::IntVector<DIM>(0),
                              fine_boundary_represents_var,

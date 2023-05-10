@@ -66,6 +66,8 @@
  * functions and member functions must be instantiated individually.
  */
 
+#if 0 // some of these don't make sense; get rid of it
+
 
 template class std::set<int>;
 
@@ -102,4 +104,4 @@ template void std::vector<double>::insert<const double *>(std::vector<double>::i
 
 
 
-
+#endif

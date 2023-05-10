@@ -27,7 +27,15 @@
 namespace SAMRAI {
     namespace hier {
 
-static tbox::Pointer<tbox::Timer> t_level_constructor;
+/*
+*************************************************************************
+*                                                                       *
+* Initialization for static data members.                               *
+*                                                                       *
+*************************************************************************
+*/
+template<int DIM> tbox::Pointer<tbox::Timer>
+   PatchLevel<DIM>::t_level_constructor;
 
 /*
  *************************************************************************
@@ -1007,8 +1015,8 @@ template<int DIM> void PatchLevel<DIM>::initializeTimers()
    if ( t_level_constructor.isNull() ) {
       t_level_constructor = tbox::TimerManager::getManager() ->
          getTimer("mesh::PatchLevel::level_constructor");
-   }
    tbox::ShutdownRegistry::registerShutdownRoutine(freeTimers, 254);
+   }
 }
 
 

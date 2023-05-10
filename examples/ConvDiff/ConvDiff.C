@@ -1298,6 +1298,8 @@ void ConvDiff::checkBoundaryData(int btype,
            << "     " << num_bad_values << " bad VAL values found for\n"
            << "     boundary type " << btype << " at location " << bloc << endl;
       }
+#else
+      NULL_USE(num_bad_values);
 #endif
 
    }
