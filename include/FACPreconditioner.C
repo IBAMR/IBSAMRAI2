@@ -152,18 +152,22 @@ template<int DIM> void FACPreconditioner<DIM>::deallocateSolverState( )
       d_patch_hierarchy.setNull();
 
       if ( d_error_vector ) {
+         d_error_vector->resetLevels(d_error_vector->getCoarsestLevelNumber(), std::min(d_error_vector->getFinestLevelNumber(),d_error_vector->getPatchHierarchy()->getFinestLevelNumber()));
          d_error_vector->freeVectorComponents();
          d_error_vector.setNull();
       }
       if ( d_tmp_error ) {
+         d_tmp_error->resetLevels(d_tmp_error->getCoarsestLevelNumber(), std::min(d_tmp_error->getFinestLevelNumber(),d_tmp_error->getPatchHierarchy()->getFinestLevelNumber()));
          d_tmp_error->freeVectorComponents();
          d_tmp_error.setNull();
       }
       if ( d_residual_vector ) {
+         d_residual_vector->resetLevels(d_residual_vector->getCoarsestLevelNumber(), std::min(d_residual_vector->getFinestLevelNumber(),d_residual_vector->getPatchHierarchy()->getFinestLevelNumber()));
          d_residual_vector->freeVectorComponents();
          d_residual_vector.setNull();
       }
       if ( d_tmp_residual ) {
+         d_tmp_residual->resetLevels(d_tmp_residual->getCoarsestLevelNumber(), std::min(d_tmp_residual->getFinestLevelNumber(),d_tmp_residual->getPatchHierarchy()->getFinestLevelNumber()));
          d_tmp_residual->freeVectorComponents();
          d_tmp_residual.setNull();
       }

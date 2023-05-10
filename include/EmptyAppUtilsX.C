@@ -14,6 +14,12 @@
 namespace SAMRAI {
    namespace appu {
       template<int DIM> class Empty {
+	 Empty() :
+	    something(0) 
+	 {
+	 }
+
+	 int something;
       };
 
       template class Empty< NDIM >;

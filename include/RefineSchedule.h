@@ -542,13 +542,15 @@ private:
     */
    void initialCheckRefineClassItems() const;
 
-   void initializeTimers();
-
-
    /*!
     * @brief Set up things for the entire class.
     */
    void firstConstructorTasks();
+
+   /*!
+    * Allocate static timers.
+    */
+   static void initializeTimers();
 
    /*!
     * Free static timers.
@@ -723,7 +725,17 @@ private:
    int d_max_fill_boxes;
    hier::BoxArray<DIM> d_src_masks;
 
-
+   /*!
+    * Timer objects for performance measurement.
+    */
+   static tbox::Pointer<tbox::Timer> t_fill_data;
+   static tbox::Pointer<tbox::Timer> t_recursive_fill;
+   static tbox::Pointer<tbox::Timer> t_refine_scratch_data;
+   static tbox::Pointer<tbox::Timer> t_gen_sched_n_squared;
+   static tbox::Pointer<tbox::Timer> t_gen_sched_box_graph;
+   static tbox::Pointer<tbox::Timer> t_gen_sched_box_tree;
+   static tbox::Pointer<tbox::Timer> t_gen_comm_sched;
+   static tbox::Pointer<tbox::Timer> t_finish_sched_const;
 };
 
 }

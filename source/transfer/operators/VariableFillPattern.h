@@ -68,6 +68,47 @@ public:
                     const hier::IntVector<DIM>& src_offset) const = 0;
 
    /*!
+    * This virtual method provides an interface to calculate overlaps between
+    * the destination and source geometries on a specified level of the patch
+    * hierarchy.
+    *
+    * @note A default implementation is provided that simply calls the pure
+    * virtual method calculateOverlap() for implementations that are level
+    * independent.
+    *
+    * @param dst_geometry    geometry object for destination box
+    * @param src_geometry    geometry object for source box
+    * @param dst_patch_box   box for the destination patch
+    * @param src_mask        the source mask, the box resulting from shifting
+    *                        the source box
+    * @param overwrite_interior  controls whether or not to include the
+    *                            destination box interior in the overlap
+    * @param src_offset      the offset between source and destination
+    *                        index space.  src + src_offset = dst
+    * @param dst_level_num   the level of the patch hierarchy on which the
+    *                        dst boxes are located
+    * @param src_level_num   the level of the patch hierarchy on which the
+    *                        src boxes are located
+    *
+    * @return                Pointer to the calculated overlap object
+    */
+   virtual tbox::Pointer< hier::BoxOverlap<DIM> >
+   calculateOverlapOnLevel(const hier::BoxGeometry<DIM>& dst_geometry,
+                           const hier::BoxGeometry<DIM>& src_geometry,
+                           const hier::Box<DIM>& dst_patch_box,
+                           const hier::Box<DIM>& src_mask,
+                           const bool overwrite_interior,
+                           const hier::IntVector<DIM>& src_offset,
+                           const int dst_level_num,
+                           const int src_level_num) const;
+
+   /*!
+    * Set the target patch level number for the variable fill pattern.  The
+    * default implementation is empty.
+    */
+   virtual void setTargetPatchLevelNumber(const int level_num);
+
+   /*!
     * Return the maximum ghost width of the boundary stencil.  The default
     * implementation throws an error.
     */

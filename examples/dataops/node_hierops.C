@@ -83,10 +83,10 @@ int main( int argc, char *argv[] ) {
 
       hier::BoxArray<2> coarse_domain(2);
       hier::BoxArray<2> fine_domain(2);
-      coarse_domain(0) = coarse0;
-      coarse_domain(1) = coarse1;
-      fine_domain(0) = fine0;
-      fine_domain(1) = fine1;
+      coarse_domain[0] = coarse0;
+      coarse_domain[1] = coarse1;
+      fine_domain[0] = fine0;
+      fine_domain[1] = fine1;
 
       tbox::Pointer<geom::CartesianGridGeometry<2> > geometry = 
 	 new geom::CartesianGridGeometry<2>("CartesianGeometry", lo, hi, coarse_domain);
