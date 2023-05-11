@@ -37,7 +37,7 @@ public:
    /*!
     * The operator copies the source value to the destination.
     */
-   void operator()(TYPE& vdst, const TYPE& vsrc) const;
+   void operator()(TYPE* vdst, const TYPE* vsrc, const int size) const;
 
 private:
    CopyOperation(const CopyOperation<TYPE>&);	// not implemented

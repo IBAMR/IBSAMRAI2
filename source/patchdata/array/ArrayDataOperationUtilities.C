@@ -104,10 +104,7 @@ void ArrayDataOperationUtilities<DIM, TYPE, OP>::doArrayDataOperationOnBox(
        */
 
       for (int nb = 0; nb < num_d0_blocks; nb++) {
-
-         for (int i0 = 0; i0 < box_w[0]; i0++) {
-            op(dst_ptr[dst_counter+i0], src_ptr[src_counter+i0]); 
-         }
+         op(dst_ptr + dst_counter, src_ptr + src_counter, box_w[0]);
          int dim_jump = 0;
 
          /*
@@ -238,10 +235,7 @@ void ArrayDataOperationUtilities<DIM, TYPE, OP>::doArrayDataBufferOperationOnBox
        */
 
       for (int nb = 0; nb < num_d0_blocks; nb++) {
-
-         for (int i0 = 0; i0 < box_w[0]; i0++) {
-            op(dst_ptr[dst_counter+i0], src_ptr[src_counter+i0]); 
-         }
+         op(dst_ptr + dst_counter, src_ptr + src_counter, box_w[0]);
          int dim_jump = 0;
 
          /*

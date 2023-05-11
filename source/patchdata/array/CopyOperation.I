@@ -7,6 +7,8 @@
 // Description:	Copy operation on single array data elements templated on data type
 //
 
+#include <algorithm>
+
 #ifdef DEBUG_NO_INLINE
 #define inline
 #endif
@@ -29,9 +31,13 @@ CopyOperation<TYPE>::~CopyOperation()
 }
 
 template <class TYPE> inline
-void CopyOperation<TYPE>::operator()(TYPE& vdst, const TYPE& vsrc) const
+void CopyOperation<TYPE>::operator()(TYPE* vdst, const TYPE* vsrc, const int size) const
 {
-   vdst = vsrc;
+   // This assumes vdst and vsrc do not overlap, which is reasonable for SAMRAI: there's
+   // no situation in which we would copy data from one part of a patch into another
+   // overlapping part of the same patch.
+   if (vsrc != vdst)
+      std::copy(vsrc, vsrc + size, vdst);
 }
 
 #ifdef DEBUG_NO_INLINE
