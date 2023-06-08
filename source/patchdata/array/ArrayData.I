@@ -124,11 +124,11 @@ int ArrayData<DIM,TYPE>::getDataStreamSize(
 template<int DIM, class TYPE> inline
 bool ArrayData<DIM,TYPE>::canEstimateStreamSizeFromBox()
 {
-  if ( ( typeid(TYPE) == typeid(bool) ) |
-       ( typeid(TYPE) == typeid(char) ) |
-       ( typeid(TYPE) == typeid(double) ) |
-       ( typeid(TYPE) == typeid(float) ) |
-       ( typeid(TYPE) == typeid(int) ) |
+  if ( ( typeid(TYPE) == typeid(bool) ) ||
+       ( typeid(TYPE) == typeid(char) ) ||
+       ( typeid(TYPE) == typeid(double) ) ||
+       ( typeid(TYPE) == typeid(float) ) ||
+       ( typeid(TYPE) == typeid(int) ) ||
        ( typeid(TYPE) == typeid(dcomplex) ) ) {
       return true;
    } else {
