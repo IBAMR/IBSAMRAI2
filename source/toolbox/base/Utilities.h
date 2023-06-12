@@ -121,9 +121,7 @@ struct Utilities
  * A null use of a variable, use to avoid GNU compiler 
  * warnings about unused variables.
  */
-#define NULL_USE(variable) do { \
-       if(0) {char *temp = (char *)&variable; temp++;} \
-    } while (0)
+#define NULL_USE(variable) (void)(variable)
 
 /*!
  * Throw an error exception from within any C++ source code.  The 
