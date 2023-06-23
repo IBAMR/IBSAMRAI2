@@ -12,6 +12,7 @@
 
 #include "tbox/AbstractStream.h"
 #include "tbox/ArenaManager.h"
+#include "tbox/MessageStream.h"
 #include "tbox/Utilities.h"
 #include "tbox/MathUtilities.h"
 #include "BoxList.h"
@@ -154,15 +155,15 @@ template<int DIM, class TYPE>
 void ArrayData<DIM,TYPE>::copy(const ArrayData<DIM,TYPE>& src,
                                const hier::Box<DIM>& box)
 {
-   
+
    CopyOperation<TYPE> copyop;
 
    /*
     * Do a fast copy of data if all data aligns with copy region
     */
 
-   if ( (d_depth == src.d_depth) && 
-        (d_box == src.d_box) && 
+   if ( (d_depth == src.d_depth) &&
+        (d_box == src.d_box) &&
         (box == d_box)) {
 
       TYPE* const dst_ptr = d_array.getPointer();
@@ -189,7 +190,7 @@ void ArrayData<DIM,TYPE>::copy(const ArrayData<DIM,TYPE>& src,
                                       num_depth,
                                       copyop);
 
-      } 
+      }
 
    }
 
@@ -216,7 +217,7 @@ void ArrayData<DIM,TYPE>::copy(const ArrayData<DIM,TYPE>& src,
 
    } else {
 
-      const hier::Box<DIM> copybox = 
+      const hier::Box<DIM> copybox =
          box * d_box * hier::Box<DIM>::shift(src.d_box, src_shift);
 
       if (!copybox.empty()) {
@@ -285,7 +286,7 @@ void ArrayData<DIM,TYPE>::copyDepth(int dst_depth,
    TBOX_ASSERT( (0 <= dst_depth) && (dst_depth <= d_depth) );
    TBOX_ASSERT( (0 <= src_depth) && (src_depth <= src.d_depth) );
 #endif
-   
+
    CopyOperation<TYPE> copyop;
 
    /*
@@ -320,7 +321,7 @@ void ArrayData<DIM,TYPE>::copyDepth(int dst_depth,
                                       dst_start_depth,
                                       src_start_depth,
                                       num_depth,
-                                      copyop); 
+                                      copyop);
 
       }
 
@@ -352,8 +353,8 @@ void ArrayData<DIM,TYPE>::sum(const ArrayData<DIM,TYPE>& src,
     * Do a fast copy and add if all data aligns with copy region
     */
 
-   if ( (d_depth == src.d_depth) && 
-        (d_box == src.d_box) && 
+   if ( (d_depth == src.d_depth) &&
+        (d_box == src.d_box) &&
         (box == d_box)) {
 
       TYPE* const dst_ptr = d_array.getPointer();
@@ -380,7 +381,7 @@ void ArrayData<DIM,TYPE>::sum(const ArrayData<DIM,TYPE>& src,
                                       num_depth,
                                       sumop);
 
-      } 
+      }
 
    }
 
@@ -407,7 +408,7 @@ void ArrayData<DIM,TYPE>::sum(const ArrayData<DIM,TYPE>& src,
 
    } else {
 
-      const hier::Box<DIM> copybox = 
+      const hier::Box<DIM> copybox =
          box * d_box * hier::Box<DIM>::shift(src.d_box, src_shift);
 
       if (!copybox.empty()) {
@@ -473,12 +474,19 @@ void ArrayData<DIM,TYPE>::packStream(
    const hier::IntVector<DIM>& src_shift) const
 {
 
+   tbox::MessageStream* message_stream = dynamic_cast<tbox::MessageStream*>(&stream);
+   if (message_stream)
+   {
+      message_stream->packArrayData(*this, dest_box, src_shift);
+      return;
+   }
+
    const int size = d_depth * dest_box.size();
    tbox::Pointer<tbox::Arena> scratch =
       tbox::ArenaManager::getManager()->getScratchAllocator();
    tbox::Array<TYPE> buffer(size, scratch);
 
-   packBuffer(buffer.getPointer(), 
+   packBuffer(buffer.getPointer(),
               hier::Box<DIM>::shift(dest_box, -src_shift));
 
    stream.pack(buffer.getPointer(), size);
@@ -492,6 +500,15 @@ void ArrayData<DIM,TYPE>::packStream(
    const hier::IntVector<DIM>& src_shift) const
 {
 
+   tbox::MessageStream* message_stream = dynamic_cast<tbox::MessageStream*>(&stream);
+   if (message_stream)
+   {
+      for (typename hier::BoxList<DIM>::Iterator b(dest_boxes); b; b++) {
+         message_stream->packArrayData(*this, b(), src_shift);
+      }
+      return;
+   }
+
    const int size = d_depth * dest_boxes.getTotalSizeOfBoxes();
    tbox::Pointer<tbox::Arena> scratch =
       tbox::ArenaManager::getManager()->getScratchAllocator();
@@ -499,7 +516,7 @@ void ArrayData<DIM,TYPE>::packStream(
 
    int ptr = 0;
    for (typename hier::BoxList<DIM>::Iterator b(dest_boxes); b; b++) {
-      packBuffer(buffer.getPointer(ptr), 
+      packBuffer(buffer.getPointer(ptr),
                  hier::Box<DIM>::shift(b(), -src_shift));
       ptr += d_depth * b().size();
    }
@@ -524,12 +541,17 @@ void ArrayData<DIM,TYPE>::packStream(
 
 template<int DIM, class TYPE>
 void ArrayData<DIM,TYPE>::unpackStream(
-   tbox::AbstractStream& stream, 
+   tbox::AbstractStream& stream,
    const hier::Box<DIM>& dest_box,
    const hier::IntVector<DIM>& src_shift)
 {
 
-   NULL_USE(src_shift);
+   tbox::MessageStream* message_stream = dynamic_cast<tbox::MessageStream*>(&stream);
+   if (message_stream)
+   {
+      message_stream->unpackArrayData(*this, dest_box, src_shift);
+      return;
+   }
 
    const int size = d_depth * dest_box.size();
    tbox::Pointer<tbox::Arena> scratch =
@@ -548,7 +570,14 @@ void ArrayData<DIM,TYPE>::unpackStream(
    const hier::IntVector<DIM>& src_shift)
 {
 
-   NULL_USE(src_shift);
+   tbox::MessageStream* message_stream = dynamic_cast<tbox::MessageStream*>(&stream);
+   if (message_stream)
+   {
+      for (typename hier::BoxList<DIM>::Iterator b(dest_boxes); b; b++) {
+         message_stream->unpackArrayData(*this, b(), src_shift);
+      }
+      return;
+   }
 
    const int size = d_depth * dest_boxes.getTotalSizeOfBoxes();
    tbox::Pointer<tbox::Arena> scratch =
@@ -582,7 +611,7 @@ void ArrayData<DIM,TYPE>::unpackStream(
 
 template<int DIM, class TYPE>
 void ArrayData<DIM,TYPE>::unpackStreamAndSum(
-   tbox::AbstractStream& stream, 
+   tbox::AbstractStream& stream,
    const hier::Box<DIM>& dest_box,
    const hier::IntVector<DIM>& src_shift)
 {
@@ -649,7 +678,7 @@ void ArrayData<DIM,TYPE>::fillAll(const TYPE& t)
 }
 
 template<int DIM, class TYPE>
-void ArrayData<DIM,TYPE>::fillAll(const TYPE& t, 
+void ArrayData<DIM,TYPE>::fillAll(const TYPE& t,
                                   const hier::Box<DIM>& box)
 {
    for (int d = 0; d < d_depth; d++) {
@@ -658,7 +687,7 @@ void ArrayData<DIM,TYPE>::fillAll(const TYPE& t,
 }
 
 template<int DIM, class TYPE>
-void ArrayData<DIM,TYPE>::fill(const TYPE& t, 
+void ArrayData<DIM,TYPE>::fill(const TYPE& t,
                                const int d)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -674,8 +703,8 @@ void ArrayData<DIM,TYPE>::fill(const TYPE& t,
 }
 
 template<int DIM, class TYPE>
-void ArrayData<DIM,TYPE>::fill(const TYPE& t, 
-                               const hier::Box<DIM>& box, 
+void ArrayData<DIM,TYPE>::fill(const TYPE& t,
+                               const hier::Box<DIM>& box,
                                const int d)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -728,7 +757,7 @@ void ArrayData<DIM,TYPE>::fill(const TYPE& t,
                dst_step *= dst_w[k];
             }
             dst_counter = dst_b[dim_jump-1] + dst_step;
-            
+
             for (int m = 0; m < dim_jump; m++) {
                dst_b[m] = dst_counter;
             }
@@ -787,8 +816,8 @@ void ArrayData<DIM,TYPE>::putToDatabase(
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!database.isNull());
 #endif
-  
-   if (!data_only) { 
+
+   if (!data_only) {
       database->putInteger("PDAT_ARRAYDATA_VERSION",PDAT_ARRAYDATA_VERSION);
 
       database->putInteger("d_depth",d_depth);
@@ -807,7 +836,7 @@ void ArrayData<DIM,TYPE>::putSpecializedToDatabase(
    database->putArray("d_array", d_array);
 }
 
-template<int DIM, class TYPE> 
+template<int DIM, class TYPE>
 void ArrayData<DIM,TYPE>::getSpecializedFromDatabase(
                  tbox::Pointer<tbox::Database> database)
 {
@@ -817,7 +846,7 @@ void ArrayData<DIM,TYPE>::getSpecializedFromDatabase(
 /*
 *************************************************************************
 *									*
-* Set all array data to undefined values.                               * 
+* Set all array data to undefined values.                               *
 *									*
 *************************************************************************
 */
@@ -838,7 +867,7 @@ void ArrayData<DIM,TYPE>::undefineData()
 */
 
 template<int DIM, class TYPE>
-void ArrayData<DIM,TYPE>::packBuffer(TYPE* buffer, 
+void ArrayData<DIM,TYPE>::packBuffer(TYPE* buffer,
                                      const hier::Box<DIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
