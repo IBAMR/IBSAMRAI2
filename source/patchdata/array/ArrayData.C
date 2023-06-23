@@ -29,6 +29,64 @@
 #endif
 
 namespace SAMRAI {
+   namespace tbox {
+
+template<int DIM, class TYPE>
+void MessageStream::packArrayData(const pdat::ArrayData<DIM,TYPE>& arraydata,
+                                  const hier::Box<DIM>& dest_box,
+                                  const hier::IntVector<DIM>& src_shift)
+{
+   int n_bytes = sizeof(TYPE) * dest_box.size();
+   hier::Box<DIM> src_box = hier::Box<DIM>::shift(dest_box, -src_shift);
+   if (src_box == arraydata.getBox())
+   {
+      std::copy(arraydata.getPointer(),
+                arraydata.getPointer() + src_box.size(),
+                static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes)));
+   }
+   else
+   {
+      bool src_is_buffer = false;
+      pdat::CopyOperation<TYPE> copyop;
+      pdat::ArrayDataOperationUtilities< DIM, TYPE, pdat::CopyOperation<TYPE> >::
+         doArrayDataBufferOperationOnBox(const_cast<pdat::ArrayData<DIM,TYPE>&>(arraydata),
+                                         static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes)),
+                                         src_box,
+                                         src_is_buffer,
+                                         copyop);
+   }
+}
+
+template<int DIM, class TYPE>
+void MessageStream::unpackArrayData(pdat::ArrayData<DIM,TYPE>& arraydata,
+                                    const hier::Box<DIM>& dest_box,
+                                    const hier::IntVector<DIM>& /*src_shift*/)
+{
+   int n_bytes = sizeof(TYPE) * dest_box.size();
+   if (dest_box == arraydata.getBox())
+   {
+      TYPE* buffer = static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes));
+      std::copy(buffer,
+                buffer + dest_box.size(),
+                arraydata.getPointer());
+   }
+   else
+   {
+      bool src_is_buffer = true;
+      pdat::CopyOperation<TYPE> copyop;
+      pdat::ArrayDataOperationUtilities< DIM, TYPE, pdat::CopyOperation<TYPE> >::
+         doArrayDataBufferOperationOnBox(arraydata,
+                                         static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes)),
+                                         dest_box,
+                                         src_is_buffer,
+                                         copyop);
+   }
+}
+
+}
+}
+
+namespace SAMRAI {
     namespace pdat {
 
 /*
