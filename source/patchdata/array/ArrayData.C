@@ -28,6 +28,20 @@
 #include "ArrayData.I"
 #endif
 
+namespace {
+   template<class TYPE>
+   int abstract_stream_sizeof(const int n) { TBOX_ERROR("unsupported type!\n"); return 0; }
+
+   template<>
+   int abstract_stream_sizeof<double>(const int n) { return SAMRAI::tbox::AbstractStream::sizeofDouble(n); }
+
+   template<>
+   int abstract_stream_sizeof<float>(const int n) { return SAMRAI::tbox::AbstractStream::sizeofFloat(n); }
+
+   template<>
+   int abstract_stream_sizeof<int>(const int n) { return SAMRAI::tbox::AbstractStream::sizeofInt(n); }
+}
+
 namespace SAMRAI {
    namespace tbox {
 
@@ -36,21 +50,21 @@ void MessageStream::packArrayData(const pdat::ArrayData<DIM,TYPE>& arraydata,
                                   const hier::Box<DIM>& dest_box,
                                   const hier::IntVector<DIM>& src_shift)
 {
-   int n_bytes = sizeof(TYPE) * dest_box.size();
+   int n_items = arraydata.getDepth() * dest_box.size();
+   int n_bytes = abstract_stream_sizeof<TYPE>(n_items);
+   TYPE* dst_buffer = static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes));
    hier::Box<DIM> src_box = hier::Box<DIM>::shift(dest_box, -src_shift);
+   pdat::CopyOperation<TYPE> copyop;
    if (src_box == arraydata.getBox())
    {
-      std::copy(arraydata.getPointer(),
-                arraydata.getPointer() + src_box.size(),
-                static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes)));
+      copyop(dst_buffer, arraydata.getPointer(), n_items);
    }
    else
    {
       bool src_is_buffer = false;
-      pdat::CopyOperation<TYPE> copyop;
       pdat::ArrayDataOperationUtilities< DIM, TYPE, pdat::CopyOperation<TYPE> >::
          doArrayDataBufferOperationOnBox(const_cast<pdat::ArrayData<DIM,TYPE>&>(arraydata),
-                                         static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes)),
+                                         dst_buffer,
                                          src_box,
                                          src_is_buffer,
                                          copyop);
@@ -62,24 +76,48 @@ void MessageStream::unpackArrayData(pdat::ArrayData<DIM,TYPE>& arraydata,
                                     const hier::Box<DIM>& dest_box,
                                     const hier::IntVector<DIM>& /*src_shift*/)
 {
-   int n_bytes = sizeof(TYPE) * dest_box.size();
+   int n_items = arraydata.getDepth() * dest_box.size();
+   int n_bytes = abstract_stream_sizeof<TYPE>(n_items);
+   TYPE* src_buffer = static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes));
+   pdat::CopyOperation<TYPE> copyop;
    if (dest_box == arraydata.getBox())
    {
-      TYPE* buffer = static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes));
-      std::copy(buffer,
-                buffer + dest_box.size(),
-                arraydata.getPointer());
+      copyop(arraydata.getPointer(), src_buffer, n_items);
    }
    else
    {
       bool src_is_buffer = true;
-      pdat::CopyOperation<TYPE> copyop;
       pdat::ArrayDataOperationUtilities< DIM, TYPE, pdat::CopyOperation<TYPE> >::
          doArrayDataBufferOperationOnBox(arraydata,
-                                         static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes)),
+                                         src_buffer,
                                          dest_box,
                                          src_is_buffer,
                                          copyop);
+   }
+}
+
+template<int DIM, class TYPE>
+void MessageStream::unpackAndSumArrayData(pdat::ArrayData<DIM,TYPE>& arraydata,
+                                          const hier::Box<DIM>& dest_box,
+                                          const hier::IntVector<DIM>& /*src_shift*/)
+{
+   int n_items = arraydata.getDepth() * dest_box.size();
+   int n_bytes = abstract_stream_sizeof<TYPE>(n_items);
+   TYPE* src_buffer = static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes));
+   pdat::SumOperation<TYPE> sumop;
+   if (dest_box == arraydata.getBox())
+   {
+      sumop(arraydata.getPointer(), src_buffer, n_items);
+   }
+   else
+   {
+      bool src_is_buffer = true;
+      pdat::ArrayDataOperationUtilities< DIM, TYPE, pdat::SumOperation<TYPE> >::
+         doArrayDataBufferOperationOnBox(arraydata,
+                                         src_buffer,
+                                         dest_box,
+                                         src_is_buffer,
+                                         sumop);
    }
 }
 
@@ -532,10 +570,10 @@ void ArrayData<DIM,TYPE>::packStream(
    const hier::IntVector<DIM>& src_shift) const
 {
 
-   tbox::MessageStream* message_stream = dynamic_cast<tbox::MessageStream*>(&stream);
-   if (message_stream)
+   tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
+   if (stream_ptr)
    {
-      message_stream->packArrayData(*this, dest_box, src_shift);
+      stream_ptr->packArrayData(*this, dest_box, src_shift);
       return;
    }
 
@@ -558,11 +596,11 @@ void ArrayData<DIM,TYPE>::packStream(
    const hier::IntVector<DIM>& src_shift) const
 {
 
-   tbox::MessageStream* message_stream = dynamic_cast<tbox::MessageStream*>(&stream);
-   if (message_stream)
+   tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
+   if (stream_ptr)
    {
       for (typename hier::BoxList<DIM>::Iterator b(dest_boxes); b; b++) {
-         message_stream->packArrayData(*this, b(), src_shift);
+         stream_ptr->packArrayData(*this, b(), src_shift);
       }
       return;
    }
@@ -604,10 +642,10 @@ void ArrayData<DIM,TYPE>::unpackStream(
    const hier::IntVector<DIM>& src_shift)
 {
 
-   tbox::MessageStream* message_stream = dynamic_cast<tbox::MessageStream*>(&stream);
-   if (message_stream)
+   tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
+   if (stream_ptr)
    {
-      message_stream->unpackArrayData(*this, dest_box, src_shift);
+      stream_ptr->unpackArrayData(*this, dest_box, src_shift);
       return;
    }
 
@@ -628,11 +666,11 @@ void ArrayData<DIM,TYPE>::unpackStream(
    const hier::IntVector<DIM>& src_shift)
 {
 
-   tbox::MessageStream* message_stream = dynamic_cast<tbox::MessageStream*>(&stream);
-   if (message_stream)
+   tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
+   if (stream_ptr)
    {
       for (typename hier::BoxList<DIM>::Iterator b(dest_boxes); b; b++) {
-         message_stream->unpackArrayData(*this, b(), src_shift);
+         stream_ptr->unpackArrayData(*this, b(), src_shift);
       }
       return;
    }
@@ -674,7 +712,12 @@ void ArrayData<DIM,TYPE>::unpackStreamAndSum(
    const hier::IntVector<DIM>& src_shift)
 {
 
-   NULL_USE(src_shift);
+   tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
+   if (stream_ptr)
+   {
+      stream_ptr->unpackAndSumArrayData(*this, dest_box, src_shift);
+      return;
+   }
 
    const int size = d_depth * dest_box.size();
    tbox::Pointer<tbox::Arena> scratch =
@@ -693,7 +736,14 @@ void ArrayData<DIM,TYPE>::unpackStreamAndSum(
    const hier::IntVector<DIM>& src_shift)
 {
 
-   NULL_USE(src_shift);
+   tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
+   if (stream_ptr)
+   {
+      for (typename hier::BoxList<DIM>::Iterator b(dest_boxes); b; b++) {
+         stream_ptr->unpackAndSumArrayData(*this, b(), src_shift);
+      }
+      return;
+   }
 
    const int size = d_depth * dest_boxes.getTotalSizeOfBoxes();
    tbox::Pointer<tbox::Arena> scratch =

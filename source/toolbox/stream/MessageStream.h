@@ -211,6 +211,10 @@ public:
    void unpackArrayData(pdat::ArrayData<DIM,TYPE>& arraydata,
                         const hier::Box<DIM>& dest_box,
                         const hier::IntVector<DIM>& src_shift);
+   template<int DIM, class TYPE>
+   void unpackAndSumArrayData(pdat::ArrayData<DIM,TYPE>& arraydata,
+                              const hier::Box<DIM>& dest_box,
+                              const hier::IntVector<DIM>& src_shift);
    //@}
 
    /**
