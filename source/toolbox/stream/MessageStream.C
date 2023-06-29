@@ -11,9 +11,6 @@
 
 #include "tbox/MessageStream.h"
 #include "tbox/Utilities.h"
-#include "ArrayData.h"
-#include "ArrayDataOperationUtilities.h"
-#include "CopyOperation.h"
 
 #ifdef DEBUG_NO_INLINE
 #include "tbox/MessageStream.I"
