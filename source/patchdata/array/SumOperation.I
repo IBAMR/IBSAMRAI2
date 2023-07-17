@@ -31,8 +31,7 @@ SumOperation<TYPE>::~SumOperation()
 template <class TYPE> inline
 void SumOperation<TYPE>::operator()(TYPE* vdst, const TYPE* vsrc, const int size) const
 {
-   for (int i = 0; i < size; ++i)
-      vdst[i] += vsrc[i];
+   std::transform(vdst, vdst+size, vsrc, vdst, std::plus<TYPE>());
 }
 
 #ifdef DEBUG_NO_INLINE

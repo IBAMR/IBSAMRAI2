@@ -20,6 +20,15 @@
 #include "tbox/AbstractStream.h"
 #include "tbox/XDRStream.h"
 
+namespace SAMRAI {
+    namespace hier {
+template<int DIM> class Box;
+template<int DIM> class IntVector;
+   }
+    namespace pdat {
+template<int DIM, class TYPE> class ArrayData;
+   }
+}
 
 namespace SAMRAI {
    namespace tbox {
@@ -187,6 +196,25 @@ public:
    virtual void pack(const int *data, const int n = 1);
    /// Remove an array of integers from the message stream.
    virtual void unpack(int *data, const int n = 1);
+   //@}
+
+   /**
+    * @name ArrayData Primitives
+    * Pack and unpack ArrayData into and out of the message stream.
+    */
+   //@{
+   template<int DIM, class TYPE>
+   void packArrayData(const pdat::ArrayData<DIM,TYPE>& arraydata,
+                      const hier::Box<DIM>& dest_box,
+                      const hier::IntVector<DIM>& src_shift);
+   template<int DIM, class TYPE>
+   void unpackArrayData(pdat::ArrayData<DIM,TYPE>& arraydata,
+                        const hier::Box<DIM>& dest_box,
+                        const hier::IntVector<DIM>& src_shift);
+   template<int DIM, class TYPE>
+   void unpackAndSumArrayData(pdat::ArrayData<DIM,TYPE>& arraydata,
+                              const hier::Box<DIM>& dest_box,
+                              const hier::IntVector<DIM>& src_shift);
    //@}
 
    /**
