@@ -31,8 +31,8 @@ namespace SAMRAI {
 /*!
  * @brief Class Schedule is used to construct and execute a set of 
  * data communication transactions.  Each transaction represents some 
- * data dependency and exchange between two processors, or locally involving
- * a single processor.  Once a communication schedule is constructed, transactions 
+ * data dependency and exchange between two processors.  Once a communication
+ * schedule is constructed, transactions
  * are provided to the schedule, using either the addTransaction() method or 
  * the appendTransaction() method.  The schedule is then executed forcing
  * the communication, either interprocessor or local to occur.  The basic idea 
@@ -68,9 +68,7 @@ public:
    /*!
     * Add a data transaction to the head of the list of transactions already
     * assembled in the schedule.  The transaction must involve the local 
-    * processor as either a source or destination or both.  If the transaction 
-    * does not include the local processor, then the transaction
-    * is not placed on the schedule.
+    * processor as either a source or destination or both.
     *
     * @param transaction  Pointer to transaction added to the schedule.
     */
@@ -79,9 +77,7 @@ public:
    /*!
     * Append a data transaction to the tail of the list of transactions already
     * assembled in the schedule.  The transaction must involve the local
-    * processor as either a source or destination or both.  If the transaction
-    * does not include the local processor, then the transaction
-    * is not placed on the schedule.
+    * processor as either a source or destination or both.
     *
     * @param transaction  Pointer to transaction appended to the schedule.
     */
@@ -144,7 +140,6 @@ private:
    void calculateReceiveSizes();
    void postMessageReceives();
    void sendMessages();
-   void performLocalCopies();
    void processIncomingMessages();
    void deallocateSendBuffers();
 
@@ -163,10 +158,6 @@ private:
 
    Array< List< Pointer< Transaction > > > d_send_set;
    Array< List< Pointer< Transaction > > > d_recv_set;
-
-
-   List< Pointer< Transaction > > d_local_set;
-
 };
 
 
