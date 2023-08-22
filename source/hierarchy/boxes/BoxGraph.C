@@ -482,8 +482,6 @@ template<int DIM> void BoxGraph<DIM>::findSortDimension()
       bbox += d_dst_boxes[i];
    }
 
-   Index<DIM> lower = bbox.lower();
-   Index<DIM> upper = bbox.upper();
    for (int dir = 0; dir < DIM; ++dir) {
       int len = bbox.upper(dir) - bbox.lower(dir);
       double rho_tmp = (double)count/len;
