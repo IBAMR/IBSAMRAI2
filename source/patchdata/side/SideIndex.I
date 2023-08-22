@@ -47,11 +47,6 @@ SideIndex<DIM>& SideIndex<DIM>::operator=(const SideIndex<DIM>& rhs)
 }
 
 template<int DIM> inline
-SideIndex<DIM>::~SideIndex()
-{
-}
-
-template<int DIM> inline
 int SideIndex<DIM>::getAxis() const
 {
    return(d_axis);

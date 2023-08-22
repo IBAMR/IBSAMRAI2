@@ -57,11 +57,6 @@ public:
    FaceIndex<DIM>& operator=(const FaceIndex<DIM>& rhs);
 
    /**
-    * The face index destructor does nothing interesting.
-    */
-   ~FaceIndex();
-
-   /**
     * Get the axis for which this face index is defined (X=0, Y=1, Z=2).
     */
    int getAxis() const;

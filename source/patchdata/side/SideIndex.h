@@ -57,11 +57,6 @@ public:
    SideIndex<DIM>& operator=(const SideIndex<DIM>& rhs);
 
    /**
-    * The side index destructor does nothing interesting.
-    */
-   ~SideIndex();
-
-   /**
     * Get the axis for which this side index is defined (X=0, Y=1, Z=2).
     */
    int getAxis() const;

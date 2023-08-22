@@ -66,11 +66,6 @@ Index<DIM>& Index<DIM>::operator=(const IntVector<DIM>& rhs)
 }
 
 template<int DIM> inline
-Index<DIM>::~Index()
-{
-}
-
-template<int DIM> inline
 Index<DIM>& Index<DIM>::operator+=(const IntVector<DIM>& rhs)
 {
    IntVector<DIM>::operator+=(rhs);

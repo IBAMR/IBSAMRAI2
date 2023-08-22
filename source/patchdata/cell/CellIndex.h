@@ -52,11 +52,6 @@ public:
    CellIndex<DIM>& operator=(const CellIndex<DIM>& rhs);
 
    /**
-    * The cell index destructor does nothing interesting.
-    */
-   ~CellIndex();
-
-   /**
     * Plus-equals operator for a cell index and an integer vector.
     */
    CellIndex<DIM>& operator+=(const hier::IntVector<DIM>& rhs);

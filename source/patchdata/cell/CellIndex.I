@@ -36,11 +36,6 @@ CellIndex<DIM>& CellIndex<DIM>::operator=(const CellIndex<DIM>& rhs)
 }
 
 template<int DIM> inline
-CellIndex<DIM>::~CellIndex()
-{
-}
-
-template<int DIM> inline
 CellIndex<DIM>& CellIndex<DIM>::operator+=(const hier::IntVector<DIM>& rhs)
 {
    hier::Index<DIM>::operator+=(rhs);

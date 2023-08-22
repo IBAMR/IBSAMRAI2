@@ -86,11 +86,6 @@ public:
    Index<DIM>& operator=(const IntVector<DIM>& rhs);
 
    /**
-    * The index destructor does nothing interesting.
-    */
-   ~Index();
-
-   /**
     * Plus-equals operator for an index and an integer vector.
     */
    Index<DIM>& operator+=(const IntVector<DIM>& rhs);
