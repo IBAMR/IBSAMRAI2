@@ -16,6 +16,8 @@
 #include "tbox/Utilities.h"
 #include "tbox/MathUtilities.h"
 
+#include <limits>
+
 #define MBLK_PATCH_HIERARCHY_VERSION (2)
 
 namespace SAMRAI {
@@ -212,7 +214,7 @@ template<int DIM> void MultiblockPatchHierarchy<DIM>::registerNeighbors(
    hier::BoxArray<DIM> a_domain_in_b_space(a_domain);
 
    RotationIdentifier back_rotation = NO_ROTATE;
-   hier::IntVector<DIM> back_shift;
+   hier::IntVector<DIM> back_shift(std::numeric_limits<int>::max());
 
    if (DIM == 2) {
 
