@@ -28,22 +28,33 @@
 #include "ArrayData.I"
 #endif
 
-namespace {
-   template<class TYPE>
-   int abstract_stream_sizeof(const int n) { TBOX_ERROR("unsupported type!\n"); return 0; }
-
-   template<>
-   int abstract_stream_sizeof<double>(const int n) { return SAMRAI::tbox::AbstractStream::sizeofDouble(n); }
-
-   template<>
-   int abstract_stream_sizeof<float>(const int n) { return SAMRAI::tbox::AbstractStream::sizeofFloat(n); }
-
-   template<>
-   int abstract_stream_sizeof<int>(const int n) { return SAMRAI::tbox::AbstractStream::sizeofInt(n); }
-}
-
 namespace SAMRAI {
    namespace tbox {
+
+template<class TYPE>
+inline int abstract_stream_sizeof(const int /*n*/)
+{
+   TBOX_ERROR("unsupported type!\n");
+   return 0;
+}
+
+template<>
+inline int abstract_stream_sizeof<double>(const int n)
+{
+   return SAMRAI::tbox::AbstractStream::sizeofDouble(n);
+}
+
+template<>
+inline int abstract_stream_sizeof<float>(const int n)
+{
+   return SAMRAI::tbox::AbstractStream::sizeofFloat(n);
+}
+
+template<>
+inline int abstract_stream_sizeof<int>(const int n)
+{
+   return SAMRAI::tbox::AbstractStream::sizeofInt(n);
+}
 
 template<int DIM, class TYPE>
 void MessageStream::packArrayData(const pdat::ArrayData<DIM,TYPE>& arraydata,
