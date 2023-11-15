@@ -89,9 +89,9 @@ std::istream& operator>>(std::istream& s, Box<DIM>& box)
 {
    while (s.get() != '[');
    s >> box.lower();
-   while (s.get() != ',') NULL_STATEMENT;
+   while (s.get() != ',');
    s >> box.upper();
-   while (s.get() != ']') NULL_STATEMENT;
+   while (s.get() != ']');
    return(s);
 }
 

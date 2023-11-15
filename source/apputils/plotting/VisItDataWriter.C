@@ -1874,9 +1874,6 @@ template<int DIM> void VisItDataWriter<DIM>::writeVisItVariablesToHDFFile(
                   processor_HDFGroup->putDatabase(std::string(temp_buf));
                unique_level_number++;
 
-               hier::IntVector<DIM> coarsen_ratio =
-                  patch_level->getRatioToCoarserLevel();
-
                for (typename hier::PatchLevel<DIM>::Iterator ip(patch_level);
                     ip; ip++) {
                   tbox::Pointer< hier::Patch<DIM> > patch =
@@ -1928,8 +1925,6 @@ template<int DIM> void VisItDataWriter<DIM>::writeVisItVariablesToHDFFile(
 
          tbox::Pointer< hier::PatchLevel<DIM> > patch_level =
                                          hierarchy->getPatchLevel(ln);
-         hier::IntVector<DIM> coarsen_ratio =
-              patch_level->getRatioToCoarserLevel();
 
          for (typename hier::PatchLevel<DIM>::Iterator ip(patch_level);
               ip; ip++) {

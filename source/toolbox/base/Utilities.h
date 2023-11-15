@@ -112,7 +112,7 @@ struct Utilities
  * more complex than a simple C null statement to avoid a warning.
  */
 #ifdef __INSURE__
-#define NULL_STATEMENT if(0) int nullstatement=0
+#define NULL_STATEMENT {}
 #else
 #define NULL_STATEMENT
 #endif

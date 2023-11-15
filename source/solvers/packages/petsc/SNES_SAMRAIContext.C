@@ -73,7 +73,6 @@ template<int DIM> int SNES_SAMRAIContext<DIM>::SNESJacobianTimesVector(Mat M,
 {
    void* ctx;
    int ierr = 0;
-   if (ierr) NULL_STATEMENT;
 
    ierr = MatShellGetContext(M, &ctx);         PETSC_SAMRAI_ERROR(ierr);
    return(((SNES_SAMRAIContext<DIM>*)ctx)->
@@ -684,7 +683,6 @@ template<int DIM> void SNES_SAMRAIContext<DIM>::reportCompletionCode(std::ostrea
 template<int DIM> void SNES_SAMRAIContext<DIM>::createPetscObjects()
 {
    int ierr = 0;
-   if (ierr) NULL_STATEMENT;
 
    /*
     * Create the nonlinear solver, specify linesearch backtracking,
@@ -742,7 +740,6 @@ template<int DIM> void SNES_SAMRAIContext<DIM>::createPetscObjects()
 template<int DIM> void SNES_SAMRAIContext<DIM>::initializePetscObjects()
 {
    int ierr = 0;
-   if (ierr) NULL_STATEMENT;
 
    /*
     * Set tolerances in nonlinear solver.  Also set parameters if 

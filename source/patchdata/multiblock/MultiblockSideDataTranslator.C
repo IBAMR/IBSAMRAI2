@@ -14,6 +14,7 @@
 
 #include "SideData.h"
 
+#include <limits>
 
 namespace SAMRAI {
     namespace pdat {
@@ -247,16 +248,13 @@ void MultiblockSideDataTranslator<DIM,TYPE>::translateAndCopyData(
 
                src_box.rotate(back_rotate);
 
-               hier::IntVector<DIM> back_shift;
+               hier::IntVector<DIM> back_shift(std::numeric_limits<int>::max());
                hier::MultiblockPatchHierarchy<DIM>::calculateReverseShift(
                   back_shift, shift, back_rotate);
 
                src_box.shift(back_shift);
 
-               hier::Index<DIM> src_xyz_index;
-               for (int i = 0; i < DIM; i++) {
-                  src_xyz_index(i) = src_box.lower()(i);
-               }
+               hier::Index<DIM> src_xyz_index(src_box.lower());
 
                pdat::SideIndex<DIM> src_index;
                src_index(0) = src_xyz_index(0);

@@ -14,6 +14,7 @@
 
 #include "FaceData.h"
 
+#include <limits>
 
 namespace SAMRAI {
     namespace pdat {
@@ -255,7 +256,7 @@ void MultiblockFaceDataTranslator<DIM,TYPE>::translateAndCopyData(
 
             src_box.rotate(back_rotate);
 
-            hier::IntVector<DIM> back_shift;
+            hier::IntVector<DIM> back_shift(std::numeric_limits<int>::max());
             hier::MultiblockPatchHierarchy<DIM>::calculateReverseShift(
                back_shift, shift, back_rotate);
 

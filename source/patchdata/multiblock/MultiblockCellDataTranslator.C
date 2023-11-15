@@ -15,6 +15,7 @@
 #include "CellData.h"
 #include "MBUtilities.h"
 
+#include <limits>
 
 namespace SAMRAI {
     namespace pdat {
@@ -83,7 +84,7 @@ void MultiblockCellDataTranslator<DIM,TYPE>::translateAndCopyData(
             hier::MultiblockPatchHierarchy<DIM>::getReverseRotationIdentifier(
                rotate);
    
-         hier::IntVector<DIM> back_shift;
+         hier::IntVector<DIM> back_shift(std::numeric_limits<int>::max());
          hier::MultiblockPatchHierarchy<DIM>::calculateReverseShift(
             back_shift, shift, back_rotate);
 

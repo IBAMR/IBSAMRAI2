@@ -14,6 +14,8 @@
 
 #include "MBUtilities.h"
 
+#include <limits>
+
 
 namespace SAMRAI {
     namespace pdat {
@@ -72,7 +74,7 @@ void MBDataUtilities<DIM,TYPE>::translateAndCopyCellData(
          hier::MultiblockPatchHierarchy<DIM>::RotationIdentifier back_rotate =
             hier::MultiblockPatchHierarchy<DIM>::getReverseRotationIdentifier(rotate);
    
-         hier::IntVector<DIM> back_shift;
+         hier::IntVector<DIM> back_shift(std::numeric_limits<int>::max());
          hier::MultiblockPatchHierarchy<DIM>::calculateReverseShift(
             back_shift, shift, back_rotate);
 
@@ -280,7 +282,7 @@ void MBDataUtilities<DIM,TYPE>::translateAndCopyNodeData(
 
          src_box.rotate(back_rotate);
 
-         hier::IntVector<DIM> back_shift;
+         hier::IntVector<DIM> back_shift(std::numeric_limits<int>::max());
          hier::MultiblockPatchHierarchy<DIM>::calculateReverseShift(
             back_shift, shift, back_rotate);
 
@@ -570,7 +572,7 @@ void MBDataUtilities<DIM,TYPE>::translateAndCopyFaceData(
 
             src_box.rotate(back_rotate);
 
-            hier::IntVector<DIM> back_shift;
+            hier::IntVector<DIM> back_shift(std::numeric_limits<int>::max());
             hier::MultiblockPatchHierarchy<DIM>::calculateReverseShift(
                back_shift, shift, back_rotate);
 
@@ -920,7 +922,7 @@ void MBDataUtilities<DIM,TYPE>::translateAndCopySideData(
 
                src_box.rotate(back_rotate);
 
-               hier::IntVector<DIM> back_shift;
+               hier::IntVector<DIM> back_shift(std::numeric_limits<int>::max());
                hier::MultiblockPatchHierarchy<DIM>::calculateReverseShift(
                   back_shift, shift, back_rotate);
 
@@ -1249,7 +1251,7 @@ void MBDataUtilities<DIM,TYPE>::translateAndCopyEdgeData(
 
             src_box.rotate(back_rotate);
 
-            hier::IntVector<DIM> back_shift;
+            hier::IntVector<DIM> back_shift(std::numeric_limits<int>::max());
             hier::MultiblockPatchHierarchy<DIM>::calculateReverseShift(
                back_shift, shift, back_rotate);
 
