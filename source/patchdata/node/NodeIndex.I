@@ -58,11 +58,6 @@ NodeIndex<DIM>& NodeIndex<DIM>::operator=(const NodeIndex<DIM>& rhs)
 }
 
 template<int DIM> inline
-NodeIndex<DIM>::~NodeIndex()
-{
-}
-
-template<int DIM> inline
 NodeIndex<DIM>& NodeIndex<DIM>::operator+=(const hier::IntVector<DIM>& rhs)
 {
    hier::Index<DIM>::operator+=(rhs);

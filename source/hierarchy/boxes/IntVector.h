@@ -72,11 +72,6 @@ public:
    IntVector& operator=(const IntVector<DIM>& rhs);
 
    /**
-    * The integer vector destructor does nothing interesting.
-    */
-   virtual ~IntVector();
-
-   /**
     * Return the specified component of the vector.  No bounds checking.
     */
    int& operator()(const int i);

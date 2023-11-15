@@ -83,11 +83,6 @@ public:
    NodeIndex<DIM>& operator=(const NodeIndex<DIM>& rhs);
 
    /**
-    * The node index destructor does nothing interesting.
-    */
-   ~NodeIndex();
-
-   /**
     * Plus-equals operator for a node index and an integer vector.
     */
    NodeIndex<DIM>& operator+=(const hier::IntVector<DIM>& rhs);

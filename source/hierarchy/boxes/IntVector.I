@@ -94,11 +94,6 @@ IntVector<DIM>& IntVector<DIM>::operator=(const IntVector<DIM>& rhs)
 }
 
 template<int DIM> inline
-IntVector<DIM>::~IntVector()
-{
-}
-
-template<int DIM> inline
 int& IntVector<DIM>::operator()(const int i)
 {
    

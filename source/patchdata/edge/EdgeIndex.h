@@ -58,11 +58,6 @@ public:
    EdgeIndex<DIM>& operator=(const EdgeIndex<DIM>& rhs);
 
    /**
-    * The edge index destructor does nothing interesting.
-    */
-   ~EdgeIndex();
-
-   /**
     * Get the axis for which this edge index is defined (X=0, Y=1, Z=2).
     */
    int getAxis() const;

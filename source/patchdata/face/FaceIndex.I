@@ -45,11 +45,6 @@ FaceIndex<DIM>& FaceIndex<DIM>::operator=(const FaceIndex<DIM>& rhs)
 }
 
 template<int DIM> inline
-FaceIndex<DIM>::~FaceIndex()
-{
-}
-
-template<int DIM> inline
 int FaceIndex<DIM>::getAxis() const
 {
    return(d_axis);

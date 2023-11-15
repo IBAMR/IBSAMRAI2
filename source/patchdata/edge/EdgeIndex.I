@@ -51,11 +51,6 @@ EdgeIndex<DIM>& EdgeIndex<DIM>::operator=(const EdgeIndex<DIM>& rhs)
 }
 
 template<int DIM> inline
-EdgeIndex<DIM>::~EdgeIndex()
-{
-}
-
-template<int DIM> inline
 int EdgeIndex<DIM>::getAxis() const
 {
    return(d_axis);
