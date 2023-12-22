@@ -334,7 +334,7 @@ template<int DIM> void VisItDataWriter<DIM>::registerDerivedPlotQuantity(
        */
       char temp_buf[VISIT_NAME_BUFSIZE];
       for (int i = 0; i < plotitem.d_depth; i++) {
-         sprintf(temp_buf, ".%02d",i);
+         snprintf(temp_buf, sizeof(temp_buf), ".%02d",i);
          plotitem.d_visit_var_name[i] = variable_name + temp_buf;
       }
 
@@ -619,7 +619,7 @@ template<int DIM> void VisItDataWriter<DIM>::registerNodeCoordinates(
     */
    char temp_buf[VISIT_NAME_BUFSIZE];
    for (int i = 0; i < plotitem.d_depth; i++) {
-      sprintf(temp_buf, ".%02d",i);
+      snprintf(temp_buf, sizeof(temp_buf), ".%02d",i);
       plotitem.d_visit_var_name[i] = var_name + temp_buf;
    }
 
@@ -739,7 +739,7 @@ template<int DIM> void VisItDataWriter<DIM>::registerSingleNodeCoordinate(
        */
       char temp_buf[VISIT_NAME_BUFSIZE];
       for (int i = 0; i < plotitem.d_depth; i++) {
-         sprintf(temp_buf, ".%02d",i);
+         snprintf(temp_buf, sizeof(temp_buf), ".%02d",i);
          plotitem.d_visit_var_name[i] = var_name + temp_buf;
       }
 
@@ -763,7 +763,7 @@ template<int DIM> void VisItDataWriter<DIM>::registerSingleNodeCoordinate(
 
             std::string var_name = "Coords";
             char temp_buf[VISIT_NAME_BUFSIZE];
-            sprintf(temp_buf, ".%02d",coordinate_number);
+            snprintf(temp_buf, sizeof(temp_buf), ".%02d",coordinate_number);
             ipi().d_visit_var_name[coordinate_number] = var_name + temp_buf;
 
             ipi().d_coord_scale_factor[coordinate_number] = scale_factor;
@@ -1272,7 +1272,7 @@ template<int DIM> void VisItDataWriter<DIM>::initializePlotItem(
       if (plotitem.d_depth == 1) {
          plotitem.d_visit_var_name[i] = variable_name;
       } else {
-         sprintf(temp_buf, ".%02d",i);
+         snprintf(temp_buf, sizeof(temp_buf), ".%02d",i);
          plotitem.d_visit_var_name[i] = variable_name + temp_buf;
       }
    }
@@ -1690,7 +1690,7 @@ template<int DIM> void VisItDataWriter<DIM>::writeHDFFiles(
    }
 
    tbox::Pointer<tbox::Database> processor_HDFGroup;
-   sprintf(temp_buf, "%05d",d_time_step_number);
+   snprintf(temp_buf, sizeof(temp_buf), "%05d",d_time_step_number);
    d_current_dump_directory_name = "visit_dump.";
    d_current_dump_directory_name += temp_buf;
    dump_dirname = d_top_level_directory_name + "/";
@@ -1707,8 +1707,8 @@ template<int DIM> void VisItDataWriter<DIM>::writeHDFFiles(
 #endif
    {
       // cluster_leader guaranteed to enter this section before anyone else
-      sprintf(temp_buf, "/processor_cluster.%05d.samrai",
-              d_my_file_cluster_number);
+      snprintf(temp_buf, sizeof(temp_buf), "/processor_cluster.%05d.samrai",
+               d_my_file_cluster_number);
       std::string database_name(temp_buf);
       std::string visit_HDFFilename = dump_dirname + database_name;
       visit_HDFFilePointer = new tbox::HDFDatabase(database_name);
@@ -1730,7 +1730,7 @@ template<int DIM> void VisItDataWriter<DIM>::writeHDFFiles(
       }
 
       // create group for this proc
-      sprintf(temp_buf, "processor.%05d", my_proc);
+      snprintf(temp_buf, sizeof(temp_buf), "processor.%05d", my_proc);
       processor_HDFGroup =
            visit_HDFFilePointer->putDatabase(std::string(temp_buf));
       writeVisItVariablesToHDFFile(processor_HDFGroup,
@@ -1869,7 +1869,7 @@ template<int DIM> void VisItDataWriter<DIM>::writeVisItVariablesToHDFFile(
 
             if (!patch_level.isNull()) {
 
-               sprintf(temp_buf, "level.%05d", unique_level_number);
+               snprintf(temp_buf, sizeof(temp_buf), "level.%05d", unique_level_number);
                level_HDFGroup =
                   processor_HDFGroup->putDatabase(std::string(temp_buf));
                unique_level_number++;
@@ -1883,7 +1883,7 @@ template<int DIM> void VisItDataWriter<DIM>::writeVisItVariablesToHDFFile(
                    * create new HDFGroup for this patch
                    */
                   int pn = patch->getPatchNumber();
-                  sprintf(temp_buf, "patch.%05d",pn);
+                  snprintf(temp_buf, sizeof(temp_buf), "patch.%05d",pn);
                   patch_HDFGroup =
                      level_HDFGroup->putDatabase(std::string(temp_buf));
 
@@ -1920,7 +1920,7 @@ template<int DIM> void VisItDataWriter<DIM>::writeVisItVariablesToHDFFile(
          /*
           * create new HDFGroup for this level
           */
-         sprintf(temp_buf, "level.%05d", ln);
+         snprintf(temp_buf, sizeof(temp_buf), "level.%05d", ln);
          level_HDFGroup = processor_HDFGroup->putDatabase(std::string(temp_buf));
 
          tbox::Pointer< hier::PatchLevel<DIM> > patch_level =
@@ -1935,7 +1935,7 @@ template<int DIM> void VisItDataWriter<DIM>::writeVisItVariablesToHDFFile(
              * create new HDFGroup for this patch
              */
             int pn = patch->getPatchNumber();
-            sprintf(temp_buf, "patch.%05d",pn);
+            snprintf(temp_buf, sizeof(temp_buf), "patch.%05d",pn);
             patch_HDFGroup = level_HDFGroup->putDatabase(std::string(temp_buf));
 
             int bn = -1;
@@ -2994,7 +2994,7 @@ template<int DIM> void VisItDataWriter<DIM>::writeSummaryToHDFFile(
    int my_proc = tbox::SAMRAI_MPI::getRank();
    if (my_proc == VISIT_MASTER) {
       char temp_buf[VISIT_NAME_BUFSIZE];
-      //sprintf(temp_buf, "/summary.samrai");
+      //snprintf(temp_buf, sizeof(temp_buf), "/summary.samrai");
       //string summary_HDFFilename = dump_dirname + temp_buf;
       std::string summary_HDFFilename = dump_dirname + "/" + d_summary_filename;
       tbox::Pointer<tbox::Database> summary_HDFFilePointer =
@@ -3017,7 +3017,7 @@ template<int DIM> void VisItDataWriter<DIM>::writeSummaryToHDFFile(
        *   - ratio to coarser level (array - int[nlevels][ndim])
        */
 
-      sprintf(temp_buf, "BASIC_INFO");
+      snprintf(temp_buf, sizeof(temp_buf), "BASIC_INFO");
       tbox::Pointer<tbox::Database> basic_HDFGroup
                   = summary_HDFFilePointer->putDatabase(std::string(temp_buf));
 
@@ -3302,7 +3302,7 @@ template<int DIM> void VisItDataWriter<DIM>::writeSummaryToHDFFile(
       tbox::Pointer<tbox::Database> materials_HDFGroup;
       tbox::Pointer<tbox::Database> species_HDFGroup;
       if (d_materials_names.getSize() > 0) {
-         sprintf(temp_buf, "materials");
+         snprintf(temp_buf, sizeof(temp_buf), "materials");
          materials_HDFGroup =
                   summary_HDFFilePointer->putDatabase(std::string(temp_buf));
 
@@ -3326,7 +3326,7 @@ template<int DIM> void VisItDataWriter<DIM>::writeSummaryToHDFFile(
                                              mat_ghosts,
                                              VISIT_FIXED_DIM);
 
-         sprintf(temp_buf, "species");
+         snprintf(temp_buf, sizeof(temp_buf), "species");
          species_HDFGroup =
                   materials_HDFGroup->putDatabase(std::string(temp_buf));
 
@@ -3424,7 +3424,7 @@ template<int DIM> void VisItDataWriter<DIM>::writeSummaryToHDFFile(
        */
 
       tbox::Pointer<tbox::Database> extents_HDFGroup;
-      sprintf(temp_buf, "extents");
+      snprintf(temp_buf, sizeof(temp_buf), "extents");
       extents_HDFGroup =
          summary_HDFFilePointer->putDatabase(std::string(temp_buf));
       hdf_database = extents_HDFGroup;
