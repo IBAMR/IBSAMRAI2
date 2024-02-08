@@ -15,6 +15,10 @@
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"
 
+#ifdef HAVE_HDF5
+#include "hdf5.h"
+#endif
+
 #include <new>
 
 namespace SAMRAI {
@@ -66,6 +70,19 @@ static void badnew()
 
 void SAMRAIManager::startup()
 {
+#if HAVE_HDF5
+   // Modern versions of HDF5 detect the floating-point environment by
+   // performing several operations which trigger floating-point exceptions.
+   // Hence we need to set up HDF5's global state before calling the IEEE::
+   // functions which set up those exceptions.
+   const int ierr = H5open();
+   if (ierr < 0)
+   {
+      TBOX_ERROR("SAMRAIManager::startup() error..." << std::endl
+                 << "Unable to start HDF5: failed with error code " << ierr << std::endl);
+   }
+#endif
+
    SAMRAI_MPI::initialize();
    PIO::initialize();
    IEEE::setupFloatingPointExceptionHandlers();
