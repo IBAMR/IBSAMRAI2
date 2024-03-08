@@ -34,7 +34,29 @@
 #ifdef RCSID
 #undef RCSID
 #endif
+
+// Older versions of HDF5 with MPI support do not guard their definitions of
+// OMPI_SKIP_MPICXX et al. - get around that via undef and define
+
+#ifdef MPICH_SKIP_MPICXX
+#undef MPICH_SKIP_MPICXX
+#endif
+
+#ifdef OMPI_SKIP_MPICXX
+#undef OMPI_SKIP_MPICXX
+#endif
+
 #include "hdf5.h"
+
+// and turn them back on if necessary (same as SAMRAI_MPI.h):
+
+#ifndef MPICH_SKIP_MPICXX
+#define MPICH_SKIP_MPICXX
+#endif
+
+#ifndef OMPI_SKIP_MPICXX
+#define OMPI_SKIP_MPICXX
+#endif
 
 namespace SAMRAI {
    namespace tbox {
