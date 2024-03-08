@@ -16,7 +16,27 @@
 #include "tbox/Utilities.h"
 
 #ifdef HAVE_HDF5
+
+// Same as HDFDatabase.h
+
+#ifdef MPICH_SKIP_MPICXX
+#undef MPICH_SKIP_MPICXX
+#endif
+
+#ifdef OMPI_SKIP_MPICXX
+#undef OMPI_SKIP_MPICXX
+#endif
+
 #include "hdf5.h"
+
+#ifndef MPICH_SKIP_MPICXX
+#define MPICH_SKIP_MPICXX
+#endif
+
+#ifndef OMPI_SKIP_MPICXX
+#define OMPI_SKIP_MPICXX
+#endif
+
 #endif
 
 #include <new>
