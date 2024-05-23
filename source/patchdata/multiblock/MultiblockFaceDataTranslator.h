@@ -29,7 +29,7 @@ public:
    /*!
     * @brief Constructor
     */
-   MultiblockFaceDataTranslator<DIM,TYPE>(); 
+   MultiblockFaceDataTranslator();
 
    /*!
     * @brief The virtual destructor does nothing interesting.

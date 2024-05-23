@@ -31,7 +31,7 @@ public:
    /*!
     * Constructor
     */
-   MBUtilities<DIM>();
+   MBUtilities();
 
    /*!
     * Virtual destructor does nothing

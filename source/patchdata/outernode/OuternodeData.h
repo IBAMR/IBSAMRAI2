@@ -507,7 +507,7 @@ public:
         tbox::Pointer<tbox::Database> database); 
 
 private:
-   OuternodeData<DIM,TYPE>(const OuternodeData<DIM,TYPE>&); // not implemented
+   OuternodeData(const OuternodeData<DIM,TYPE>&); // not implemented
    void operator=(const OuternodeData<DIM,TYPE>&);	  // not implemented
 
    //@

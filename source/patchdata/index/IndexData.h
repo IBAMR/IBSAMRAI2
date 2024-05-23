@@ -381,9 +381,9 @@ public:
    friend class IndexIterator<DIM,TYPE,BOX_GEOMETRY>;
    friend class ConstIndexIterator<DIM,TYPE,BOX_GEOMETRY>;
 
-   IndexDataNode<DIM,TYPE,BOX_GEOMETRY>();
+   IndexDataNode();
 
-   IndexDataNode<DIM,TYPE,BOX_GEOMETRY>(
+   IndexDataNode(
       const hier::Index<DIM>& index,
       const int d_offset,
       TYPE& t,

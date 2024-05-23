@@ -71,7 +71,7 @@ public:
 
 private:
    // neither of the following functions are implemented
-   OuternodeVariable<DIM,TYPE>(const OuternodeVariable<DIM,TYPE>&);
+   OuternodeVariable(const OuternodeVariable<DIM,TYPE>&);
    void operator=(const OuternodeVariable<DIM,TYPE>&);
 
 };

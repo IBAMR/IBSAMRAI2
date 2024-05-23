@@ -28,7 +28,7 @@ public:
    /*!
     * @brief Constructor
     */
-   MultiblockNodeDataTranslator<DIM,TYPE>(); 
+   MultiblockNodeDataTranslator();
 
    /*!
     * @brief The virtual destructor does nothing interesting.

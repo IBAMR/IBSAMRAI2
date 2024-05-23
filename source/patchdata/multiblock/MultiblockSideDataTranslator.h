@@ -29,7 +29,7 @@ public:
    /*!
     * @brief Constructor
     */
-   MultiblockSideDataTranslator<DIM,TYPE>(); 
+   MultiblockSideDataTranslator();
 
    /*!
     * @brief The virtual destructor does nothing interesting.
