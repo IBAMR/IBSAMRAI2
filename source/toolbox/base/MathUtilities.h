@@ -285,6 +285,48 @@ template<> double   MathUtilities<double>::Abs(double a);
 template<> float    MathUtilities<float>::round(float a);
 template<> double   MathUtilities<double>::round(double a);
 
+template<> bool   MathUtilities<bool>::s_zero;
+template<> bool   MathUtilities<bool>::s_one;
+template<> bool   MathUtilities<bool>::s_signaling_nan;
+template<> bool   MathUtilities<bool>::s_max;
+template<> bool   MathUtilities<bool>::s_min;
+template<> bool   MathUtilities<bool>::s_epsilon;
+
+template<> char   MathUtilities<char>::s_zero;
+template<> char   MathUtilities<char>::s_one;
+template<> char   MathUtilities<char>::s_signaling_nan;
+template<> char   MathUtilities<char>::s_max;
+template<> char   MathUtilities<char>::s_min;
+template<> char   MathUtilities<char>::s_epsilon;
+
+template<> int    MathUtilities<int>::s_zero;
+template<> int    MathUtilities<int>::s_one;
+template<> int    MathUtilities<int>::s_signaling_nan;
+template<> int    MathUtilities<int>::s_max;
+template<> int    MathUtilities<int>::s_min;
+template<> int    MathUtilities<int>::s_epsilon;
+
+template<> float  MathUtilities<float>::s_zero;
+template<> float  MathUtilities<float>::s_one;
+template<> float  MathUtilities<float>::s_signaling_nan;
+template<> float  MathUtilities<float>::s_max;
+template<> float  MathUtilities<float>::s_min;
+template<> float  MathUtilities<float>::s_epsilon;
+
+template<> double MathUtilities<double>::s_zero;
+template<> double MathUtilities<double>::s_one;
+template<> double MathUtilities<double>::s_signaling_nan;
+template<> double MathUtilities<double>::s_max;
+template<> double MathUtilities<double>::s_min;
+template<> double MathUtilities<double>::s_epsilon;
+
+template<> dcomplex   MathUtilities<dcomplex>::s_zero;
+template<> dcomplex   MathUtilities<dcomplex>::s_one;
+template<> dcomplex   MathUtilities<dcomplex>::s_signaling_nan;
+template<> dcomplex   MathUtilities<dcomplex>::s_max;
+template<> dcomplex   MathUtilities<dcomplex>::s_min;
+template<> dcomplex   MathUtilities<dcomplex>::s_epsilon;
+
 }
 }
 
