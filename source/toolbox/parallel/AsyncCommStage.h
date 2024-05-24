@@ -239,7 +239,7 @@ private:
     * We are not breaking encapsulation because StagedGroup
     * is a private class.
     */
-   friend class StagedGroup;
+   friend struct StagedGroup;
 
 
    /*!
