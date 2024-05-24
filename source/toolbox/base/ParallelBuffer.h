@@ -91,13 +91,11 @@ public:
     */
    virtual int sync();
 
-#if !defined(__INTEL_COMPILER) && (defined(__GNUG__))
    /**
     * Write the specified number of characters into the output stream (called
     * from streambuf).
     */
-   virtual std::streamsize xsputn (const std::string &text, std::streamsize n);
-#endif
+   virtual std::streamsize xsputn (const char * text, std::streamsize n);
 
    /**
     * Write an overflow character into the parallel buffer (called from
