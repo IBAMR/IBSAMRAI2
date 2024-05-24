@@ -72,7 +72,7 @@ public:
     *
     * Note that if level number is zero, the coarse-fine boundary will be empty.
     */
-   CoarseFineBoundary<DIM>(
+   CoarseFineBoundary(
       const PatchHierarchy<DIM>& hierarchy,
       int ln,
       const IntVector<DIM>& max_ghost_width);
@@ -97,7 +97,7 @@ public:
     *
     * Note that if level number is zero, the coarse-fine boundary will be empty.
     */
-   CoarseFineBoundary<DIM>(
+   CoarseFineBoundary(
       const tbox::Pointer< MultiblockPatchHierarchy<DIM> >& hierarchy,
       int ln,
       const IntVector<DIM>& max_ghost_width);

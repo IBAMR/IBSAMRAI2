@@ -28,7 +28,7 @@ public:
    /*!
     * @brief Constructor
     */
-   MultiblockCellDataTranslator<DIM,TYPE>(); 
+   MultiblockCellDataTranslator();
 
    /*!
     * @brief The virtual destructor does nothing interesting.

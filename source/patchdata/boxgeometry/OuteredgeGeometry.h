@@ -118,7 +118,7 @@ private:
       const bool overwrite_interior,
       const hier::IntVector<DIM>& src_offset);
 
-   OuteredgeGeometry<DIM>(const OuteredgeGeometry<DIM>&);// not implemented
+   OuteredgeGeometry(const OuteredgeGeometry<DIM>&);// not implemented
    void operator=(const OuteredgeGeometry<DIM>&);	// not implemented
 
    hier::Box<DIM> d_box;
