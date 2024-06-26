@@ -119,6 +119,41 @@
 namespace SAMRAI {
    namespace tbox {
 
+namespace
+{
+   hid_t
+   setup_properties_id(const int n_elements)
+   {
+      hid_t properties_id = H5Pcreate (H5P_DATASET_CREATE);
+#ifdef ASSERT_HDF5_RETURN_VALUES
+      TBOX_ASSERT( properties_id >= 0 );
+#endif
+#ifdef H5_HAVE_FILTER_DEFLATE
+      // Don't bother compressing very small things
+      if (n_elements > 128)
+      {
+         hsize_t chunk_size = std::min<hsize_t>(4096, n_elements);
+         herr_t errf = H5Pset_chunk(properties_id, 1, &chunk_size);
+         NULL_USE(errf);
+#ifdef ASSERT_HDF5_RETURN_VALUES
+         TBOX_ASSERT( errf >= 0 );
+#endif
+         errf = H5Pset_shuffle(properties_id);
+#ifdef ASSERT_HDF5_RETURN_VALUES
+         TBOX_ASSERT( errf >= 0 );
+#endif
+         errf = H5Pset_deflate(properties_id, 5);
+#ifdef ASSERT_HDF5_RETURN_VALUES
+         TBOX_ASSERT( errf >= 0 );
+#endif
+      }
+#endif
+
+      return properties_id;
+   }
+}
+
+
 /*
 *************************************************************************
 *                                                                       *
@@ -751,6 +786,7 @@ void HDFDatabase::putBoolArray(
 #endif
    herr_t errf;
    if (nelements > 0) {
+      hid_t properties_id = setup_properties_id(nelements);
 
       hsize_t dim[1] = {static_cast<hsize_t>(nelements)};
       hid_t space = H5Screate_simple(1, dim, NULL);
@@ -773,10 +809,10 @@ void HDFDatabase::putBoolArray(
 
 #if (H5_VERS_MAJOR>1) || ((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR > 6))
       hid_t dataset = H5Dcreate(d_group_id, key.c_str(), H5T_SAMRAI_BOOL,
-                                space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+                                space, H5P_DEFAULT, properties_id, H5P_DEFAULT);
 #else	
       hid_t dataset = H5Dcreate(d_group_id, key.c_str(), H5T_SAMRAI_BOOL,
-                                space, H5P_DEFAULT);
+                                space, properties_id);
 #endif
 
 #ifdef ASSERT_HDF5_RETURN_VALUES
@@ -800,6 +836,10 @@ void HDFDatabase::putBoolArray(
       TBOX_ASSERT( errf >= 0 );
 #endif
 
+      errf = H5Pclose(properties_id);
+#ifdef ASSERT_HDF5_RETURN_VALUES
+      TBOX_ASSERT( errf >= 0 );
+#endif
    } else {
       TBOX_ERROR("HDFDatabase::putBoolArray() error in database "
          << d_database_name
@@ -939,6 +979,7 @@ void HDFDatabase::putDatabaseBoxArray(
    TBOX_ASSERT(data != (DatabaseBox*)NULL);
 #endif
    if (nelements > 0) {
+      hid_t properties_id = setup_properties_id(nelements);
 
       herr_t errf;
 
@@ -953,10 +994,10 @@ void HDFDatabase::putDatabaseBoxArray(
 #if (H5_VERS_MAJOR>1) || ((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR > 6))
       hid_t dataset =
          H5Dcreate( d_group_id, key.c_str(), stype, space, H5P_DEFAULT, 
-		    H5P_DEFAULT, H5P_DEFAULT);
+		    properties_id, H5P_DEFAULT);
 #else	
       hid_t dataset =
-         H5Dcreate( d_group_id, key.c_str(), stype, space, H5P_DEFAULT);
+         H5Dcreate( d_group_id, key.c_str(), stype, space, properties_id);
 #endif
 
 #ifdef ASSERT_HDF5_RETURN_VALUES
@@ -986,6 +1027,10 @@ void HDFDatabase::putDatabaseBoxArray(
 #ifdef ASSERT_HDF5_RETURN_VALUES
       TBOX_ASSERT( errf >= 0 );
 
+#endif
+      errf = H5Pclose(properties_id);
+#ifdef ASSERT_HDF5_RETURN_VALUES
+      TBOX_ASSERT( errf >= 0 );
 #endif
    } else {
       TBOX_ERROR("HDFDatabase::putDatabaseBoxArray() error in database "
@@ -1359,6 +1404,7 @@ void HDFDatabase::putComplexArray(
 #endif
    herr_t errf;
    if (nelements > 0) {
+      hid_t properties_id = setup_properties_id(nelements);
 
       hid_t space, dataset;
 
@@ -1375,10 +1421,10 @@ void HDFDatabase::putComplexArray(
    
 #if (H5_VERS_MAJOR>1) || ((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR > 6))
       dataset = H5Dcreate( d_group_id, key.c_str(), stype, space, 
-			   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+			   H5P_DEFAULT, properties_id, H5P_DEFAULT);
 #else	
       dataset = H5Dcreate( d_group_id, key.c_str(), stype, space, 
-			   H5P_DEFAULT);
+			   properties_id);
 #endif
 
 #ifdef ASSERT_HDF5_RETURN_VALUES
@@ -1408,7 +1454,10 @@ void HDFDatabase::putComplexArray(
 #ifdef ASSERT_HDF5_RETURN_VALUES
       TBOX_ASSERT( errf >= 0 );
 #endif
-
+      errf = H5Pclose(properties_id);
+#ifdef ASSERT_HDF5_RETURN_VALUES
+      TBOX_ASSERT( errf >= 0 );
+#endif
    } else {
       TBOX_ERROR("HDFDatabase::putComplexArray() error in database "
          << d_database_name
@@ -1578,6 +1627,7 @@ void HDFDatabase::putDoubleArray(
 #endif
    herr_t errf;
    if (nelements > 0) {
+      hid_t properties_id = setup_properties_id(nelements);
 
       hsize_t dim[] = {static_cast<hsize_t>(nelements)};
       hid_t space = H5Screate_simple(1, dim, NULL);
@@ -1587,10 +1637,10 @@ void HDFDatabase::putDoubleArray(
 #endif
 #if (H5_VERS_MAJOR>1) || ((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR > 6))
       hid_t dataset = H5Dcreate(d_group_id, key.c_str(), H5T_SAMRAI_DOUBLE, 
-                                space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+                                space, H5P_DEFAULT, properties_id, H5P_DEFAULT);
 #else	
       hid_t dataset = H5Dcreate(d_group_id, key.c_str(), H5T_SAMRAI_DOUBLE, 
-                                space, H5P_DEFAULT);
+                                space, properties_id);
 #endif
 
 #ifdef ASSERT_HDF5_RETURN_VALUES
@@ -1613,6 +1663,10 @@ void HDFDatabase::putDoubleArray(
 #ifdef ASSERT_HDF5_RETURN_VALUES
       TBOX_ASSERT( errf >= 0 );
 
+#endif
+      errf = H5Pclose(properties_id);
+#ifdef ASSERT_HDF5_RETURN_VALUES
+      TBOX_ASSERT( errf >= 0 );
 #endif
    } else {
       TBOX_ERROR("HDFDatabase::putDoubleArray() error in database "
@@ -1744,6 +1798,7 @@ void HDFDatabase::putFloatArray(
 #endif
    herr_t errf;
    if (nelements > 0) {
+      hid_t properties_id = setup_properties_id(nelements);
 
       hsize_t dim[] = {static_cast<hsize_t>(nelements)};
       hid_t space = H5Screate_simple(1, dim, NULL);
@@ -1753,10 +1808,10 @@ void HDFDatabase::putFloatArray(
 #endif
 #if (H5_VERS_MAJOR>1) || ((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR > 6))
       hid_t dataset = H5Dcreate(d_group_id, key.c_str(), H5T_SAMRAI_FLOAT, 
-                                space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+                                space, H5P_DEFAULT, properties_id, H5P_DEFAULT);
 #else	
       hid_t dataset = H5Dcreate(d_group_id, key.c_str(), H5T_SAMRAI_FLOAT, 
-                                space, H5P_DEFAULT);
+                                space, properties_id);
 #endif
 
 #ifdef ASSERT_HDF5_RETURN_VALUES
@@ -1779,7 +1834,10 @@ void HDFDatabase::putFloatArray(
 #ifdef ASSERT_HDF5_RETURN_VALUES
       TBOX_ASSERT( errf >= 0 );
 #endif
-
+      errf = H5Pclose(properties_id);
+#ifdef ASSERT_HDF5_RETURN_VALUES
+      TBOX_ASSERT( errf >= 0 );
+#endif
    } else {
       TBOX_ERROR("HDFDatabase::putFloatArray() error in database "
          << d_database_name
@@ -1912,6 +1970,7 @@ void HDFDatabase::putIntegerArray(
 #endif
    herr_t errf;
    if (nelements > 0) {
+      hid_t properties_id = setup_properties_id(nelements);
 
       hsize_t dim[] = {static_cast<hsize_t>(nelements)};
       hid_t space = H5Screate_simple(1, dim, NULL);
@@ -1921,10 +1980,10 @@ void HDFDatabase::putIntegerArray(
 
 #if (H5_VERS_MAJOR>1) || ((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR > 6))
       hid_t dataset = H5Dcreate(d_group_id, key.c_str(), H5T_SAMRAI_INT, 
-                                space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+                                space, H5P_DEFAULT, properties_id, H5P_DEFAULT);
 #else	
       hid_t dataset = H5Dcreate(d_group_id, key.c_str(), H5T_SAMRAI_INT, 
-                                space, H5P_DEFAULT);
+                                space, properties_id);
 #endif
 
 #ifdef ASSERT_HDF5_RETURN_VALUES
@@ -1947,7 +2006,10 @@ void HDFDatabase::putIntegerArray(
 #ifdef ASSERT_HDF5_RETURN_VALUES
       TBOX_ASSERT( errf >= 0 );
 #endif
-
+      errf = H5Pclose(properties_id);
+#ifdef ASSERT_HDF5_RETURN_VALUES
+      TBOX_ASSERT( errf >= 0 );
+#endif
    } else {
       TBOX_ERROR("HDFDatabase::putIntegerArray() error in database "
          << d_database_name
@@ -2079,6 +2141,7 @@ void HDFDatabase::putStringArray(
 #endif
    herr_t errf;
    if (nelements > 0) {
+      hid_t properties_id = setup_properties_id(nelements);
 
       int maxlen = 0;
       int current, data_size;
@@ -2118,10 +2181,10 @@ void HDFDatabase::putStringArray(
 #endif
 #if (H5_VERS_MAJOR>1) || ((H5_VERS_MAJOR==1)&&(H5_VERS_MINOR > 6))
       hid_t dataset = H5Dcreate(d_group_id, key.c_str(), 
-                                atype, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+                                atype, space, H5P_DEFAULT, properties_id, H5P_DEFAULT);
 #else	
       hid_t dataset = H5Dcreate(d_group_id, key.c_str(), 
-                                atype, space, H5P_DEFAULT);
+                                atype, space, properties_id);
 #endif
 
 #ifdef ASSERT_HDF5_RETURN_VALUES
@@ -2149,7 +2212,10 @@ void HDFDatabase::putStringArray(
       TBOX_ASSERT( errf >= 0 );
 #endif
       delete[] local_buf;
-
+      errf = H5Pclose(properties_id);
+#ifdef ASSERT_HDF5_RETURN_VALUES
+      TBOX_ASSERT( errf >= 0 );
+#endif
    } else {
       TBOX_ERROR("HDFDatabase::putStringArray() error in database "
          << d_database_name
