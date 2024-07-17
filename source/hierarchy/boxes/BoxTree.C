@@ -25,7 +25,7 @@
 namespace SAMRAI {
    namespace hier {
 
-static void buildTboxArrayFromList(
+static inline void buildTboxArrayFromList(
    tbox::Array<int> &array,
    const tbox::List<int> &list)
 {
