@@ -872,30 +872,30 @@ template<int DIM> std::string CartesianVizamraiDataWriter<DIM>::getFileStreamNam
       dump_filename += tmp;
    }
 
-   const int size = dump_filename.length() + 20;
+   const std::size_t size = dump_filename.length() + 20;
    char *buffer = new char[size];
 
    if (tbox::SAMRAI_MPI::getNodes() > 1) {
       if (extension >= 0) {
-         sprintf(buffer, "%s.%05d.vis.%05d", dump_filename.c_str(),
-                 extension, tbox::SAMRAI_MPI::getRank());
+         snprintf(buffer, size, "%s.%05d.vis.%05d", dump_filename.c_str(),
+                  extension, tbox::SAMRAI_MPI::getRank());
       } else {
-         sprintf(buffer, "%s.vis.%05d", dump_filename.c_str(),
-                 tbox::SAMRAI_MPI::getRank());
+         snprintf(buffer, size, "%s.vis.%05d", dump_filename.c_str(),
+                  tbox::SAMRAI_MPI::getRank());
       }
    } else {
       // If this is a temporary file then add an tmp extension to the name
       if(istemporaryflag) {
 	 if (extension >= 0) {
-	    sprintf(buffer, "%s.%05d.vis.tmp", dump_filename.c_str(), extension);
+	    snprintf(buffer, size, "%s.%05d.vis.tmp", dump_filename.c_str(), extension);
 	 } else {
-	    sprintf(buffer, "%s.vis.tmp", dump_filename.c_str());
+	    snprintf(buffer, size, "%s.vis.tmp", dump_filename.c_str());
 	 }
       } else {
 	 if (extension >= 0) {
-	    sprintf(buffer, "%s.%05d.vis", dump_filename.c_str(), extension);
+	    snprintf(buffer, size, "%s.%05d.vis", dump_filename.c_str(), extension);
 	 } else {
-	    sprintf(buffer, "%s.vis", dump_filename.c_str());
+	    snprintf(buffer, size, "%s.vis", dump_filename.c_str());
 	 }
       }
    }
