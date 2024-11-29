@@ -77,14 +77,14 @@ void Schedule::addTransaction(
    const int src_id = transaction->getSourceProcessor();
    const int dst_id = transaction->getDestinationProcessor();
 
-   if ((my_id == src_id) && (my_id == dst_id)) {
-      d_local_set.addItem(transaction);
-   } else {
-      if (my_id == dst_id) {
-         d_recv_set[src_id].addItem(transaction);
-      } else if (my_id == src_id) {
-         d_send_set[dst_id].addItem(transaction);
-      }
+   TBOX_ASSERT(my_id == src_id || my_id == dst_id);
+
+   // A local transaction is added twice
+   if (my_id == dst_id) {
+      d_recv_set[src_id].addItem(transaction);
+   }
+   if (my_id == src_id) {
+      d_send_set[dst_id].addItem(transaction);
    }
 }
 
@@ -105,14 +105,14 @@ void Schedule::appendTransaction(
    const int src_id = transaction->getSourceProcessor();
    const int dst_id = transaction->getDestinationProcessor();
 
-   if ((my_id == src_id) && (my_id == dst_id)) {
-      d_local_set.appendItem(transaction);
-   } else {
-      if (my_id == dst_id) {
-         d_recv_set[src_id].appendItem(transaction);
-      } else if (my_id == src_id) {
-         d_send_set[dst_id].appendItem(transaction);
-      }
+   TBOX_ASSERT(my_id == src_id || my_id == dst_id);
+
+   // A local transaction is added twice
+   if (my_id == dst_id) {
+      d_recv_set[src_id].appendItem(transaction);
+   }
+   if (my_id == src_id) {
+      d_send_set[dst_id].appendItem(transaction);
    }
 }
 
@@ -156,7 +156,7 @@ void Schedule::beginCommunication()
 /*
 *************************************************************************
 *									*
-* Perform the local data copies, deliver the messages into their	*
+* Perform the data copies, deliver the messages into their	     *
 * destinations, and deallocate the send buffers.			*
 *									*
 *************************************************************************
@@ -164,8 +164,6 @@ void Schedule::beginCommunication()
 
 void Schedule::finalizeCommunication()
 {
-   performLocalCopies();
-
 #ifdef HAVE_MPI
    std::vector<MPI_Request> requests;
    // Wait for both sends and recvs to complete
@@ -218,10 +216,7 @@ void Schedule::calculateSendSizes()
 * information, then receive the number of bytes from the other		*
 * processor.  We need to be careful here since a global communication	*
 * may not work, since not all processors may need size information,	*
-* so not all processors may enter the global exchange.  Since each	*
-* processor will usually communicate with a small number of other	*
-* processors, local communication is also probably more efficient	*
-* than a global synchronization.					*
+* so not all processors may enter the global exchange.            	*
 *									*
 * The general outline of the algorithm is as follows:			*
 *									*
@@ -389,21 +384,6 @@ void Schedule::sendMessages()
 /*
 *************************************************************************
 *									*
-* Perform all of the local memory-to-memory copies for this processor.	*
-*									*
-*************************************************************************
-*/
-
-void Schedule::performLocalCopies()
-{
-   for (ITERATOR local(d_local_set); local; local++) {
-      local()->copyLocalData();
-   }
-}
-
-/*
-*************************************************************************
-*									*
 * Wait until a message arrives and then unpack the data.  Note that we	*
 * want to unpack data is it comes in, not in processor order.		*
 *									*
@@ -484,11 +464,6 @@ void Schedule::printClassData(std::ostream& stream) const
       for (ITERATOR recv(d_recv_set[rs]); recv; recv++) {
          recv()->printClassData(stream);
       }
-   }
-
-   stream << "Local Set" << std::endl;
-   for (ITERATOR local(d_local_set); local; local++) {
-      local()->printClassData(stream);
    }
 }
 
