@@ -2282,7 +2282,7 @@ void RefineSchedule<DIM>::initializeTimers()
       t_fill_data =tbox::TimerManager::getManager() ->
          getTimer("xfer::RefineSchedule::fillData()");
       t_recursive_fill = tbox::TimerManager::getManager() ->
-         getTimer("xfer::RefineSchedule::recursive_fill");
+         getTimer("xfer::RefineSchedule::recursiveFill()");
       t_refine_scratch_data = tbox::TimerManager::getManager() ->
          getTimer("xfer::RefineSchedule::refineScratchData()");
       t_gen_sched_n_squared = tbox::TimerManager::getManager()->
