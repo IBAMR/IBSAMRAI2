@@ -20,6 +20,7 @@
 #include "tbox/ArenaManager.h"
 #include "tbox/Utilities.h"
 #include <stdio.h>
+#include "tbox/TimerManager.h"
 
 #define PDAT_FACEDATA_VERSION 1
 
@@ -268,6 +269,7 @@ template<int DIM, class TYPE>
 void FaceData<DIM,TYPE>::packStream(tbox::AbstractStream& stream,
                                     const hier::BoxOverlap<DIM>& overlap) const
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::FaceData::packStream()");
    const FaceOverlap<DIM> *t_overlap =
       dynamic_cast<const FaceOverlap<DIM> *>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -293,6 +295,7 @@ template<int DIM, class TYPE>
 void FaceData<DIM,TYPE>::unpackStream(tbox::AbstractStream& stream,
                                       const hier::BoxOverlap<DIM>& overlap)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::FaceData::unpackStream()");
    const FaceOverlap<DIM> *t_overlap =
       dynamic_cast<const FaceOverlap<DIM> *>(&overlap);
 

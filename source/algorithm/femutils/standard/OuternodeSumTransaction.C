@@ -18,6 +18,7 @@
 #include "NodeGeometry.h"
 #include "OuternodeData.h"
 #include "tbox/SAMRAI_MPI.h"
+#include "tbox/TimerManager.h"
 
 namespace SAMRAI {
     namespace algs {
@@ -161,6 +162,7 @@ OuternodeSumTransaction<DIM>::getDestinationProcessor()
 template<int DIM> void 
 OuternodeSumTransaction<DIM>::packStream(tbox::AbstractStream& stream)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("algs::OuternodeSumTransaction::packStream()");
    d_src_level->getPatch(d_src_patch)
               ->getPatchData(s_refine_items[d_refine_item_id]->
                              d_src)
@@ -170,6 +172,7 @@ OuternodeSumTransaction<DIM>::packStream(tbox::AbstractStream& stream)
 template<int DIM> void 
 OuternodeSumTransaction<DIM>::unpackStream(tbox::AbstractStream& stream)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("algs::OuternodeSumTransaction::unpackStream()");
    tbox::Pointer< pdat::OuternodeData<DIM,double> > onode_dst_data =
       d_dst_level->getPatch(d_dst_patch)->
          getPatchData(s_refine_items[d_refine_item_id]->d_scratch);
@@ -181,6 +184,7 @@ OuternodeSumTransaction<DIM>::unpackStream(tbox::AbstractStream& stream)
 template<int DIM> void 
 OuternodeSumTransaction<DIM>::copyLocalData()
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("algs::OuternodeSumTransaction::copyLocalData()");
    tbox::Pointer< pdat::OuternodeData<DIM,double> > onode_dst_data =
       d_dst_level->getPatch(d_dst_patch)->
          getPatchData(s_refine_items[d_refine_item_id]->d_scratch);

@@ -18,6 +18,7 @@
 #include "tbox/Arena.h"
 #include "tbox/ArenaManager.h"
 #include "tbox/Utilities.h"
+#include "tbox/TimerManager.h"
 
 #define PDAT_NODEDATA_VERSION 1
 
@@ -227,6 +228,7 @@ template<int DIM, class TYPE>
 void NodeData<DIM,TYPE>::packStream(tbox::AbstractStream& stream,
                                     const hier::BoxOverlap<DIM>& overlap) const
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::NodeData::packStream()");
    const NodeOverlap<DIM> *t_overlap =
       dynamic_cast<const NodeOverlap<DIM> *>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -241,6 +243,7 @@ template<int DIM, class TYPE>
 void NodeData<DIM,TYPE>::unpackStream(tbox::AbstractStream& stream,
                                       const hier::BoxOverlap<DIM>& overlap)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::NodeData::unpackStream()");
    const NodeOverlap<DIM> *t_overlap =
       dynamic_cast<const NodeOverlap<DIM> *>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS

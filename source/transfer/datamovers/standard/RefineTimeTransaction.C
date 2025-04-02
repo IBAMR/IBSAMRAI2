@@ -20,6 +20,7 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/TimerManager.h"
 
 namespace SAMRAI {
     namespace xfer {
@@ -168,6 +169,7 @@ template<int DIM> int RefineTimeTransaction<DIM>::getDestinationProcessor()
 
 template<int DIM> void RefineTimeTransaction<DIM>::packStream(tbox::AbstractStream& stream)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::RefineTimeTransaction::packStream()");
    const tbox::Pointer< hier::Patch<DIM> >& patch = d_src_level->getPatch(d_src_patch);
 
    tbox::Pointer< hier::PatchData<DIM> > temp =
@@ -187,6 +189,7 @@ template<int DIM> void RefineTimeTransaction<DIM>::packStream(tbox::AbstractStre
 
 template<int DIM> void RefineTimeTransaction<DIM>::unpackStream(tbox::AbstractStream& stream)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::RefineTimeTransaction::unpackStream()");
    d_dst_level->getPatch(d_dst_patch)
               ->getPatchData(s_refine_items[d_refine_item_id]->
                              d_scratch)

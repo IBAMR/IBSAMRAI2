@@ -904,7 +904,10 @@ template<int DIM> void RefineSchedule<DIM>::recursiveFill(
     * cells and interiors of the scratch space on the destination level
     * for data where coarse data takes priority on level boundaries.
     */
-   d_coarse_priority_level_schedule->communicate();
+   {
+      SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::RefineSchedule::recursiveFill()[fill_coarse_schedule]");
+      d_coarse_priority_level_schedule->communicate();
+   }
 
    /*
     * If there is a coarser schedule stored in this object, then we will
@@ -947,7 +950,10 @@ template<int DIM> void RefineSchedule<DIM>::recursiveFill(
     * cells and interiors of the scratch space on the destination level
     * for data where fine data takes priority on level boundaries.
     */
-   d_fine_priority_level_schedule->communicate();
+   {
+      SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::RefineSchedule::recursiveFill()[fill_fine_schedule]");
+      d_fine_priority_level_schedule->communicate();
+   }
 
    /*
     * Fill the physical boundaries of the scratch space on the destination
@@ -971,6 +977,7 @@ template<int DIM> void RefineSchedule<DIM>::fillPhysicalBoundaries(
    tbox::Pointer< hier::PatchLevel<DIM> > level,
    double fill_time) const
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::RefineSchedule::fillPhysicalBoundaries()");
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!level.isNull());
 #endif
@@ -1005,6 +1012,7 @@ template<int DIM> void RefineSchedule<DIM>::allocateScratchSpace(
    double fill_time,
    hier::ComponentSelector& allocate_vector) const
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::RefineSchedule::allocateScratchSpace()");
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!level.isNull());
 #endif
@@ -2274,7 +2282,7 @@ void RefineSchedule<DIM>::initializeTimers()
       t_fill_data =tbox::TimerManager::getManager() ->
          getTimer("xfer::RefineSchedule::fillData()");
       t_recursive_fill = tbox::TimerManager::getManager() ->
-         getTimer("xfer::RefineSchedule::recursive_fill");
+         getTimer("xfer::RefineSchedule::recursiveFill()");
       t_refine_scratch_data = tbox::TimerManager::getManager() ->
          getTimer("xfer::RefineSchedule::refineScratchData()");
       t_gen_sched_n_squared = tbox::TimerManager::getManager()->

@@ -16,6 +16,8 @@
 #include "tbox/Utilities.h"
 #endif
 
+#include "tbox/TimerManager.h"
+
 namespace SAMRAI {
     namespace pdat {
 
@@ -40,6 +42,7 @@ void ArrayDataOperationUtilities<DIM, TYPE, OP>::doArrayDataOperationOnBox(
    int num_depth,
    const OP& op)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::ArrayDataOperationUtilities::doArrayDataOperationOnBox()");
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(num_depth >= 0);
    TBOX_ASSERT( (0 <= dst_start_depth) && (dst_start_depth + num_depth <= dst.getDepth()) );
@@ -172,6 +175,7 @@ void ArrayDataOperationUtilities<DIM, TYPE, OP>::doArrayDataBufferOperationOnBox
    bool src_is_buffer,
    const OP& op)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::ArrayDataOperationUtilities::doArrayDataBufferOperationOnBox()");
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( buffer != (const TYPE*)NULL );
    TBOX_ASSERT( opbox == (opbox * arraydata.getBox()) );

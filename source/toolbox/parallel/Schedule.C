@@ -10,7 +10,6 @@
 #include "tbox/Schedule.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/TimerManager.h"
-#include "tbox/Timer.h"
 
 #include <vector>
 
@@ -21,8 +20,6 @@ namespace SAMRAI {
 #define SCHEDULE_DATA_TAG (2)
 
 typedef List< Pointer< Transaction > >::Iterator ITERATOR;
-
-static tbox::Pointer<tbox::Timer> t_communicate;
 
 /*
 *************************************************************************
@@ -41,10 +38,6 @@ Schedule::Schedule()
 
    d_send_set.resizeArray(d_nnodes);
    d_recv_set.resizeArray(d_nnodes);
-
-   if ( t_communicate.isNull() ) {
-      firstConstructorTasks();
-   }
 }
 
 /*
@@ -127,10 +120,9 @@ void Schedule::appendTransaction(
 
 void Schedule::communicate()
 {
-   t_communicate->start();
+   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::communicate()");
    beginCommunication();
    finalizeCommunication();
-   t_communicate->stop();
 }
 
 /*
@@ -147,6 +139,7 @@ void Schedule::communicate()
 
 void Schedule::beginCommunication()
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::beginCommunication()");
    calculateSendSizes();
    calculateReceiveSizes();
    postMessageReceives();
@@ -164,6 +157,8 @@ void Schedule::beginCommunication()
 
 void Schedule::finalizeCommunication()
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::finalizeCommunication()");
+
    performLocalCopies();
 
 #ifdef HAVE_MPI
@@ -179,8 +174,12 @@ void Schedule::finalizeCommunication()
          d_outgoing[p].d_request_id = MPI_REQUEST_NULL;
       }
    }
-   int ierr = MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
-   TBOX_ASSERT(ierr == 0);
+
+   {
+      SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::finalizeCommunication()[waitall]");
+      int ierr = MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
+      TBOX_ASSERT(ierr == 0);
+   }
 #endif
 
    processIncomingMessages();
@@ -197,6 +196,7 @@ void Schedule::finalizeCommunication()
 
 void Schedule::calculateSendSizes()
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::calculateSendSizes()");
    for (int p = 0; p < d_nnodes; p++) {
       int bytes = 0;
       d_outgoing[p].d_must_communicate_byte_size = false;
@@ -235,6 +235,7 @@ void Schedule::calculateSendSizes()
 
 void Schedule::calculateReceiveSizes()
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::calculateReceiveSizes()");
    /*
     * Walk the receive set list and compute the bytes to be received.
     * If the size of the receive message cannot be determined from local
@@ -326,6 +327,7 @@ void Schedule::calculateReceiveSizes()
 
 void Schedule::postMessageReceives()
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::postMessageReceives()");
    for (int p = 0; p < d_nnodes; p++) {
       const int bytes = d_incoming[p].d_bytes_in_stream;
       if (bytes == 0) {
@@ -360,6 +362,7 @@ void Schedule::postMessageReceives()
 
 void Schedule::sendMessages()
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::sendMessages()");
    for (int p = 0; p < d_nnodes; p++) {
       const int bytes = d_outgoing[p].d_bytes_in_stream;
       if (bytes == 0) {
@@ -412,6 +415,7 @@ void Schedule::performLocalCopies()
 
 void Schedule::processIncomingMessages()
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::processIncomingMessages()");
    for (int p = 0; p < d_nnodes; p++) {
       if (d_incoming[p].d_stream_in_use) {
          for (ITERATOR recv(d_recv_set[p]); recv; recv++) {
@@ -434,6 +438,7 @@ void Schedule::processIncomingMessages()
 
 void Schedule::deallocateSendBuffers()
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::deallocateSendBuffers()");
    for (int p = 0; p < d_nnodes; p++) {
       if (d_outgoing[p].d_stream_in_use) {
          d_outgoing[p].d_stream_in_use = false;
@@ -490,42 +495,6 @@ void Schedule::printClassData(std::ostream& stream) const
    for (ITERATOR local(d_local_set); local; local++) {
       local()->printClassData(stream);
    }
-}
-
-
-/*
-***********************************************************************
-***********************************************************************
-*/
-void Schedule::firstConstructorTasks()
-{
-   /*
-     The first constructor gets timers from the TimerManager.
-     and sets up their deallocation.
-   */
-   if ( t_communicate.isNull() ) {
-      t_communicate= tbox::TimerManager::getManager()->
-         getTimer("tbox::Schedule::communicate()");
-      tbox::ShutdownRegistry::registerShutdownRoutine(freeTimers,
-			      tbox::ShutdownRegistry::priorityTimers);
-   }
-   return;
-}
-
-
-
-
-/*
-***************************************************************************
-*                                                                         *
-* Release static timers.  To be called by shutdown registry to make sure  *
-* memory for timers does not leak.                                        *
-*                                                                         *
-***************************************************************************
-*/
-void Schedule::freeTimers()
-{
-   t_communicate.setNull();
 }
 
 }

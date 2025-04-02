@@ -24,6 +24,7 @@
 #include "tbox/Arena.h"
 #include "tbox/ArenaManager.h"
 #include "tbox/Utilities.h"
+#include "tbox/TimerManager.h"
 
 
 #define PDAT_OUTEREDGEDATA_VERSION 1
@@ -480,6 +481,7 @@ void OuteredgeData<DIM,TYPE>::packStream(
    tbox::AbstractStream& stream,
    const hier::BoxOverlap<DIM>& overlap) const
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::OuteredgeData::packStream()");
    const EdgeOverlap<DIM> *t_overlap =
       dynamic_cast<const EdgeOverlap<DIM> *>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -535,6 +537,7 @@ void OuteredgeData<DIM,TYPE>::unpackStream(
    tbox::AbstractStream& stream,
    const hier::BoxOverlap<DIM>& overlap)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::OuteredgeData::unpackStream()");
    const EdgeOverlap<DIM> *t_overlap =
       dynamic_cast<const EdgeOverlap<DIM> *>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -594,6 +597,7 @@ void OuteredgeData<DIM,TYPE>::unpackStreamAndSum(
    tbox::AbstractStream& stream,
    const hier::BoxOverlap<DIM>& overlap)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::OuteredgeData::unpackStreamAndSum()");
    const EdgeOverlap<DIM> *t_overlap =
       dynamic_cast<const EdgeOverlap<DIM> *>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS

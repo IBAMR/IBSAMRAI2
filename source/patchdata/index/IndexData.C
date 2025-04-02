@@ -17,6 +17,7 @@
 #include "BoxOverlap.h"
 #include "tbox/Utilities.h"
 #include "tbox/IOStream.h"
+#include "tbox/TimerManager.h"
 
 #define PDAT_INDEXDATA_VERSION 1
 
@@ -219,6 +220,7 @@ void IndexData<DIM,TYPE,BOX_GEOMETRY>::packStream(
    tbox::AbstractStream& stream,
    const hier::BoxOverlap<DIM>& overlap) const
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::IndexData::packStream()");
    const typename BOX_GEOMETRY::Overlap *t_overlap =
       dynamic_cast<const typename BOX_GEOMETRY::Overlap *>(&overlap);
    TBOX_CHECK_ASSERT(t_overlap != NULL);
@@ -262,6 +264,7 @@ void IndexData<DIM,TYPE,BOX_GEOMETRY>::unpackStream(
    tbox::AbstractStream& stream,
    const hier::BoxOverlap<DIM>& overlap)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::IndexData::unpackStream()");
    const typename BOX_GEOMETRY::Overlap *t_overlap =
       dynamic_cast<const typename BOX_GEOMETRY::Overlap *>(&overlap);
    TBOX_CHECK_ASSERT(t_overlap != NULL);

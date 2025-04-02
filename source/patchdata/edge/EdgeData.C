@@ -19,6 +19,7 @@
 #include "tbox/Arena.h"
 #include "tbox/ArenaManager.h"
 #include "tbox/Utilities.h"
+#include "tbox/TimerManager.h"
 
 #define PDAT_EDGEDATA_VERSION 1
 
@@ -250,6 +251,7 @@ template<int DIM, class TYPE>
 void EdgeData<DIM,TYPE>::packStream(tbox::AbstractStream& stream,
                                       const hier::BoxOverlap<DIM>& overlap) const
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::EdgeData::packStream()");
    const EdgeOverlap<DIM> *t_overlap =
       dynamic_cast<const EdgeOverlap<DIM> *>(&overlap);
 
@@ -270,6 +272,7 @@ template<int DIM, class TYPE>
 void EdgeData<DIM,TYPE>::unpackStream(tbox::AbstractStream& stream,
                                       const hier::BoxOverlap<DIM>& overlap)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::EdgeData::unpackStream()");
    const EdgeOverlap<DIM> *t_overlap =
       dynamic_cast<const EdgeOverlap<DIM> *>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS

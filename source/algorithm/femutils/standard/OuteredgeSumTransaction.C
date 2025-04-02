@@ -18,6 +18,7 @@
 #include "EdgeGeometry.h"
 #include "OuteredgeData.h"
 #include "tbox/SAMRAI_MPI.h"
+#include "tbox/TimerManager.h"
 
 namespace SAMRAI {
     namespace algs {
@@ -162,6 +163,7 @@ OuteredgeSumTransaction<DIM>::getDestinationProcessor()
 template<int DIM> void 
 OuteredgeSumTransaction<DIM>::packStream(tbox::AbstractStream& stream)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("algs::OuteredgeSumTransaction::packStream()");
    d_src_level->getPatch(d_src_patch)
               ->getPatchData(s_refine_items[d_refine_item_id]->
                              d_src)
@@ -171,6 +173,7 @@ OuteredgeSumTransaction<DIM>::packStream(tbox::AbstractStream& stream)
 template<int DIM> void 
 OuteredgeSumTransaction<DIM>::unpackStream(tbox::AbstractStream& stream)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("algs::OuteredgeSumTransaction::unpackStream()");
    tbox::Pointer<pdat::OuteredgeData<DIM,double> > oedge_dst_data = 
       d_dst_level->getPatch(d_dst_patch)->
          getPatchData(s_refine_items[d_refine_item_id]->d_scratch);

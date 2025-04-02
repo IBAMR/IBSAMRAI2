@@ -19,6 +19,7 @@
 #include "tbox/Arena.h"
 #include "tbox/ArenaManager.h"
 #include "tbox/Utilities.h"
+#include "tbox/TimerManager.h"
 
 #define PDAT_CELLDATA_VERSION 1
 
@@ -249,6 +250,7 @@ template<int DIM, class TYPE>
 void CellData<DIM,TYPE>::packStream(
    tbox::AbstractStream& stream, const hier::BoxOverlap<DIM>& overlap) const
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::CellData::packStream()");
    const CellOverlap<DIM> *t_overlap = 
       dynamic_cast<const CellOverlap<DIM> *>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -262,6 +264,7 @@ template<int DIM, class TYPE>
 void CellData<DIM,TYPE>::unpackStream(
    tbox::AbstractStream& stream, const hier::BoxOverlap<DIM>& overlap)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::CellData::unpackStream()");
    const CellOverlap<DIM> *t_overlap = 
       dynamic_cast<const CellOverlap<DIM> *>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
