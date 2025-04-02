@@ -535,6 +535,76 @@ private:
 };
 
 
+  class ScopedTimer
+  {
+  public:
+    /**
+     * Constructor. Starts a SAMRAI timer owned by tbox::TimerManager. Does
+     * nothing if either SAMRAI is not initialized or if IBAMR was configured
+     * without timers enabled.
+     */
+    ScopedTimer(Timer *timer) : d_timer(timer) {d_timer->start();}
+
+    /**
+     * Destructor. Stops the timer.
+     */
+    ~ScopedTimer() {d_timer->stop();}
+
+  protected:
+    Timer *d_timer;
+  };
+
+  /**
+   * Macro wrapper for '##' to prevent it from being called before variables
+   * (e.g., __LINE__) are expanded.
+   */
+#  define SAMRAI_COMBINE_TOKENS(x, y) x##y
+
+  /**
+   * Second macro wrapper for '##' - the preprocessor does not fully expand
+   * nested macros containing '##', so we need another level of indirection.
+   */
+#  define SAMRAI_CONCATENATE_TOKENS(x, y) SAMRAI_COMBINE_TOKENS(x, y)
+
+  /**
+   * Macro for setting up a timer. Defines a static pointer with name
+   * 'cardinal_timer_X' in the current scope, in which 'X' is the current line
+   * number. The arguments are the variable name of the timer (e.g.,
+   * t_interpolate_velocity) and a string for identifying the timer in the
+   * output (e.g., "cardinal::fsi::IFEDMethod::interpolateVelocity()").
+   *
+   * SAMRAI's TimerManager class stores the timers in an array: i.e., in order
+   * to find a timer, it must perform possibly hundreds of string comparisons.
+   * This is a performance problem for short functions which we still want to
+   * time. Hence, this macro sets up the timer as a static pointer and only
+   * defines it once. It does nothing if SAMRAI is not initialized.
+   */
+#  define SAMRAI_SETUP_TIMER(timer_str)                                        \
+    static ::SAMRAI::tbox::Timer *SAMRAI_CONCATENATE_TOKENS(samrai_timer_,     \
+                                                              __LINE__) =      \
+      NULL;                                                                    \
+    do                                                                         \
+      {                                                                        \
+        static bool timer_is_setup = false;                                    \
+        if (!timer_is_setup)                                                   \
+          {                                                                    \
+            SAMRAI_CONCATENATE_TOKENS(samrai_timer_, __LINE__) =               \
+              ::SAMRAI::tbox::TimerManager::getManager()->getTimer(timer_str); \
+            timer_is_setup = true;                                             \
+          }                                                                    \
+    } while (false)
+
+  /**
+   * Convenience macro which sets up a ScopedTimer for the given timer name.
+   * Like the other macro, the pointer to the timer is named samrai_timer_X
+   * and the ScopedTimer is named samrai_timer_X_scope in which X is the
+   * current line number.
+   */
+#  define SAMRAI_SETUP_TIMER_AND_SCOPE(timer_str)           \
+    SAMRAI_SETUP_TIMER(timer_str);                          \
+    ::SAMRAI::tbox::ScopedTimer SAMRAI_CONCATENATE_TOKENS(  \
+      SAMRAI_CONCATENATE_TOKENS(samrai_timer_, __LINE__),   \
+      _scope)(SAMRAI_CONCATENATE_TOKENS(samrai_timer_, __LINE__))
 }
 }
 #endif
