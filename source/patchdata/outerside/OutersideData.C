@@ -20,6 +20,7 @@
 #include "tbox/Arena.h"
 #include "tbox/ArenaManager.h"
 #include "tbox/Utilities.h"
+#include "tbox/TimerManager.h"
 #include <stdio.h>
 
 #define PDAT_OUTERSIDEDATA_VERSION 1
@@ -280,6 +281,7 @@ void OutersideData<DIM,TYPE>::packStream(
    tbox::AbstractStream& stream,
    const hier::BoxOverlap<DIM>& overlap) const
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::OutersideData::packStream()");
    const SideOverlap<DIM> *t_overlap =
       dynamic_cast<const SideOverlap<DIM> *>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -307,6 +309,7 @@ void OutersideData<DIM,TYPE>::unpackStream(
    tbox::AbstractStream& stream,
    const hier::BoxOverlap<DIM>& overlap)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("pdat::OutersideData::unpackStream()");
    const SideOverlap<DIM> *t_overlap =
       dynamic_cast<const SideOverlap<DIM> *>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS

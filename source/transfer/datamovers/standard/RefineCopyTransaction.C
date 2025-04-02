@@ -15,6 +15,7 @@
 #include "Patch.h"
 #include "PatchData.h"
 #include "tbox/SAMRAI_MPI.h"
+#include "tbox/TimerManager.h"
 
 namespace SAMRAI {
     namespace xfer {
@@ -153,6 +154,7 @@ template<int DIM> int RefineCopyTransaction<DIM>::getDestinationProcessor()
 
 template<int DIM> void RefineCopyTransaction<DIM>::packStream(tbox::AbstractStream& stream)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::RefineCopyTransaction::packStream()");
    d_src_level->getPatch(d_src_patch)
               ->getPatchData(s_refine_items[d_refine_item_id]->
                              d_src)
@@ -161,6 +163,7 @@ template<int DIM> void RefineCopyTransaction<DIM>::packStream(tbox::AbstractStre
 
 template<int DIM> void RefineCopyTransaction<DIM>::unpackStream(tbox::AbstractStream& stream)
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::RefineCopyTransaction::unpackStream()");
    d_dst_level->getPatch(d_dst_patch)
               ->getPatchData(s_refine_items[d_refine_item_id]->
                              d_scratch)
@@ -169,6 +172,7 @@ template<int DIM> void RefineCopyTransaction<DIM>::unpackStream(tbox::AbstractSt
 
 template<int DIM> void RefineCopyTransaction<DIM>::copyLocalData()
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::RefineCopyTransaction::copyLocalData()");
    d_dst_level->getPatch(d_dst_patch)
               ->getPatchData(s_refine_items[d_refine_item_id]->
                              d_scratch)
