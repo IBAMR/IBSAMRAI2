@@ -16,7 +16,6 @@
 #include "PatchData.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "CoarsenClasses.h"
-#include "tbox/TimerManager.h"
 
 namespace SAMRAI {
     namespace xfer {
@@ -155,7 +154,6 @@ template<int DIM> int CoarsenCopyTransaction<DIM>::getDestinationProcessor()
 
 template<int DIM> void CoarsenCopyTransaction<DIM>::packStream(tbox::AbstractStream& stream)
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::CoarsenCopyTransaction::packStream()");
    d_src_level->getPatch(d_src_patch)
               ->getPatchData(s_coarsen_items[d_coarsen_item_id]->
                              d_src)
@@ -164,7 +162,6 @@ template<int DIM> void CoarsenCopyTransaction<DIM>::packStream(tbox::AbstractStr
 
 template<int DIM> void CoarsenCopyTransaction<DIM>::unpackStream(tbox::AbstractStream& stream)
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::CoarsenCopyTransaction::unpackStream()");
    d_dst_level->getPatch(d_dst_patch)
               ->getPatchData(s_coarsen_items[d_coarsen_item_id]->
                              d_dst)
@@ -173,7 +170,6 @@ template<int DIM> void CoarsenCopyTransaction<DIM>::unpackStream(tbox::AbstractS
 
 template<int DIM> void CoarsenCopyTransaction<DIM>::copyLocalData()
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("xfer::CoarsenCopyTransaction::copyLocalData()");
    d_dst_level->getPatch(d_dst_patch)
               ->getPatchData(s_coarsen_items[d_coarsen_item_id]->
                              d_dst)
