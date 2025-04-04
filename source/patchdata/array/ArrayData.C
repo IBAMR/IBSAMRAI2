@@ -20,7 +20,6 @@
 #include "ArrayDataOperationUtilities.h"
 #include "CopyOperation.h"
 #include "SumOperation.h"
-#include "tbox/TimerManager.h"
 
 
 #define PDAT_ARRAYDATA_VERSION 1
@@ -62,7 +61,6 @@ void MessageStream::packArrayData(const pdat::ArrayData<DIM,TYPE>& arraydata,
                                   const hier::Box<DIM>& dest_box,
                                   const hier::IntVector<DIM>& src_shift)
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::MessageStream::packArrayData()");
    int n_items = arraydata.getDepth() * dest_box.size();
    int n_bytes = abstract_stream_sizeof<TYPE>(n_items);
    TYPE* dst_buffer = static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes));
@@ -89,7 +87,6 @@ void MessageStream::unpackArrayData(pdat::ArrayData<DIM,TYPE>& arraydata,
                                     const hier::Box<DIM>& dest_box,
                                     const hier::IntVector<DIM>& /*src_shift*/)
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::MessageStream::unpackArrayData()");
    int n_items = arraydata.getDepth() * dest_box.size();
    int n_bytes = abstract_stream_sizeof<TYPE>(n_items);
    TYPE* src_buffer = static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes));
@@ -115,7 +112,6 @@ void MessageStream::unpackAndSumArrayData(pdat::ArrayData<DIM,TYPE>& arraydata,
                                           const hier::Box<DIM>& dest_box,
                                           const hier::IntVector<DIM>& /*src_shift*/)
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::MessageStream::unpackAndSumArrayData()");
    int n_items = arraydata.getDepth() * dest_box.size();
    int n_bytes = abstract_stream_sizeof<TYPE>(n_items);
    TYPE* src_buffer = static_cast<TYPE*>(getPointerAndAdvanceCursor(n_bytes));
@@ -584,8 +580,6 @@ void ArrayData<DIM,TYPE>::packStream(
    const hier::Box<DIM>& dest_box,
    const hier::IntVector<DIM>& src_shift) const
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::ArrayData::packStream()[dest_box]");
-
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
    if (stream_ptr)
    {
@@ -611,8 +605,6 @@ void ArrayData<DIM,TYPE>::packStream(
    const hier::BoxList<DIM>& dest_boxes,
    const hier::IntVector<DIM>& src_shift) const
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::ArrayData::packStream()[dest_boxes]");
-
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
    if (stream_ptr)
    {
@@ -658,8 +650,6 @@ void ArrayData<DIM,TYPE>::unpackStream(
    const hier::Box<DIM>& dest_box,
    const hier::IntVector<DIM>& src_shift)
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::ArrayData::unpackStream()[dest_box]");
-
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
    if (stream_ptr)
    {
@@ -683,8 +673,6 @@ void ArrayData<DIM,TYPE>::unpackStream(
    const hier::BoxList<DIM>& dest_boxes,
    const hier::IntVector<DIM>& src_shift)
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::ArrayData::unpackStream()[dest_boxes]");
-
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
    if (stream_ptr)
    {
@@ -730,8 +718,6 @@ void ArrayData<DIM,TYPE>::unpackStreamAndSum(
    const hier::Box<DIM>& dest_box,
    const hier::IntVector<DIM>& src_shift)
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::ArrayData::unpackStreamAndSum()[dest_box]");
-
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
    if (stream_ptr)
    {
@@ -755,8 +741,6 @@ void ArrayData<DIM,TYPE>::unpackStreamAndSum(
    const hier::BoxList<DIM>& dest_boxes,
    const hier::IntVector<DIM>& src_shift)
 {
-   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::ArrayData::unpackStreamAndSum()[dest_boxes]");
-
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
    if (stream_ptr)
    {
