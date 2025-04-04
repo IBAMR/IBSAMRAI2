@@ -938,6 +938,144 @@ TYPE ArrayDataNormOpsReal<DIM,TYPE>::dotWithControlVolume(
    return(dprod);
 }
 
+extern "C" {
+void mathops_array_dotwithcv2d_(
+   const double* data1,
+   const int& data1_ilower0,
+   const int& data1_iupper0,
+   const int& data1_ilower1,
+   const int& data1_iupper1,
+   const int& data1_depth,
+   const double* data2,
+   const int& data2_ilower0,
+   const int& data2_iupper0,
+   const int& data2_ilower1,
+   const int& data2_iupper1,
+   const int& data2_depth,
+   const double* cv,
+   const int& cv_ilower0,
+   const int& cv_iupper0,
+   const int& cv_ilower1,
+   const int& cv_iupper1,
+   const int& ilower0,
+   const int& iupper0,
+   const int& ilower1,
+   const int& iupper1,
+   double& dprod);
+
+void mathops_array_dotwithcv3d_(
+   const double* data1,
+   const int& data1_ilower0,
+   const int& data1_iupper0,
+   const int& data1_ilower1,
+   const int& data1_iupper1,
+   const int& data1_ilower2,
+   const int& data1_iupper2,
+   const int& data1_depth,
+   const double* data2,
+   const int& data2_ilower0,
+   const int& data2_iupper0,
+   const int& data2_ilower1,
+   const int& data2_iupper1,
+   const int& data2_ilower2,
+   const int& data2_iupper2,
+   const int& data2_depth,
+   const double* cv,
+   const int& cv_ilower0,
+   const int& cv_iupper0,
+   const int& cv_ilower1,
+   const int& cv_iupper1,
+   const int& cv_ilower2,
+   const int& cv_iupper2,
+   const int& ilower0,
+   const int& iupper0,
+   const int& ilower1,
+   const int& iupper1,
+   const int& ilower2,
+   const int& iupper2,
+   double& dprod);
+}
+
+template<> inline
+double ArrayDataNormOpsReal<2,double>::dotWithControlVolume(
+   const pdat::ArrayData<2,double>& data1,
+   const pdat::ArrayData<2,double>& data2,
+   const pdat::ArrayData<2,double>& cvol,
+   const hier::Box<2>& box) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT(data1.getDepth() == data2.getDepth());
+#endif
+
+   double dprod = 0.0;
+
+   const hier::Box<2> d1_box = data1.getBox();
+   const hier::Box<2> d2_box = data2.getBox();
+   const hier::Box<2> cv_box = cvol.getBox();
+   const hier::Box<2> ibox = box * d1_box * d2_box * cv_box;
+
+   if (!ibox.empty()) {
+      mathops_array_dotwithcv2d_(data1.getPointer(),
+                                 d1_box.lower(0), d1_box.upper(0),
+                                 d1_box.lower(1), d1_box.upper(1),
+                                 data1.getDepth(),
+                                 data2.getPointer(),
+                                 d2_box.lower(0), d2_box.upper(0),
+                                 d2_box.lower(1), d2_box.upper(1),
+                                 data2.getDepth(),
+                                 cvol.getPointer(),
+                                 cv_box.lower(0), cv_box.upper(0),
+                                 cv_box.lower(1), cv_box.upper(1),
+                                 ibox.lower(0), ibox.upper(0),
+                                 ibox.lower(1), ibox.upper(1),
+                                 dprod);
+   }
+
+   return(dprod);
+}
+
+template<> inline
+double ArrayDataNormOpsReal<3,double>::dotWithControlVolume(
+   const pdat::ArrayData<3,double>& data1,
+   const pdat::ArrayData<3,double>& data2,
+   const pdat::ArrayData<3,double>& cvol,
+   const hier::Box<3>& box) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT(data1.getDepth() == data2.getDepth());
+#endif
+
+   double dprod = 0.0;
+
+   const hier::Box<3> d1_box = data1.getBox();
+   const hier::Box<3> d2_box = data2.getBox();
+   const hier::Box<3> cv_box = cvol.getBox();
+   const hier::Box<3> ibox = box * d1_box * d2_box * cv_box;
+
+   if (!ibox.empty()) {
+      mathops_array_dotwithcv3d_(data1.getPointer(),
+                                 d1_box.lower(0), d1_box.upper(0),
+                                 d1_box.lower(1), d1_box.upper(1),
+                                 d1_box.lower(2), d1_box.upper(2),
+                                 data1.getDepth(),
+                                 data2.getPointer(),
+                                 d2_box.lower(0), d2_box.upper(0),
+                                 d2_box.lower(1), d2_box.upper(1),
+                                 d2_box.lower(2), d2_box.upper(2),
+                                 data2.getDepth(),
+                                 cvol.getPointer(),
+                                 cv_box.lower(0), cv_box.upper(0),
+                                 cv_box.lower(1), cv_box.upper(1),
+                                 cv_box.lower(2), cv_box.upper(2),
+                                 ibox.lower(0), ibox.upper(0),
+                                 ibox.lower(1), ibox.upper(1),
+                                 ibox.lower(2), ibox.upper(2),
+                                 dprod);
+   }
+
+   return(dprod);
+}
+
 template<int DIM, class TYPE>
 TYPE ArrayDataNormOpsReal<DIM,TYPE>::dot(
    const pdat::ArrayData<DIM,TYPE>& data1,
