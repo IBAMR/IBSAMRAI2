@@ -159,8 +159,6 @@ void Schedule::finalizeCommunication()
 {
    SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::finalizeCommunication()");
 
-   performLocalCopies();
-
 #ifdef HAVE_MPI
    std::vector<MPI_Request> requests;
    // Wait for both sends and recvs to complete
@@ -181,6 +179,8 @@ void Schedule::finalizeCommunication()
       TBOX_ASSERT(ierr == 0);
    }
 #endif
+
+   performLocalCopies();
 
    processIncomingMessages();
    deallocateSendBuffers();
@@ -399,6 +399,7 @@ void Schedule::sendMessages()
 
 void Schedule::performLocalCopies()
 {
+   SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::performLocalCopies()");
    for (ITERATOR local(d_local_set); local; local++) {
       local()->copyLocalData();
    }
