@@ -13,6 +13,7 @@
 #include "SAMRAI_config.h"
 #include "tbox/ReferenceCounter.h"
 
+#include <forward_list>
 
 namespace SAMRAI {
    namespace tbox {
@@ -43,6 +44,72 @@ template <class TYPE> class Pointer;
 template <class TYPE>
 class Array
 {
+private:
+
+   class Allocator
+   {
+   private:
+      constexpr static size_t get_block_id(const size_t block_size) {
+         return (block_size < 2 ? 0 : std::ilogb(block_size-1)+1);
+      }
+
+   public:
+       Allocator() = default;
+       Allocator(const Allocator&) = delete;
+       Allocator& operator=(const Allocator&) = delete;
+
+       ~Allocator() {
+          for (auto& block_stack : block_stacks) {
+             for (auto& block : block_stack) {
+                delete[] block;
+             }
+          }
+       }
+
+       TYPE* allocate(const size_t block_size) {
+          if (block_size == 0) return nullptr;
+
+          const size_t block_id = get_block_id(block_size);
+          if (block_id >= block_stacks.size()) {
+             block_stacks.resize(block_id+1);
+          }
+
+          const size_t allocation_size = 1 << block_id;
+          if (block_stacks[block_id].empty()) {
+             TYPE* block = new TYPE[allocation_size];
+             if (!Array<TYPE>::s_standard_type) {
+                for (size_t k = 0; k < allocation_size; ++k) {
+                   block[k].~TYPE();
+                }
+             }
+             block_stacks[block_id].push_front(block);
+          }
+
+          TYPE* block = block_stacks[block_id].front();
+          block_stacks[block_id].pop_front();
+          if (!Array<TYPE>::s_standard_type) {
+             for (size_t k = 0; k < block_size; k++) {
+                (void) new (&block[k]) TYPE;
+             }
+          }
+          return block;
+       }
+
+       void deallocate(TYPE* const block, const size_t block_size) {
+          if (block_size == 0) return;
+
+          if (!Array<TYPE>::s_standard_type) {
+             for (size_t k = 0; k < block_size; ++k) {
+                block[k].~TYPE();
+             }
+          }
+          block_stacks[get_block_id(block_size)].push_front(block);
+       }
+
+   private:
+      std::vector<std::forward_list<TYPE*> > block_stacks;
+   };
+
 public:
    /**
     * Create an array of zero elements.
@@ -163,6 +230,7 @@ private:
    ReferenceCounter *d_counter;
    int d_elements;
 
+   static Allocator s_allocator;
    static const bool s_standard_type;
 };
 
