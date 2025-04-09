@@ -78,11 +78,6 @@ private:
           const std::size_t allocation_size = 1 << block_id;
           if (block_stacks[block_id].empty()) {
              auto block = static_cast<TYPE*>(std::malloc(sizeof(TYPE) * allocation_size));
-             if (!Array<TYPE>::s_standard_type) {
-                for (std::size_t k = 0; k < allocation_size; ++k) {
-                   block[k].~TYPE();
-                }
-             }
              block_stacks[block_id].push_front(block);
           }
 
