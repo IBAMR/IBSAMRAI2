@@ -85,19 +85,12 @@ struct SAMRAI_MPI
    static comm commNull;
 
    /**
-    * Set boolean flag indicating whether exit or abort is called when running
-    * with one processor.  Calling this function influences the behavior of
-    * calls to SAMRAI_MPI::abort().  By default, the flag is true meaning that
-    * abort() will be called.  Passing false means exit(-1) will be called. 
+    * This function does nothing and exists for backwards compatibility.
     */
    static void setCallAbortInSerialInsteadOfExit(bool flag = true); 
 
    /**
-    * Call MPI_Abort or exit depending on whether running with one or more 
-    * processes and value set by function above, if called.  The default is
-    * to call exit(-1) if running with one processor and to call MPI_Abort()
-    * otherwise.  This function avoids having to guard abort calls in 
-    * application code.
+    * Call std::abort() in serial and MPI_Abort() in parallel.
     */
    static void abort();
    
@@ -524,8 +517,6 @@ private:
    static int      s_incoming_messages;
    static int      s_incoming_bytes;
    static int      s_initialized;
-
-   static bool     s_call_abort_in_serial_instead_of_exit;
 
    /**
     * Performs common functions needed by some of the allToAll methods.

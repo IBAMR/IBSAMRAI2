@@ -53,8 +53,6 @@ SAMRAI_MPI::comm SAMRAI_MPI::commWorld = 0;
 SAMRAI_MPI::comm SAMRAI_MPI::commNull = -1;
 #endif
 
-bool SAMRAI_MPI::s_call_abort_in_serial_instead_of_exit = false;
-
 /*
 **************************************************************************
 *                                                                        *
@@ -63,9 +61,8 @@ bool SAMRAI_MPI::s_call_abort_in_serial_instead_of_exit = false;
 **************************************************************************
 */
 
-void SAMRAI_MPI::setCallAbortInSerialInsteadOfExit(bool flag)
+void SAMRAI_MPI::setCallAbortInSerialInsteadOfExit(bool)
 {
-   s_call_abort_in_serial_instead_of_exit = flag;
 }
 
 void SAMRAI_MPI::abort()
@@ -74,18 +71,10 @@ void SAMRAI_MPI::abort()
    if (getNodes() > 1) {
       MPI_Abort(s_communicator, -1);
    } else {
-      if (s_call_abort_in_serial_instead_of_exit) {
-         ::abort();
-      } else {
-         exit(-1);
-      }
+      std::abort();
    }
 #else
-   if (s_call_abort_in_serial_instead_of_exit) {
-      ::abort();
-   } else {
-      exit(-1);
-   }
+   std::abort();
 #endif
 
 }
