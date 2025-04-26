@@ -7,12 +7,10 @@
 // Description:  Simple utility class for interfacing with MPI
 //
 
-
-#include <stdlib.h>
-#include <string.h>
-
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
 #include <string>
-using namespace std;
 
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
@@ -174,7 +172,7 @@ void SAMRAI_MPI::sumReduction(double *x, const int n)
 #ifdef HAVE_MPI
    if (getNodes() > 1) {
       double *send = new double[n];
-      memcpy(send, x, n*sizeof(double));
+      std::memcpy(send, x, n*sizeof(double));
       MPI_Allreduce(send, x, n, MPI_DOUBLE, MPI_SUM, s_communicator);
       delete [] send;
       const int tree = getTreeDepth();
@@ -223,7 +221,7 @@ void SAMRAI_MPI::sumReduction(float *x, const int n)
 #ifdef HAVE_MPI
    if (getNodes() > 1) {
       float *send = new float[n];
-      memcpy(send, x, n*sizeof(float));
+      std::memcpy(send, x, n*sizeof(float));
       MPI_Allreduce(send, x, n, MPI_FLOAT, MPI_SUM, s_communicator);
       delete [] send;
       const int tree = getTreeDepth();
@@ -282,7 +280,7 @@ void SAMRAI_MPI::sumReduction(dcomplex *x, const int n)
          xreal[2*i]   = real(x[i]); 
          xreal[2*i+1] = imag(x[i]); 
       }
-      memcpy(send, xreal, nrvals*sizeof(double));
+      std::memcpy(send, xreal, nrvals*sizeof(double));
       MPI_Allreduce(send, xreal, nrvals, MPI_DOUBLE, MPI_SUM, s_communicator);
       for (int j = 0; j < n; j++) {
          x[j] = dcomplex(xreal[2*j], xreal[2*j+1]);
@@ -335,7 +333,7 @@ void SAMRAI_MPI::sumReduction(int *x, const int n)
 #ifdef HAVE_MPI
    if (getNodes() > 1) {
       int *send = new int[n];
-      memcpy(send, x, n*sizeof(int));
+      std::memcpy(send, x, n*sizeof(int));
       MPI_Allreduce(send, x, n, MPI_INT, MPI_SUM, s_communicator);
       delete [] send;
       const int tree = getTreeDepth();
@@ -409,7 +407,7 @@ void SAMRAI_MPI::minReduction(double *x, const int n, int *rank_of_min)
    if (getNodes() > 1) {
       if ( rank_of_min == NULL ) {
          double *send = new double[n];
-         memcpy(send, x, n*sizeof(double));
+         std::memcpy(send, x, n*sizeof(double));
          MPI_Allreduce(send, x, n, MPI_DOUBLE, MPI_MIN, s_communicator);
          delete [] send;
       }
@@ -505,7 +503,7 @@ void SAMRAI_MPI::minReduction(float *x, const int n, int *rank_of_min)
    if (getNodes() > 1) {
       if ( rank_of_min == NULL ) {
          float *send = new float[n];
-         memcpy(send, x, n*sizeof(float));
+         std::memcpy(send, x, n*sizeof(float));
          MPI_Allreduce(send, x, n, MPI_FLOAT, MPI_MIN, s_communicator);
          delete [] send;
       }
@@ -601,7 +599,7 @@ void SAMRAI_MPI::minReduction(int *x, const int n, int *rank_of_min)
    if (getNodes() > 1) {
       if ( rank_of_min == NULL ) {
          int *send = new int[n];
-         memcpy(send, x, n*sizeof(int));
+         std::memcpy(send, x, n*sizeof(int));
          MPI_Allreduce(send, x, n, MPI_INT, MPI_MIN, s_communicator);
          delete [] send;
       }
@@ -697,7 +695,7 @@ void SAMRAI_MPI::maxReduction(double *x, const int n, int *rank_of_max)
    if (getNodes() > 1) {
       if ( rank_of_max == NULL ) {
          double *send = new double[n];
-         memcpy(send, x, n*sizeof(double));
+         std::memcpy(send, x, n*sizeof(double));
          MPI_Allreduce(send, x, n, MPI_DOUBLE, MPI_MAX, s_communicator);
          delete [] send;
       }
@@ -793,7 +791,7 @@ void SAMRAI_MPI::maxReduction(float *x, const int n, int *rank_of_max)
    if (getNodes() > 1) {
       if ( rank_of_max == NULL ) {
          float *send = new float[n];
-         memcpy(send, x, n*sizeof(float));
+         std::memcpy(send, x, n*sizeof(float));
          MPI_Allreduce(send, x, n, MPI_FLOAT, MPI_MAX, s_communicator);
          delete [] send;
       }
@@ -889,7 +887,7 @@ void SAMRAI_MPI::maxReduction(int *x, const int n, int *rank_of_max)
    if (getNodes() > 1) {
       if ( rank_of_max == NULL ) {
          int *send = new int[n];
-         memcpy(send, x, n*sizeof(int));
+         std::memcpy(send, x, n*sizeof(int));
          MPI_Allreduce(send, x, n, MPI_INT, MPI_MAX, s_communicator);
          delete [] send;
       }
@@ -936,7 +934,7 @@ void SAMRAI_MPI::allToOneSumReduction(int *x, const int n, const int root)
 #ifdef HAVE_MPI
    if (getNodes() > 1) {
       int *send = new int[n];
-      memcpy(send, x, n*sizeof(int));
+      std::memcpy(send, x, n*sizeof(int));
       MPI_Reduce(send, x, n, MPI_INT, MPI_SUM, root, s_communicator);
       delete [] send;
       const int tree = getTreeDepth();
@@ -1278,7 +1276,7 @@ void SAMRAI_MPI::allGatherSetup(
    if (c != size_out) {
       TBOX_ERROR("SAMRAI_MPI::allGatherSetup error..." 
                  << "\n   size_out =" << size_out << "appears to be incorrect; "
-                 << "should be: " << c << endl);
+                 << "should be: " << c << std::endl);
    }
 #else
    NULL_USE(size_in);
