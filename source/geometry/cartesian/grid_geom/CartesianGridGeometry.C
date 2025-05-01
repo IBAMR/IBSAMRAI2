@@ -555,8 +555,9 @@ template<int DIM> void CartesianGridGeometry<DIM>::setGeometryDataOnPatch(
 
    for (int id5 = 0; id5 < DIM; id5++) {
       x_lo[id5] = d_x_lo[id5]
-                  + ((double) (box.lower(id5)-index_box.lower(id5))) * dx[id5];
-      x_up[id5] = x_lo[id5] + ((double) box.numberCells(id5)) * dx[id5];
+                  + ((box.lower(id5)-index_box.lower(id5))) * dx[id5];
+      x_up[id5] = d_x_lo[id5]
+                  + (box.lower(id5)-index_box.lower(id5) + box.numberCells(id5)) * dx[id5];
    }
 
    tbox::Pointer<CartesianPatchGeometry<DIM> > geom =
