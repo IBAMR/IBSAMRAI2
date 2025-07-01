@@ -538,25 +538,35 @@ template<int DIM> void CartesianGridGeometry<DIM>::setGeometryDataOnPatch(
       tmp_rat(id2) = abs(ratio_to_level_zero(id2));
    }
 
-   hier::Box<DIM> index_box = d_domain_box;
-   hier::Box<DIM> box = patch.getBox();
-
+   // Do all calculations relative to level 0 to guarantee patch boundaries are
+   // consistently computed.
    if ( coarsen ) {
-      index_box.coarsen(tmp_rat);
       for (int id3 = 0; id3 < DIM; id3++) {
-         dx[id3]   = d_dx[id3] * ((double) tmp_rat(id3));
+         dx[id3]   = d_dx[id3] * tmp_rat(id3);
       }
    } else {
-      index_box.refine(tmp_rat);
       for (int id4 = 0; id4 < DIM; id4++) {
-         dx[id4]   = d_dx[id4] / ((double) tmp_rat(id4));
+         dx[id4]   = d_dx[id4] / tmp_rat(id4);
       }
    }
 
    for (int id5 = 0; id5 < DIM; id5++) {
-      x_lo[id5] = d_x_lo[id5]
-                  + ((double) (box.lower(id5)-index_box.lower(id5))) * dx[id5];
-      x_up[id5] = x_lo[id5] + ((double) box.numberCells(id5)) * dx[id5];
+      const int lo_offset = patch.getBox().lower(id5) - d_domain_box.lower(id5);
+      const int up_offset = lo_offset + patch.getBox().numberCells(id5);
+      if (coarsen)
+      {
+         // avoid precision loss by multiplying integers first
+         x_lo[id5] = d_x_lo[id5] + (lo_offset * tmp_rat(id5)) * d_dx[id5];
+         x_up[id5] = d_x_lo[id5] + (up_offset * tmp_rat(id5)) * d_dx[id5];
+      }
+      else
+      {
+         // we can't do the same thing here, but since, in practice, refinement
+         // ratios are powers of 2 this division only effects the exponent and
+         // won't cause any loses in precision
+         x_lo[id5] = d_x_lo[id5] + (lo_offset * d_dx[id5]) / tmp_rat(id5);
+         x_up[id5] = d_x_lo[id5] + (up_offset * d_dx[id5]) / tmp_rat(id5);
+      }
    }
 
    tbox::Pointer<CartesianPatchGeometry<DIM> > geom =
