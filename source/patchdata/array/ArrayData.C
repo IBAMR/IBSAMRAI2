@@ -21,6 +21,7 @@
 #include "CopyOperation.h"
 #include "SumOperation.h"
 
+#include <limits>
 
 #define PDAT_ARRAYDATA_VERSION 1
 
@@ -967,7 +968,7 @@ void ArrayData<DIM,TYPE>::getSpecializedFromDatabase(
 template<int DIM, class TYPE>
 void ArrayData<DIM,TYPE>::undefineData()
 {
-   fillAll(  tbox::MathUtilities<TYPE>::getSignalingNaN() );
+   fillAll(  std::numeric_limits<TYPE>::max() );
 }
 
 /*
