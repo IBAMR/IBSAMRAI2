@@ -38,8 +38,8 @@ void RedistributedRestartUtility::writeRedistributedRestartFiles(
 
       char restore_buf[NAME_BUF_SIZE];
       char nodes_buf[NAME_BUF_SIZE];
-      sprintf(restore_buf, "/restore.%06d", restore_num);
-      sprintf(nodes_buf, "/nodes.%05d", total_output_files);
+      std::snprintf(restore_buf, sizeof(restore_buf), "/restore.%06d", restore_num);
+      std::snprintf(nodes_buf, sizeof(nodes_buf), "/nodes.%05d", total_output_files);
 
       string restart_dirname = output_dirname + restore_buf + nodes_buf;
 
@@ -55,7 +55,7 @@ void RedistributedRestartUtility::writeRedistributedRestartFiles(
       char proc_buf[NAME_BUF_SIZE];
       for (int j = 0; j < num_files_to_write; j++) {
 
-         sprintf(proc_buf, "/proc.%05d", num_files_written+j);
+         std::snprintf(proc_buf, sizeof(proc_buf), "/proc.%05d", num_files_written+j);
 
          string output_filename = restart_dirname + proc_buf;
 
@@ -74,7 +74,7 @@ void RedistributedRestartUtility::writeRedistributedRestartFiles(
       tbox::Array< tbox::Pointer<tbox::Database> >
          input_dbs(num_files_to_read);
 
-      sprintf(nodes_buf, "/nodes.%05d", total_input_files);
+      std::snprintf(nodes_buf, sizeof(nodes_buf), "/nodes.%05d", total_input_files);
 
       tbox::Array<string> input_keys(0);
       tbox::Array<string> test_keys(0);
@@ -89,7 +89,7 @@ void RedistributedRestartUtility::writeRedistributedRestartFiles(
          } else {
             cur_in_file_id = file_mapping[icount][i];
          }  
-         sprintf(proc_buf, "/proc.%05d", cur_in_file_id);
+         std::snprintf(proc_buf, sizeof(proc_buf), "/proc.%05d", cur_in_file_id);
 
          string restart_filename = input_dirname + restore_buf + nodes_buf +
                                    proc_buf;
@@ -425,7 +425,7 @@ void RedistributedRestartUtility::readAndWritePatchLevelRestartData(
          int output_id = proc_mapping[it()] - num_files_written;
 
          char patch_name[NAME_BUF_SIZE];
-         sprintf(patch_name, "level_%04d-patch_%04d", level_number, it());
+         std::snprintf(patch_name, sizeof(patch_name), "level_%04d-patch_%04d", level_number, it());
 
          tbox::Pointer<tbox::Database> patch_in_db =
             level_in_dbs[i]->getDatabase(patch_name);

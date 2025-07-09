@@ -55,7 +55,7 @@ CellMultiblockTest::CellMultiblockTest(
 
    for (int g = 0; g < num_blocks; g++) {
 
-      sprintf(geom_name, "BlockGridGeometry%d", g);
+      std::snprintf(geom_name, sizeof(geom_name), "BlockGridGeometry%d", g);
 
       if (main_input_db->keyExists(geom_name)) {
          d_skel_grid_geometry[g] = new geom::BlockGridGeometry<NDIM>(

@@ -351,7 +351,7 @@ void ConvDiff::registerModelVariables(algs::MethodOfLinesIntegrator<NDIM>* integ
    char *buffer = new char[size];
 
    for (int n = 0; n < NEQU; n++) {
-      sprintf(buffer, "%s%01d", dump_name.c_str(), n);
+      std::snprintf(buffer, size, "%s%01d", dump_name.c_str(), n);
       string variable_name(buffer);
       if (!(d_vizamrai_writer.isNull())) {
          d_vizamrai_writer->

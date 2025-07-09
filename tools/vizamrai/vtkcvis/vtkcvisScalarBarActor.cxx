@@ -76,7 +76,7 @@ vtkcvisScalarBarActor::vtkcvisScalarBarActor()
   this->TitleTextProperty->ShallowCopy(this->LabelTextProperty);
 
   this->LabelFormat = new char[8]; 
-  sprintf(this->LabelFormat,"%s","%-#6.3g");
+  std::snprintf(this->LabelFormat, 8, "%s","%-#6.3g");
 
   this->TitleMapper = vtkTextMapper::New();
   this->TitleActor = vtkActor2D::New();
@@ -590,7 +590,7 @@ void vtkcvisScalarBarActor::AllocateAndSizeLabels(int *labelSize,
     // SGS Added this
     //*******************************************************************
 
-    sprintf(string, this->LabelFormat, val);
+    std::snprintf(string, sizeof(string), this->LabelFormat, val);
     this->TextMappers[i]->SetInput(string);
 
     // Shallow copy here so that the size of the label prop is not affected
