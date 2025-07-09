@@ -53,7 +53,7 @@ void Utilities::recursiveMkdir(
    if ( (!only_node_zero_creates) || (SAMRAI_MPI::getRank() == 0)) {
       int length = path.length();
       char *path_buf= new char[length+1];
-      sprintf(path_buf,"%s",path.c_str());
+      std::snprintf(path_buf, length + 1, "%s", path.c_str());
       struct stat status;
       int pos = length - 1;
    

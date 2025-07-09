@@ -63,7 +63,7 @@ nt_rpc_report(LPTSTR lpszMsg)
     hEventSource = RegisterEventSource(NULL,
                             TEXT("rpc.dll"));
 
-    sprintf(chMsg, "sunrpc report: %d", GetLastError());
+    std::snprintf(chMsg, sizeof(chMsg), "sunrpc report: %d", GetLastError());
     lpszStrings[0] = chMsg;
     lpszStrings[1] = lpszMsg;
 

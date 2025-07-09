@@ -613,7 +613,7 @@ void setupHierarchy(
 
    for (int nb = 0; nb < num_blocks; nb++) {
 
-      sprintf(geom_name, "BlockGeometry%d", nb);
+      std::snprintf(geom_name, sizeof(geom_name), "BlockGeometry%d", nb);
       if (mult_db->keyExists(geom_name)) {
          geoms[nb] =  
             new geom::BlockGridGeometry<NDIM>(
