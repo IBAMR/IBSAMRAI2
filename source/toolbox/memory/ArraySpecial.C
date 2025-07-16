@@ -12,21 +12,5 @@
 
 namespace SAMRAI {
    namespace tbox {
-
-#ifdef HAVE_BOOL
-template <> const bool Array<bool>::s_standard_type = true;
-#endif
-
-#ifdef HAVE_CHAR
-template <> const bool Array<char>::s_standard_type = true;
-#endif
-
-#ifdef HAVE_FLOAT
-template <> const bool Array<float>::s_standard_type = true;
-#endif
-
-template <> const bool Array<double>::s_standard_type = true;
-template <> const bool Array<int>::s_standard_type = true;
-
 }
 }
