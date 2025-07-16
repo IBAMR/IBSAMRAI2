@@ -14,7 +14,8 @@
 #include "tbox/ReferenceCounter.h"
 
 #include <cstdlib>
-#include <forward_list>
+#include <cmath>
+#include <vector>
 
 namespace SAMRAI {
    namespace tbox {
@@ -46,12 +47,13 @@ template <class TYPE>
 class Array
 {
 private:
-
    class Allocator
    {
    private:
-      static std::size_t get_block_id(const std::size_t block_size) {
-         return (block_size < 2 ? 0 : std::ilogb(block_size-1)+1);
+      static std::size_t
+      get_block_id(const std::size_t block_size)
+      {
+         return (block_size < 2 ? 0 : std::ilogb(block_size - 1) + 1);
       }
 
    public:
@@ -59,7 +61,15 @@ private:
        Allocator(const Allocator&) = delete;
        Allocator& operator=(const Allocator&) = delete;
 
-       ~Allocator() {
+       static Allocator&
+       getAllocator()
+       {
+          static Allocator s_allocator;
+          return s_allocator;
+       }
+
+       ~Allocator()
+       {
           for (auto& block_stack : block_stacks) {
              for (auto& block : block_stack) {
                 std::free(block);
@@ -78,14 +88,14 @@ private:
           const std::size_t allocation_size = 1 << block_id;
           if (block_stacks[block_id].empty()) {
              auto block = static_cast<TYPE*>(std::malloc(sizeof(TYPE) * allocation_size));
-             block_stacks[block_id].push_front(block);
+             block_stacks[block_id].push_back(block);
           }
 
-          TYPE* block = block_stacks[block_id].front();
-          block_stacks[block_id].pop_front();
-          if (!Array<TYPE>::s_standard_type) {
-             for (std::size_t k = 0; k < block_size; k++) {
-                (void) new (&block[k]) TYPE;
+          TYPE* block = block_stacks[block_id].back();
+          block_stacks[block_id].pop_back();
+          if (!std::is_fundamental<TYPE>::value) {
+             for (std::size_t k = 0; k < block_size; ++k) {
+                new (&block[k]) TYPE;
              }
           }
           return block;
@@ -94,16 +104,16 @@ private:
        void deallocate(TYPE* const block, const std::size_t block_size) {
           if (block_size == 0) return;
 
-          if (!Array<TYPE>::s_standard_type) {
+          if (!std::is_trivially_destructible<TYPE>::value) {
              for (std::size_t k = 0; k < block_size; ++k) {
                 block[k].~TYPE();
              }
           }
-          block_stacks[get_block_id(block_size)].push_front(block);
+          block_stacks[get_block_id(block_size)].push_back(block);
        }
 
    private:
-      std::vector<std::forward_list<TYPE*> > block_stacks;
+      std::vector<std::vector<TYPE*> > block_stacks;
    };
 
 public:
@@ -225,9 +235,6 @@ private:
    TYPE *d_objects;
    ReferenceCounter *d_counter;
    int d_elements;
-
-   static Allocator s_allocator;
-   static const bool s_standard_type;
 };
 
 

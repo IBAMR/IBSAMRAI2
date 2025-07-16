@@ -21,21 +21,11 @@
 namespace SAMRAI {
    namespace tbox {
 
-/*
- * We have an Allocator for each TYPE.
- */
-template <class TYPE> typename Array<TYPE>::Allocator Array<TYPE>::s_allocator;
-
-/*
- * Default assume Array is not a standard type
- */
-template <class TYPE> const bool Array<TYPE>::s_standard_type = false;
-
 template <class TYPE>
 Array<TYPE>::Array(const int n)
 {
    if (n > 0) {
-      d_objects  = s_allocator.allocate(n);
+      d_objects  = Allocator::getAllocator().allocate(n);
       d_counter  = new ReferenceCounter;
       d_elements = n;
    } else {
@@ -49,7 +39,7 @@ template <class TYPE>
 Array<TYPE>::Array(const int n, const Pointer<Arena>& /*pool*/)
 {
    if (n > 0) {
-      d_objects  = s_allocator.allocate(n);
+      d_objects  = Allocator::getAllocator().allocate(n);
       d_counter  = new ReferenceCounter;
       d_elements = n;
    } else {
@@ -75,13 +65,13 @@ Array<TYPE>& Array<TYPE>::operator=(const Array<TYPE>& rhs)
 template <class TYPE>
 TYPE *Array<TYPE>::allocateObjects(const int n, Arena */*arena*/)
 {
-   return(s_allocator.allocate(n));
+   return(Allocator::getAllocator().allocate(n));
 }
 
 template <class TYPE>
 void Array<TYPE>::deleteObjects()
 {
-   s_allocator.deallocate(d_objects, d_elements);
+   Allocator::getAllocator().deallocate(d_objects, d_elements);
    delete d_counter;
 
    d_objects  = (TYPE *) NULL;
