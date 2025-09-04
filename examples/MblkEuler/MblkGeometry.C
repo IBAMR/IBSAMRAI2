@@ -150,7 +150,7 @@ void MblkGeometry::getFromInput( tbox::Pointer<tbox::Database> input_db,
       for (nb = 0; nb < d_nblocks; nb++) {
          
          // xlo   
-         sprintf(block_name, "domain_xlo_%d", nb);
+         std::snprintf(block_name, sizeof(block_name), "domain_xlo_%d", nb);
          if (!cart_db->keyExists(block_name)) {
             TBOX_ERROR(d_object_name << ":  "
                        <<"Key data `" << block_name
@@ -164,7 +164,7 @@ void MblkGeometry::getFromInput( tbox::Pointer<tbox::Database> input_db,
          }
          
          // xhi   
-         sprintf(block_name, "domain_xhi_%d", nb);
+         std::snprintf(block_name, sizeof(block_name), "domain_xhi_%d", nb);
          if (!cart_db->keyExists(block_name)) {
             TBOX_ERROR(d_object_name << ":  "
                        <<"Key data `" << block_name
@@ -196,7 +196,7 @@ void MblkGeometry::getFromInput( tbox::Pointer<tbox::Database> input_db,
       for (nb = 0; nb < d_nblocks; nb++) {
          
          // rmin   
-         sprintf(block_name, "rmin_%d", nb);
+         std::snprintf(block_name, sizeof(block_name), "rmin_%d", nb);
          if (!wedge_db->keyExists(block_name)) {
             TBOX_ERROR(d_object_name << ":  "
                        <<"Key data `" << block_name
@@ -207,7 +207,7 @@ void MblkGeometry::getFromInput( tbox::Pointer<tbox::Database> input_db,
          d_wedge_rmin[nb] = wedge_db->getDouble(block_name);
 
          // rmax   
-         sprintf(block_name, "rmax_%d", nb);
+         std::snprintf(block_name, sizeof(block_name), "rmax_%d", nb);
          if (!wedge_db->keyExists(block_name)) {
             TBOX_ERROR(d_object_name << ":  "
                        <<"Key data `" << block_name
@@ -377,7 +377,7 @@ void MblkGeometry::getFromInput( tbox::Pointer<tbox::Database> input_db,
       int max_ln = 0;
       int ln;
       for (ln = 0; ln < 10; ln++) {
-         sprintf(block_name, "refine_boxes_%d_%d", nb, ln);
+         std::snprintf(block_name, sizeof(block_name), "refine_boxes_%d_%d", nb, ln);
          if (db->keyExists(block_name)) {
             max_ln++;
          }
@@ -385,7 +385,7 @@ void MblkGeometry::getFromInput( tbox::Pointer<tbox::Database> input_db,
       d_refine_boxes[nb].resizeArray(max_ln);
 
       for (ln = 0; ln < max_ln; ln++) {
-         sprintf(block_name, "refine_boxes_%d_%d", nb, ln);
+         std::snprintf(block_name, sizeof(block_name), "refine_boxes_%d_%d", nb, ln);
          if (db->keyExists(block_name)) {
             d_refine_boxes[nb][ln] = db->getDatabaseBoxArray(block_name);
          } else {

@@ -149,7 +149,7 @@ int main( int argc, char *argv[])
    // make string "input-dir/restore.*****
    char restore_buf[NAME_BUFSIZE];
 
-   sprintf(restore_buf,"/restore.%06d",restore_num);
+   std::snprintf(restore_buf, sizeof(restore_buf),"/restore.%06d",restore_num);
 
    string restore_dirname;
    if( read_dirname.compare(0, 1, "/") == 0 ) {
