@@ -22,31 +22,25 @@ namespace SAMRAI {
    namespace tbox {
 
 template <class TYPE>
+bool Array<TYPE>::Allocator::s_is_available = false;
+
+template <class TYPE>
+std::vector<std::vector<TYPE *>> Array<TYPE>::Allocator::s_block_stacks;
+
+template <class TYPE>
 Array<TYPE>::Array(const int n)
 {
-   if (n > 0) {
-      d_objects  = Allocator::getAllocator().allocate(n);
-      d_counter  = new ReferenceCounter;
-      d_elements = n;
-   } else {
-      d_objects  = (TYPE *) NULL;
-      d_counter  = (ReferenceCounter *) NULL;
-      d_elements = 0;
-   }
+   d_objects  = Allocator::getAllocator().allocate(n);
+   d_counter  = new ReferenceCounter;
+   d_elements = n;
 }
 
 template <class TYPE>
 Array<TYPE>::Array(const int n, const Pointer<Arena>& /*pool*/)
 {
-   if (n > 0) {
-      d_objects  = Allocator::getAllocator().allocate(n);
-      d_counter  = new ReferenceCounter;
-      d_elements = n;
-   } else {
-      d_objects  = (TYPE *) NULL;
-      d_counter  = (ReferenceCounter *) NULL;
-      d_elements = 0;
-   }
+   d_objects  = Allocator::getAllocator().allocate(n);
+   d_counter  = new ReferenceCounter;
+   d_elements = n;
 }
 
 template <class TYPE>
@@ -65,7 +59,7 @@ Array<TYPE>& Array<TYPE>::operator=(const Array<TYPE>& rhs)
 template <class TYPE>
 TYPE *Array<TYPE>::allocateObjects(const int n, Arena */*arena*/)
 {
-   return(Allocator::getAllocator().allocate(n));
+   return Allocator::getAllocator().allocate(n);
 }
 
 template <class TYPE>

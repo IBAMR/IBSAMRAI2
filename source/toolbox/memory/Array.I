@@ -28,7 +28,7 @@ inline
 Array<TYPE>::Array()
 {
    d_objects  = (TYPE *) NULL;
-   d_counter  = (ReferenceCounter *) NULL;
+   d_counter  = new ReferenceCounter;
    d_elements = 0;
 }
 
@@ -39,14 +39,14 @@ Array<TYPE>::Array(const Array<TYPE>& rhs)
    d_objects  = rhs.d_objects;
    d_counter  = rhs.d_counter;
    d_elements = rhs.d_elements;
-   if (d_counter) d_counter->addReference();
+   d_counter->addReference();
 }
 
 template <class TYPE>
 inline
 Array<TYPE>::~Array()
 {
-   if (d_counter && d_counter->deleteReference()) deleteObjects();
+   if (d_counter->deleteReference()) deleteObjects();
 }
 
 template <class TYPE>
@@ -73,10 +73,7 @@ template <class TYPE>
 inline
 void Array<TYPE>::setNull()
 {
-   if (d_counter && d_counter->deleteReference()) deleteObjects();
-   d_objects  = (TYPE *) NULL;
-   d_counter  = (ReferenceCounter *) NULL;
-   d_elements = 0;
+   *this = Array<TYPE>();
 }
 
 template <class TYPE>
