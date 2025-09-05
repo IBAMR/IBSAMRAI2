@@ -25,9 +25,7 @@ class Arena;
 
 /**
  * Class ReferenceCounter manages the shared reference counter and
- * arena resources used by Pointer and Array.  It uses a local
- * free pool of objects to speed memory allocation and deallocation.  The
- * locally cached free pool can be freed by calling freeCachedCopies().
+ * arena resources used by Pointer and Array.
  *
  * {\b Do not subclass!}  Changing the size of a ReferenceCounter
  * object will cause my simple memory allocation mechanism to break in
@@ -52,7 +50,7 @@ public:
     * counter for that arena.  The number of references is set to one.
     */
    ReferenceCounter(Arena *newArena,
-                         ReferenceCounter *arenaCounter);
+                    ReferenceCounter *arenaCounter);
 
    /**
     * Destructor for ReferenceCounter.  The destructor releases
@@ -76,26 +74,6 @@ public:
     */
    void addReference();
 
-   /**
-    * Release the memory for all currently cached ReferenceCounter
-    * copies.  This function may be called at any time.  In general, it
-    * should not be necessary to call freeCachedCopies(), since it is
-    * called via the ShutdownRegistry mechanism.
-    */
-   static void freeCachedCopies();
-
-   /**
-    * Class-specific operator new.  Data is allocated off of an
-    * internal free list to speed memory allocation.
-    */
-   void *operator new(size_t bytes);
-
-   /**
-    * Class-specific operator delete.  Freed data is returned to
-    * an internal free list for re-use by operator new.
-    */
-   void operator delete(void *what);
-
 private:
    ReferenceCounter(const ReferenceCounter&);	// not implemented
    void operator=(const ReferenceCounter&);	// not implemented
@@ -103,11 +81,6 @@ private:
    int d_references;
    Arena *d_arena;
    ReferenceCounter *d_counter;
-
-   static ReferenceCounter *s_free_list;
-   static bool s_registered_callback;
-
-   static bool s_shutdown;
 };
 
 

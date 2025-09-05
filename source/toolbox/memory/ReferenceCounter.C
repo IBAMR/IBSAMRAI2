@@ -9,7 +9,6 @@
 
 #include "tbox/ReferenceCounter.h"
 #include "tbox/Arena.h"
-#include "tbox/ShutdownRegistry.h"
 
 #include <stdlib.h>
 
@@ -20,49 +19,8 @@
 namespace SAMRAI {
    namespace tbox {
 
-ReferenceCounter *ReferenceCounter::s_free_list = NULL;
-bool ReferenceCounter::s_registered_callback = false;
-bool ReferenceCounter::s_shutdown = false;
-
-void *ReferenceCounter::operator new(size_t bytes)
-{
-   if (s_free_list) {
-      ReferenceCounter *node = s_free_list;
-      s_free_list = s_free_list->d_counter;
-      return(node);
-   } else {
-      return(::operator new(bytes));
-   }
-}
-
-void ReferenceCounter::operator delete(void *what)
-{
-   ReferenceCounter *node = (ReferenceCounter *) what;
-   node->d_counter = s_free_list;
-   s_free_list = node;
-
-   if (!s_registered_callback) {
-      ShutdownRegistry::registerShutdownRoutine(freeCachedCopies,
-		     ShutdownRegistry::priorityReferenceCounter);
-      s_registered_callback = true;
-   }
-}
-
-void ReferenceCounter::freeCachedCopies()
-{
-   while (s_free_list) {
-      void *byebye = s_free_list;
-      s_free_list = s_free_list->d_counter;
-      ::operator delete(byebye);
-   }
-
-   s_registered_callback = false;
-
-   s_shutdown = true;
-}
-
 ReferenceCounter::ReferenceCounter(Arena *arena,
-                                             ReferenceCounter *counter)
+                                   ReferenceCounter *counter)
 {
    if (!arena) {
       d_references = 1;
