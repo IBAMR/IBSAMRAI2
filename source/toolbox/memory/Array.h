@@ -12,11 +12,14 @@
 
 #include "SAMRAI_config.h"
 #include "tbox/ReferenceCounter.h"
+#include "tbox/Utilities.h"
 
+#include <cmath>
+#include <cstdlib>
+#include <vector>
 
 namespace SAMRAI {
-   namespace tbox {
-
+namespace tbox {
 
 class Arena;
 template <class TYPE> class Pointer;
@@ -40,9 +43,97 @@ template <class TYPE> class Pointer;
  * @see tbox::Pointer
  */
 
-template <class TYPE>
-class Array
-{
+template <class TYPE> class Array {
+private:
+  /**
+   * Internal allocation class. Responsible for managing a memory pool for each
+   * type of Array.
+   */
+  class Allocator {
+  private:
+    static std::size_t get_block_id(const std::size_t block_size) {
+      return (block_size < 2 ? 0 : std::ilogb(block_size - 1) + 1);
+    }
+
+  public:
+    Allocator() = default;
+    Allocator(const Allocator &) = delete;
+    Allocator &operator=(const Allocator &) = delete;
+
+    static Allocator &getAllocator() {
+      // We need a static instance so that we deallocate memory after main()
+      // finishes
+      static Allocator s_allocator;
+      return s_allocator;
+    }
+
+    ~Allocator() {
+      for (auto &block_stack : s_block_stacks) {
+        for (auto &block : block_stack) {
+          std::free(block);
+        }
+      }
+      // 1 of 2: we may run ~Allocator() before every ~Array() is run. To
+      // avoid problems, clear data and set the boolean to false
+      s_block_stacks = {};
+      s_is_available = false;
+    }
+
+    static TYPE *allocate(const std::size_t block_size) {
+      if (block_size == 0)
+        return nullptr;
+
+      const std::size_t block_id = get_block_id(block_size);
+      if (block_id >= s_block_stacks.size()) {
+        s_block_stacks.resize(block_id + 1);
+      }
+
+      const std::size_t allocation_size = 1 << block_id;
+      TBOX_ASSERT(block_size <= allocation_size);
+      if (s_block_stacks[block_id].empty()) {
+        auto block =
+            static_cast<TYPE *>(std::malloc(sizeof(TYPE) * allocation_size));
+        s_block_stacks[block_id].reserve(s_block_stacks[block_id].capacity() +
+                                         1);
+        s_block_stacks[block_id].push_back(block);
+      }
+
+      TYPE *block = s_block_stacks[block_id].back();
+      s_block_stacks[block_id].pop_back();
+      if (!std::is_fundamental<TYPE>::value) {
+        for (std::size_t k = 0; k < block_size; ++k) {
+          new (&block[k]) TYPE;
+        }
+      }
+      return block;
+    }
+
+    static void deallocate(TYPE *const block, const std::size_t block_size) {
+      if (block_size == 0)
+        return;
+
+      if (!std::is_trivially_destructible<TYPE>::value) {
+        for (std::size_t k = 0; k < block_size; ++k) {
+          block[k].~TYPE();
+        }
+      }
+
+      // 2 of 2: don't return memory to the Allocator if it has already been
+      // destructed
+      if (s_is_available) {
+        TBOX_ASSERT(get_block_id(block_size) < s_block_stacks.size());
+        s_block_stacks[get_block_id(block_size)].push_back(block);
+      } else {
+        std::free(block);
+      }
+    }
+
+  private:
+    static bool s_is_available;
+
+    static std::vector<std::vector<TYPE *>> s_block_stacks;
+  };
+
 public:
    /**
     * Create an array of zero elements.
@@ -162,8 +253,6 @@ private:
    TYPE *d_objects;
    ReferenceCounter *d_counter;
    int d_elements;
-
-   static const bool s_standard_type;
 };
 
 

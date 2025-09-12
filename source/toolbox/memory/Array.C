@@ -21,46 +21,26 @@
 namespace SAMRAI {
    namespace tbox {
 
+template <class TYPE>
+bool Array<TYPE>::Allocator::s_is_available = false;
 
-/*
- * Default assume Array is not a standard type
- */
-template <class TYPE> const bool Array<TYPE>::s_standard_type = false;
+template <class TYPE>
+std::vector<std::vector<TYPE *>> Array<TYPE>::Allocator::s_block_stacks;
 
 template <class TYPE>
 Array<TYPE>::Array(const int n)
 {
-   if (n > 0) {
-      d_objects  = new TYPE[n];
-      d_counter  = new ReferenceCounter;
-      d_elements = n;
-   } else {
-      d_objects  = (TYPE *) NULL;
-      d_counter  = (ReferenceCounter *) NULL;
-      d_elements = 0;
-   }
+   d_objects  = Allocator::getAllocator().allocate(n);
+   d_counter  = new ReferenceCounter;
+   d_elements = n;
 }
 
 template <class TYPE>
-Array<TYPE>::Array(const int n, const Pointer<Arena>& pool)
+Array<TYPE>::Array(const int n, const Pointer<Arena>& /*pool*/)
 {
-   if (n > 0) {
-      Arena *arena = pool.getPointer();
-      if (!arena) {
-         d_objects  = new TYPE[n];
-         d_counter  = new ReferenceCounter;
-         d_elements = n;
-      } else {
-         d_objects  = allocateObjects(n, arena);
-         d_counter  =
-            new ReferenceCounter(arena, pool.getReferenceCounter());
-         d_elements = n;
-      }
-   } else {
-      d_objects  = (TYPE *) NULL;
-      d_counter  = (ReferenceCounter *) NULL;
-      d_elements = 0;
-   }
+   d_objects  = Allocator::getAllocator().allocate(n);
+   d_counter  = new ReferenceCounter;
+   d_elements = n;
 }
 
 template <class TYPE>
@@ -77,30 +57,15 @@ Array<TYPE>& Array<TYPE>::operator=(const Array<TYPE>& rhs)
 }
 
 template <class TYPE>
-TYPE *Array<TYPE>::allocateObjects(const int n, Arena *arena)
+TYPE *Array<TYPE>::allocateObjects(const int n, Arena */*arena*/)
 {
-   TYPE *ptr = (TYPE *) ::operator new(n*sizeof(TYPE), arena);
-   if (!s_standard_type) {
-      for (int i = 0; i < n; i++) {
-         (void) new (&ptr[i]) TYPE;
-      }
-   }
-   return(ptr);
+   return Allocator::getAllocator().allocate(n);
 }
 
 template <class TYPE>
 void Array<TYPE>::deleteObjects()
 {
-   if (d_counter->getArena()) {
-      if (!s_standard_type) {
-         for (int i = 0; i < d_elements; i++) {
-            d_objects[i].~TYPE();
-         }
-      }
-      d_counter->getArena()->free(d_objects);
-   } else {
-      delete [] d_objects;
-   }
+   Allocator::getAllocator().deallocate(d_objects, d_elements);
    delete d_counter;
 
    d_objects  = (TYPE *) NULL;
@@ -123,14 +88,9 @@ void Array<TYPE>::resizeArray(const int n)
 
 template <class TYPE>
 void Array<TYPE>::resizeArray(
-   const int n, const Pointer<Arena>& pool)
+   const int n, const Pointer<Arena>& /*pool*/)
 {
-   Array<TYPE> array(n, pool);
-   const int s = (d_elements < n ? d_elements : n);
-   for (int i = 0; i < s; i++) {
-      array.d_objects[i] = d_objects[i];
-   }
-   this->operator=(array);
+   Array<TYPE>::resizeArray(n);
 }
 
 }
