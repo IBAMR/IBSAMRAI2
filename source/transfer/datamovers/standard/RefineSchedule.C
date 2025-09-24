@@ -166,6 +166,19 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    initializeDomainAndGhostInformation(recursive_schedule);
 
    /*
+    * Set the destination level number for the variable fill pattern
+    * objects.
+    */
+   const int num_equiv_classes =
+      d_refine_classes->getNumberOfEquivalenceClasses();
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(
+         d_dst_level->getLevelNumber());
+   }
+
+   /*
     * Create the fill box and unfilled box arrays and then the
     * communication schedule for data transfers between source and
     * destination levels.  Note that the fill boxes are initialized here,
@@ -192,6 +205,16 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
 				 unfilled_boxes,
 				 use_time_interpolation);
    t_gen_comm_sched->stop();
+
+   /*
+    * Reset the destination level number for the variable fill pattern
+    * objects.
+    */
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(-1);
+   }
 }
 
 /*
@@ -274,6 +297,19 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    initializeDomainAndGhostInformation(recursive_schedule);
 
    /*
+    * Set the destination level number for the variable fill pattern
+    * objects.
+    */
+   const int num_equiv_classes =
+      d_refine_classes->getNumberOfEquivalenceClasses();
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(
+         d_dst_level->getLevelNumber());
+   }
+
+   /*
     * Create the fill box arrays and then the communication schedule(s)
     * needed to move data from the patch hierarchy to the destination level.
     */
@@ -296,6 +332,16 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
                               use_time_interpolation,
                               skip_first_generate_schedule);
    t_finish_sched_const->stop();
+
+   /*
+    * Reset the destination level number for the variable fill pattern
+    * objects.
+    */
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(-1);
+   }
 }
 
 /*
@@ -365,6 +411,18 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
 
    bool recursive_schedule = true;
    initializeDomainAndGhostInformation(recursive_schedule);
+
+   /*
+    * Reset the destination level number for the variable fill pattern
+    * objects.
+    */
+   const int num_equiv_classes =
+      d_refine_classes->getNumberOfEquivalenceClasses();
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(-1);
+   }
 
    /*
     * Finish construction of the communication schedule using the remaining
