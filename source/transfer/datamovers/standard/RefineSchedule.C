@@ -1704,12 +1704,85 @@ template<int DIM> void RefineSchedule<DIM>::allocateFillBoxes(
       }
    }
 
+   else if ( fill_pattern == "FILL_PATCH_BORDERS_ONLY" ) {
+      /*
+       * Grow each patch box and remove the patch box from it.
+       */
+      for (int p = 0; p < nboxes; p++) {
+         hier::Box<DIM> ghostbox = hier::Box<DIM>::grow(boxes[p], gcw);
+         hier::BoxList<DIM> tofill( ghostbox );
+         tofill.removeIntersections( boxes[p] );
+         fill_boxes[p].resetFillBoxes( tofill );
+         d_max_fill_boxes =
+            tbox::MathUtilities<int>::Max( d_max_fill_boxes,
+                                           fill_boxes[p].getNumberOfBoxes() );
+      }
+
+   }
+
+   else if ( fill_pattern == "FILL_PATCH_INTERIORS_AND_BORDERS_STAR" ) {
+      /*
+       * Form the no-corners ("star-shaped") stencil for each patch box,
+       * including the patch interior.
+       */
+      for (int p = 0; p < nboxes; p++) {
+         hier::BoxList<DIM> tofill;
+         tofill.addItem(boxes[p]);
+         for (int d = 0; d < DIM; d++)
+         {
+             hier::Box<DIM> lowerbox = boxes[p];
+             lowerbox.lower(d) = boxes[p].lower(d) - gcw(d);
+             lowerbox.upper(d) = boxes[p].lower(d) - 1;
+             tofill.addItem( lowerbox );
+
+             hier::Box<DIM> upperbox = boxes[p];
+             upperbox.lower(d) = boxes[p].upper(d) + 1;
+             upperbox.upper(d) = boxes[p].upper(d) + gcw(d);
+             tofill.addItem( upperbox );
+         }
+         fill_boxes[p].resetFillBoxes( tofill );
+         d_max_fill_boxes =
+            tbox::MathUtilities<int>::Max( d_max_fill_boxes,
+                                           fill_boxes[p].getNumberOfBoxes() );
+      }
+
+   }
+
+   else if ( fill_pattern == "FILL_PATCH_BORDERS_ONLY_STAR" ) {
+      /*
+       * Form the no-corners ("star-shaped") stencil for each patch box,
+       * excluding the patch interior.
+       */
+      for (int p = 0; p < nboxes; p++) {
+         hier::BoxList<DIM> tofill;
+         for (int d = 0; d < DIM; d++)
+         {
+             hier::Box<DIM> lowerbox = boxes[p];
+             lowerbox.lower(d) = boxes[p].lower(d) - gcw(d);
+             lowerbox.upper(d) = boxes[p].lower(d) - 1;
+             tofill.addItem( lowerbox );
+
+             hier::Box<DIM> upperbox = boxes[p];
+             upperbox.lower(d) = boxes[p].upper(d) + 1;
+             upperbox.upper(d) = boxes[p].upper(d) + gcw(d);
+             tofill.addItem( upperbox );
+         }
+         fill_boxes[p].resetFillBoxes( tofill );
+         d_max_fill_boxes =
+            tbox::MathUtilities<int>::Max( d_max_fill_boxes,
+                                           fill_boxes[p].getNumberOfBoxes() );
+      }
+
+   }
+
    else {
       TBOX_ERROR("RefineSchedule<DIM>::allocateFillBoxes\n"
                  << "Given communication pattern string "
                  << fill_pattern << " is invalid.\n Valid options are\n"
                  << "'DEFAULT_FILL', 'FILL_LEVEL_BORDERS_ONLY',\n"
-                 << "'FILL_INTERIORS_ONLY', 'FILL_LEVEL_BORDERS_AND_INTERIORS'\n"
+                 << "'FILL_INTERIORS_ONLY', 'FILL_LEVEL_BORDERS_AND_INTERIORS',\n"
+                 << "'FILL_PATCH_BORDERS_ONLY', 'FILL_PATCH_INTERIORS_AND_BORDERS_STAR'\n"
+                 << "'FILL_PATCH_BORDERS_ONLY_STAR'\n"
                  << std::endl);
    }
 
