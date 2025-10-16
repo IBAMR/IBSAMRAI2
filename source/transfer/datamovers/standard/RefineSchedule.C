@@ -166,6 +166,19 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    initializeDomainAndGhostInformation(recursive_schedule);
 
    /*
+    * Set the destination level number for the variable fill pattern
+    * objects.
+    */
+   const int num_equiv_classes =
+      d_refine_classes->getNumberOfEquivalenceClasses();
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(
+         d_dst_level->getLevelNumber());
+   }
+
+   /*
     * Create the fill box and unfilled box arrays and then the
     * communication schedule for data transfers between source and
     * destination levels.  Note that the fill boxes are initialized here,
@@ -192,6 +205,16 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
 				 unfilled_boxes,
 				 use_time_interpolation);
    t_gen_comm_sched->stop();
+
+   /*
+    * Reset the destination level number for the variable fill pattern
+    * objects.
+    */
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(-1);
+   }
 }
 
 /*
@@ -274,6 +297,19 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    initializeDomainAndGhostInformation(recursive_schedule);
 
    /*
+    * Set the destination level number for the variable fill pattern
+    * objects.
+    */
+   const int num_equiv_classes =
+      d_refine_classes->getNumberOfEquivalenceClasses();
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(
+         d_dst_level->getLevelNumber());
+   }
+
+   /*
     * Create the fill box arrays and then the communication schedule(s)
     * needed to move data from the patch hierarchy to the destination level.
     */
@@ -296,6 +332,16 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
                               use_time_interpolation,
                               skip_first_generate_schedule);
    t_finish_sched_const->stop();
+
+   /*
+    * Reset the destination level number for the variable fill pattern
+    * objects.
+    */
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(-1);
+   }
 }
 
 /*
@@ -365,6 +411,18 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
 
    bool recursive_schedule = true;
    initializeDomainAndGhostInformation(recursive_schedule);
+
+   /*
+    * Reset the destination level number for the variable fill pattern
+    * objects.
+    */
+   const int num_equiv_classes =
+      d_refine_classes->getNumberOfEquivalenceClasses();
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(-1);
+   }
 
    /*
     * Finish construction of the communication schedule using the remaining
@@ -1646,12 +1704,85 @@ template<int DIM> void RefineSchedule<DIM>::allocateFillBoxes(
       }
    }
 
+   else if ( fill_pattern == "FILL_PATCH_BORDERS_ONLY" ) {
+      /*
+       * Grow each patch box and remove the patch box from it.
+       */
+      for (int p = 0; p < nboxes; p++) {
+         hier::Box<DIM> ghostbox = hier::Box<DIM>::grow(boxes[p], gcw);
+         hier::BoxList<DIM> tofill( ghostbox );
+         tofill.removeIntersections( boxes[p] );
+         fill_boxes[p].resetFillBoxes( tofill );
+         d_max_fill_boxes =
+            tbox::MathUtilities<int>::Max( d_max_fill_boxes,
+                                           fill_boxes[p].getNumberOfBoxes() );
+      }
+
+   }
+
+   else if ( fill_pattern == "FILL_PATCH_INTERIORS_AND_BORDERS_STAR" ) {
+      /*
+       * Form the no-corners ("star-shaped") stencil for each patch box,
+       * including the patch interior.
+       */
+      for (int p = 0; p < nboxes; p++) {
+         hier::BoxList<DIM> tofill;
+         tofill.addItem(boxes[p]);
+         for (int d = 0; d < DIM; d++)
+         {
+             hier::Box<DIM> lowerbox = boxes[p];
+             lowerbox.lower(d) = boxes[p].lower(d) - gcw(d);
+             lowerbox.upper(d) = boxes[p].lower(d) - 1;
+             tofill.addItem( lowerbox );
+
+             hier::Box<DIM> upperbox = boxes[p];
+             upperbox.lower(d) = boxes[p].upper(d) + 1;
+             upperbox.upper(d) = boxes[p].upper(d) + gcw(d);
+             tofill.addItem( upperbox );
+         }
+         fill_boxes[p].resetFillBoxes( tofill );
+         d_max_fill_boxes =
+            tbox::MathUtilities<int>::Max( d_max_fill_boxes,
+                                           fill_boxes[p].getNumberOfBoxes() );
+      }
+
+   }
+
+   else if ( fill_pattern == "FILL_PATCH_BORDERS_ONLY_STAR" ) {
+      /*
+       * Form the no-corners ("star-shaped") stencil for each patch box,
+       * excluding the patch interior.
+       */
+      for (int p = 0; p < nboxes; p++) {
+         hier::BoxList<DIM> tofill;
+         for (int d = 0; d < DIM; d++)
+         {
+             hier::Box<DIM> lowerbox = boxes[p];
+             lowerbox.lower(d) = boxes[p].lower(d) - gcw(d);
+             lowerbox.upper(d) = boxes[p].lower(d) - 1;
+             tofill.addItem( lowerbox );
+
+             hier::Box<DIM> upperbox = boxes[p];
+             upperbox.lower(d) = boxes[p].upper(d) + 1;
+             upperbox.upper(d) = boxes[p].upper(d) + gcw(d);
+             tofill.addItem( upperbox );
+         }
+         fill_boxes[p].resetFillBoxes( tofill );
+         d_max_fill_boxes =
+            tbox::MathUtilities<int>::Max( d_max_fill_boxes,
+                                           fill_boxes[p].getNumberOfBoxes() );
+      }
+
+   }
+
    else {
       TBOX_ERROR("RefineSchedule<DIM>::allocateFillBoxes\n"
                  << "Given communication pattern string "
                  << fill_pattern << " is invalid.\n Valid options are\n"
                  << "'DEFAULT_FILL', 'FILL_LEVEL_BORDERS_ONLY',\n"
-                 << "'FILL_INTERIORS_ONLY', 'FILL_LEVEL_BORDERS_AND_INTERIORS'\n"
+                 << "'FILL_INTERIORS_ONLY', 'FILL_LEVEL_BORDERS_AND_INTERIORS',\n"
+                 << "'FILL_PATCH_BORDERS_ONLY', 'FILL_PATCH_INTERIORS_AND_BORDERS_STAR'\n"
+                 << "'FILL_PATCH_BORDERS_ONLY_STAR'\n"
                  << std::endl);
    }
 
