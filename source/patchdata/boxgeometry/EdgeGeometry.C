@@ -169,7 +169,6 @@ tbox::Pointer< hier::BoxOverlap<DIM> > EdgeGeometry<DIM>::doOverlap(
 
          if (!together.empty()) {
 
-            dst_boxes[d].unionBoxes(together);
             if (!overwrite_interior) {
                const hier::Box<DIM> int_edge = toEdgeBox(dst_geometry.d_box, d);
                dst_boxes[d].removeIntersections(together,int_edge);

@@ -125,7 +125,6 @@ tbox::Pointer< hier::BoxOverlap<DIM> > NodeGeometry<DIM>::doOverlap(
    const hier::Box<DIM> together = dst_node * src_node;
 
    if (!together.empty()) {
-      dst_boxes.unionBoxes(together);
       if (!overwrite_interior) {
          const hier::Box<DIM> int_node = toNodeBox(dst_geometry.d_box);
          dst_boxes.removeIntersections(together,int_node);

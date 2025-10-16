@@ -164,7 +164,6 @@ tbox::Pointer< hier::BoxOverlap<DIM> > FaceGeometry<DIM>::doOverlap(
          const hier::Box<DIM> src_face = toFaceBox(src_shift, d);
          const hier::Box<DIM> together = dst_face * src_face;
          if (!together.empty()) {
-            dst_boxes[d].unionBoxes(together);
             if (!overwrite_interior) {
                const hier::Box<DIM> int_face = toFaceBox(dst_geometry.d_box, d);
                dst_boxes[d].removeIntersections(together,int_face);

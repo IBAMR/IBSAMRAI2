@@ -167,7 +167,6 @@ template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> > SideGeometry<DIM>::doOv
             const hier::Box<DIM> src_side = toSideBox(src_shift, d);
             const hier::Box<DIM> together = dst_side * src_side;
             if (!together.empty()) {
-               dst_boxes[d].unionBoxes(together);
                if (!overwrite_interior) {
                   const hier::Box<DIM> int_side = toSideBox(dst_geometry.d_box, d);
                   dst_boxes[d].removeIntersections(together,int_side);
