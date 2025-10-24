@@ -25,6 +25,9 @@ template <class TYPE>
 bool Array<TYPE>::Allocator::s_is_available = false;
 
 template <class TYPE>
+std::size_t Array<TYPE>::Allocator::s_number_of_allocations = 0;
+
+template <class TYPE>
 std::vector<std::vector<TYPE *>> Array<TYPE>::Allocator::s_block_stacks;
 
 template <class TYPE>
@@ -92,6 +95,13 @@ void Array<TYPE>::resizeArray(
 {
    Array<TYPE>::resizeArray(n);
 }
+
+template <class TYPE>
+std::size_t Array<TYPE>::getNumberOfAllocations()
+{
+   return Allocator::getNumberOfAllocations();
+}
+
 
 }
 }

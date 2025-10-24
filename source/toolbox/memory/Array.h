@@ -80,6 +80,10 @@ private:
       s_is_available = false;
     }
 
+    static std::size_t getNumberOfAllocations() {
+       return s_number_of_allocations;
+    }
+
     static TYPE *allocate(const std::size_t block_size) {
       if (block_size == 0)
         return nullptr;
@@ -97,6 +101,7 @@ private:
         s_block_stacks[block_id].reserve(s_block_stacks[block_id].capacity() +
                                          1);
         s_block_stacks[block_id].push_back(block);
+        ++s_number_of_allocations;
       }
 
       TYPE *block = s_block_stacks[block_id].back();
@@ -131,6 +136,8 @@ private:
 
   private:
     static bool s_is_available;
+
+    static std::size_t s_number_of_allocations;
 
     static std::vector<std::vector<TYPE *>> s_block_stacks;
   };
@@ -245,6 +252,14 @@ public:
     * copy.  
     */
    void resizeArray(const int n, const Pointer<Arena>& pool);
+
+   /**
+    * Return the total number of allocations used by this particular Array
+    * class, e.g., Array<bool> or Array<double>.
+    *
+    * This function is only intended for internal use.
+    */
+   static std::size_t getNumberOfAllocations();
 
 private:
 
