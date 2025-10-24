@@ -68,7 +68,7 @@ TYPE *Array<TYPE>::allocateObjects(const int n, Arena */*arena*/)
 template <class TYPE>
 void Array<TYPE>::deleteObjects()
 {
-   Allocator::getAllocator().deallocate(d_objects, d_elements);
+   Allocator::deallocate(d_objects, d_elements);
    delete d_counter;
 
    d_objects  = (TYPE *) NULL;
