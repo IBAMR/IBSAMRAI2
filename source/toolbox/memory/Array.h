@@ -64,6 +64,7 @@ private:
       // We need a static instance so that we deallocate memory after main()
       // finishes
       static Allocator s_allocator;
+      s_is_available = true;
       return s_allocator;
     }
 
