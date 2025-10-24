@@ -290,7 +290,14 @@ private:
    void deleteObjects();
 
    TYPE *d_objects;
-   ReferenceCounter *d_counter;
+
+   /**
+    * ReferenceCounter. To avoid extra allocations, d_counter == nullptr
+    * indicates that there is only one reference (the one owned by the current
+    * object).
+    */
+   mutable ReferenceCounter *d_counter;
+
    int d_elements;
 };
 
