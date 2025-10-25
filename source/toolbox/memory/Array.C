@@ -60,6 +60,19 @@ Array<TYPE>& Array<TYPE>::operator=(const Array<TYPE>& rhs)
 }
 
 template <class TYPE>
+Array<TYPE>& Array<TYPE>::operator=(Array<TYPE>&& rhs)
+{
+   if (this != &rhs) {
+      Array<TYPE> temp(std::move(rhs));
+
+      std::swap(this->d_objects, temp.d_objects);
+      std::swap(this->d_counter, temp.d_counter);
+      std::swap(this->d_elements, temp.d_elements);
+   }
+   return(*this);
+}
+
+template <class TYPE>
 TYPE *Array<TYPE>::allocateObjects(const int n, Arena */*arena*/)
 {
    return Allocator::getAllocator().allocate(n);

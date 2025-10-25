@@ -44,6 +44,16 @@ Array<TYPE>::Array(const Array<TYPE>& rhs)
 
 template <class TYPE>
 inline
+Array<TYPE>::Array(Array<TYPE>&& rhs)
+   : Array()
+{
+   std::swap(this->d_objects, rhs.d_objects);
+   std::swap(this->d_counter, rhs.d_counter);
+   std::swap(this->d_elements, rhs.d_elements);
+}
+
+template <class TYPE>
+inline
 Array<TYPE>::~Array()
 {
    if (d_counter->deleteReference()) deleteObjects();
