@@ -18,6 +18,7 @@
 #endif
 
 #include "tbox/AbstractStream.h"
+#include "tbox/Array.h"
 #include "tbox/XDRStream.h"
 
 namespace SAMRAI {
@@ -66,8 +67,8 @@ public:
     * independent of the class-wide XDR flag.
     */
    MessageStream(const int bytes,
-                      const StreamMode mode,
-                      const bool use_xdr);
+                 const StreamMode mode,
+                 const bool use_xdr);
 
    /**
     * Virtual destructor for a message stream.
@@ -225,14 +226,10 @@ public:
 private:
    void *getPointerAndAdvanceCursor(const int bytes);
 
-   MessageStream(const MessageStream&);	// not implemented
-   void operator=(const MessageStream&);		// not implemented
-
-   int d_buffer_size;
    int d_current_size;
    int d_buffer_index;
    int d_use_xdr;
-   char *d_buffer;
+   tbox::Array<char> d_buffer;
 #ifdef HAVE_XDR
    XDR d_xdr_stream;
    XDRStream d_xdr_manager;

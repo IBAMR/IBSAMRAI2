@@ -35,19 +35,17 @@ bool MessageStream::s_use_xdr_translation = false;
 */
 
 MessageStream::MessageStream(const int bytes, const StreamMode mode)
+   : d_current_size(0)
+   , d_buffer_index(0)
+   , d_use_xdr(s_use_xdr_translation)
+   , d_buffer(bytes)
 {
    (void) mode;
-
-   d_buffer_size  = bytes;
-   d_current_size = 0;
-   d_buffer_index = 0;
-   d_use_xdr      = s_use_xdr_translation;
-   d_buffer       = new char[d_buffer_size];
 
 #ifdef HAVE_XDR
    if (d_use_xdr) {
       xdr_op xop = ((mode==MessageStream::Read) ? XDR_DECODE : XDR_ENCODE);
-      xdrmem_create(&d_xdr_stream, (caddr_t) d_buffer, d_buffer_size, xop);
+      xdrmem_create(&d_xdr_stream, (caddr_t) d_buffer.getPointer(), d_buffer.size(), xop);
       d_xdr_manager.setXDRStream(&d_xdr_stream);
    }
 #endif
@@ -55,21 +53,16 @@ MessageStream::MessageStream(const int bytes, const StreamMode mode)
 }
 
 MessageStream::MessageStream(const int bytes,
-                                      const StreamMode mode,
-                                      const bool use_xdr)
+                             const StreamMode mode,
+                             const bool use_xdr)
+   : MessageStream(bytes, mode)
 {
-   (void) mode;
-
-   d_buffer_size  = bytes;
-   d_current_size = 0;
-   d_buffer_index = 0;
-   d_use_xdr      = use_xdr;
-   d_buffer       = new char[d_buffer_size];
+   d_use_xdr = use_xdr;
 
 #ifdef HAVE_XDR
    if (d_use_xdr) {
       xdr_op xop = ((mode==MessageStream::Read) ? XDR_DECODE : XDR_ENCODE);
-      xdrmem_create(&d_xdr_stream, (caddr_t) d_buffer, d_buffer_size, xop);
+      xdrmem_create(&d_xdr_stream, (caddr_t) d_buffer.getPointer(), d_buffer.size(), xop);
       d_xdr_manager.setXDRStream(&d_xdr_stream);
    }
 #endif
@@ -88,8 +81,6 @@ MessageStream::~MessageStream()
 #endif
    }
 #endif
-
-   delete [] d_buffer;
 }
 
 /*
@@ -102,10 +93,10 @@ MessageStream::~MessageStream()
 
 void MessageStream::printClassData(std::ostream& os) const
 {
-   os << "Maximum buffer size = " << d_buffer_size << std::endl;
+   os << "Maximum buffer size = " << d_buffer.size() << std::endl;
    os << "Current buffer size = " << d_current_size << std::endl;
    os << "Current buffer index = " << d_buffer_index << std::endl;
-   os << "Pointer to buffer data = " << (void *) d_buffer << std::endl;
+   os << "Pointer to buffer data = " << d_buffer.getPointer() << std::endl;
    os << "Using XDR translation = " << (d_use_xdr ? "true" : "false") << std::endl;
 }
 
@@ -123,11 +114,11 @@ void MessageStream::printClassData(std::ostream& os) const
 
 void *MessageStream::getPointerAndAdvanceCursor(const int bytes)
 {
-   void *ptr = &d_buffer[d_buffer_index];
+   void *ptr = d_buffer.getPointer(d_buffer_index);
    d_buffer_index += bytes;
    if (d_buffer_index > d_current_size) {
       d_current_size = d_buffer_index;
-      if (d_buffer_index > d_buffer_size) {
+      if (d_buffer_index > d_buffer.size()) {
          TBOX_ERROR("MessageStream: Stream overrun of buffer...\n");
       }
    }
