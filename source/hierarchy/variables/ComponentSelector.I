@@ -30,7 +30,7 @@ ComponentSelector::ComponentSelector(const bool flag)
    if (num_mod != 0) {
       d_num_bitvector_longs += 1; 
    }
-   d_vector = new unsigned long[d_num_bitvector_longs];
+   d_vector.resizeArray(d_num_bitvector_longs);
 
    unsigned long v = (flag ? ~((unsigned long) 0) : ((unsigned long) 0));
    for (int i = 0; i < d_num_bitvector_longs; i++) {
@@ -43,7 +43,7 @@ ComponentSelector::ComponentSelector(
    const ComponentSelector& flags)
 {
    d_num_bitvector_longs = flags.d_num_bitvector_longs;
-   d_vector = new unsigned long[d_num_bitvector_longs];
+   d_vector.resizeArray(d_num_bitvector_longs);
 
    for (int i = 0; i < d_num_bitvector_longs; i++) {
       d_vector[i] = flags.d_vector[i];
@@ -53,11 +53,6 @@ ComponentSelector::ComponentSelector(
 inline
 ComponentSelector::~ComponentSelector()
 {
-   if (d_vector) {
-      d_num_bitvector_longs = 0;
-      delete [] d_vector;
-      d_vector = (unsigned long*)0;
-   }
 }
 
 inline
@@ -71,7 +66,7 @@ ComponentSelector&
 ComponentSelector::operator=(const ComponentSelector& flags)
 {
    d_num_bitvector_longs = flags.d_num_bitvector_longs;
-   d_vector = new unsigned long[d_num_bitvector_longs];
+   d_vector.resizeArray(d_num_bitvector_longs);
 
    for (int i = 0; i < d_num_bitvector_longs; i++) {
       d_vector[i] = flags.d_vector[i];
