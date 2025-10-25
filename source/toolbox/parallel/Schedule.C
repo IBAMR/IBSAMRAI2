@@ -334,11 +334,10 @@ void Schedule::postMessageReceives()
          d_incoming[p].d_stream_in_use = false;
       } else {
          d_incoming[p].d_stream_in_use = true;
-         d_incoming[p].d_stream =
-            new MessageStream(bytes, MessageStream::Read);
+         d_incoming[p].d_stream = MessageStream(bytes, MessageStream::Read);
 #ifdef HAVE_MPI
          SAMRAI_MPI::updateIncomingStatistics(1, bytes);
-         int ierr = MPI_Irecv(d_incoming[p].d_stream->getBufferStart(),
+         int ierr = MPI_Irecv(d_incoming[p].d_stream.getBufferStart(),
                               bytes,
                               MPI_BYTE,
                               p,
@@ -369,15 +368,14 @@ void Schedule::sendMessages()
          d_outgoing[p].d_stream_in_use = false;
       } else {
          d_outgoing[p].d_stream_in_use = true;
-         d_outgoing[p].d_stream =
-            new MessageStream(bytes, MessageStream::Write);
+         d_outgoing[p].d_stream = MessageStream(bytes, MessageStream::Write);
          for (ITERATOR pack(d_send_set[p]); pack; pack++) {
-            pack()->packStream(*d_outgoing[p].d_stream);
+            pack()->packStream(d_outgoing[p].d_stream);
          }
 #ifdef HAVE_MPI
          SAMRAI_MPI::updateOutgoingStatistics(1, bytes);
-         int ierr = MPI_Isend(d_outgoing[p].d_stream->getBufferStart(),
-                              d_outgoing[p].d_stream->getCurrentSize(),
+         int ierr = MPI_Isend(d_outgoing[p].d_stream.getBufferStart(),
+                              d_outgoing[p].d_stream.getCurrentSize(),
                               MPI_BYTE,
                               p,
                               SCHEDULE_DATA_TAG,
@@ -420,11 +418,11 @@ void Schedule::processIncomingMessages()
    for (int p = 0; p < d_nnodes; p++) {
       if (d_incoming[p].d_stream_in_use) {
          for (ITERATOR recv(d_recv_set[p]); recv; recv++) {
-            recv()->unpackStream(*d_incoming[p].d_stream);
+            recv()->unpackStream(d_incoming[p].d_stream);
          }
 
          d_incoming[p].d_stream_in_use = false;
-         d_incoming[p].d_stream.setNull();
+         d_incoming[p].d_stream = {};
       }
    }
 }
@@ -443,7 +441,7 @@ void Schedule::deallocateSendBuffers()
    for (int p = 0; p < d_nnodes; p++) {
       if (d_outgoing[p].d_stream_in_use) {
          d_outgoing[p].d_stream_in_use = false;
-         d_outgoing[p].d_stream.setNull();
+         d_outgoing[p].d_stream = {};
       }
    }
 }

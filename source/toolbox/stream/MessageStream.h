@@ -52,6 +52,11 @@ public:
    enum StreamMode { Read, Write };
 
    /**
+    * Default constructor. Sets up an empty message.
+    */
+   MessageStream();
+
+   /**
     * Create a message stream of the specified size in bytes
     * and the stream mode (one of MessageStream::Read or
     * MessageStream::Write).  The choice of XDR translation
@@ -69,6 +74,28 @@ public:
    MessageStream(const int bytes,
                  const StreamMode mode,
                  const bool use_xdr);
+
+   /**
+    * Copy constructor.
+    */
+   MessageStream(const MessageStream &) = default;
+
+   /**
+    * Copy assignment operator.
+    */
+   MessageStream &
+   operator=(const MessageStream &) = default;
+
+   /**
+    * Move constructor.
+    */
+   MessageStream(MessageStream &&) = default;
+
+   /**
+    * Move assignment operator.
+    */
+   MessageStream &
+   operator=(MessageStream &&) = default;
 
    /**
     * Virtual destructor for a message stream.

@@ -34,6 +34,10 @@ bool MessageStream::s_use_xdr_translation = false;
 *************************************************************************
 */
 
+MessageStream::MessageStream()
+   : MessageStream(0, MessageStream::Read)
+{}
+
 MessageStream::MessageStream(const int bytes, const StreamMode mode)
    : d_current_size(0)
    , d_buffer_index(0)
@@ -44,6 +48,7 @@ MessageStream::MessageStream(const int bytes, const StreamMode mode)
 
 #ifdef HAVE_XDR
    if (d_use_xdr) {
+      TBOX_ERROR("XDR is no longer supported by this class.");
       xdr_op xop = ((mode==MessageStream::Read) ? XDR_DECODE : XDR_ENCODE);
       xdrmem_create(&d_xdr_stream, (caddr_t) d_buffer.getPointer(), d_buffer.size(), xop);
       d_xdr_manager.setXDRStream(&d_xdr_stream);
@@ -61,6 +66,7 @@ MessageStream::MessageStream(const int bytes,
 
 #ifdef HAVE_XDR
    if (d_use_xdr) {
+      TBOX_ERROR("XDR is no longer supported by this class.");
       xdr_op xop = ((mode==MessageStream::Read) ? XDR_DECODE : XDR_ENCODE);
       xdrmem_create(&d_xdr_stream, (caddr_t) d_buffer.getPointer(), d_buffer.size(), xop);
       d_xdr_manager.setXDRStream(&d_xdr_stream);

@@ -118,7 +118,7 @@ public:
       int d_bytes_in_stream;
       bool d_must_communicate_byte_size;
       bool d_stream_in_use;
-      Pointer<MessageStream> d_stream;
+      MessageStream d_stream;
 #ifdef HAVE_MPI
       MPI_Request d_request_id;
 #endif
