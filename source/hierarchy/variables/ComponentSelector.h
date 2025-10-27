@@ -11,6 +11,8 @@
 #define included_hier_ComponentSelector
 
 #include "SAMRAI_config.h"
+
+#include "tbox/Array.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/PIO.h"
 
@@ -155,7 +157,8 @@ private:
    static int s_bits_per_long;
 
    int d_num_bitvector_longs;
-   unsigned long* d_vector;
+
+   tbox::Array<unsigned long> d_vector;
 };
 
 }
