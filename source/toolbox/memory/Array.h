@@ -56,12 +56,16 @@ private:
     }
 
   public:
-    Allocator() = default;
+    Allocator() {
+       s_is_available = true;
+    }
+
     Allocator(const Allocator &) = delete;
+
     Allocator &operator=(const Allocator &) = delete;
 
     static Allocator &getAllocator() {
-      // We need a static instance so that we deallocate memory after main()
+      // we need a static instance so that we can deallocate arrays after main()
       // finishes
       static Allocator s_allocator;
       return s_allocator;
@@ -79,23 +83,43 @@ private:
       s_is_available = false;
     }
 
-    static TYPE *allocate(const std::size_t block_size) {
+    static std::size_t getNumberOfAllocations() {
+       return s_number_of_allocations;
+    }
+
+    /**
+     * Return a block of memory with enough space for @p block_size elements of
+     * type TYPE. This block may either be newly allocated (via std::malloc())
+     * or taken from a pool of previously allocated data.
+     *
+     * This function is not static to ensure it is only called after Allocator()
+     * called.
+     */
+    TYPE *allocate(const std::size_t block_size) {
       if (block_size == 0)
         return nullptr;
 
       const std::size_t block_id = get_block_id(block_size);
+      const std::size_t allocation_size = 1 << block_id;
+      TBOX_ASSERT(block_size <= allocation_size);
+      // In unusual circumstances (such as code running after main() finishes)
+      // we may allocate memory after ~Allocator() is called: in that case, just
+      // completely ignore the pool infrastructure
+      if (!s_is_available) {
+         return static_cast<TYPE *>(std::malloc(sizeof(TYPE) * allocation_size));
+      }
+
       if (block_id >= s_block_stacks.size()) {
         s_block_stacks.resize(block_id + 1);
       }
 
-      const std::size_t allocation_size = 1 << block_id;
-      TBOX_ASSERT(block_size <= allocation_size);
       if (s_block_stacks[block_id].empty()) {
         auto block =
             static_cast<TYPE *>(std::malloc(sizeof(TYPE) * allocation_size));
         s_block_stacks[block_id].reserve(s_block_stacks[block_id].capacity() +
                                          1);
         s_block_stacks[block_id].push_back(block);
+        ++s_number_of_allocations;
       }
 
       TYPE *block = s_block_stacks[block_id].back();
@@ -108,6 +132,11 @@ private:
       return block;
     }
 
+    /**
+     * Return an allocated block to the allocator.
+     *
+     * This function is static since it may be run after ~Allocator() is run.
+     */
     static void deallocate(TYPE *const block, const std::size_t block_size) {
       if (block_size == 0)
         return;
@@ -130,6 +159,8 @@ private:
 
   private:
     static bool s_is_available;
+
+    static std::size_t s_number_of_allocations;
 
     static std::vector<std::vector<TYPE *>> s_block_stacks;
   };
@@ -244,6 +275,14 @@ public:
     * copy.  
     */
    void resizeArray(const int n, const Pointer<Arena>& pool);
+
+   /**
+    * Return the total number of allocations used by this particular Array
+    * class, e.g., Array<bool> or Array<double>.
+    *
+    * This function is only intended for internal use.
+    */
+   static std::size_t getNumberOfAllocations();
 
 private:
 
