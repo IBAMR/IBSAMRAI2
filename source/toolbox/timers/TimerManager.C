@@ -282,7 +282,7 @@ Pointer<Timer> TimerManager::getTimer(
           timer = new Timer(name, s_inactive_timer_identifier);
           timer->setInactive(); 
           d_inactive_timers[d_num_inactive_timers] = timer;
-	  d_num_inactive_timers++;
+          d_num_inactive_timers++;
        }
    }
    return(timer);
@@ -425,6 +425,10 @@ void TimerManager::stopTime(Timer* timer)
 bool TimerManager::checkTimerInNameLists(
    const std::string& copy) 
 {
+   if (d_all_active_timer_names.find(copy) != d_all_active_timer_names.end()) {
+      return true;
+   }
+
    std::string name = copy;
   /*
    * string::size_type is generally an int, but it may depend on vendor's
@@ -660,8 +664,12 @@ bool TimerManager::checkTimerInNameLists(
 
    }
 
-   return (will_use_timer);
+   // Avoid this expensive process in the future by recording the result:
+   if (will_use_timer) {
+      d_all_active_timer_names.insert(copy);
+   }
 
+   return (will_use_timer);
 }
 
 

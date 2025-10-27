@@ -29,6 +29,8 @@
 #endif
 #include "tbox/Timer.h"
 
+#include <set>
+
 namespace SAMRAI {
    namespace tbox {
 
@@ -473,6 +475,12 @@ private:
    List<std::string> d_package_names;
    List<std::string> d_class_names;
    List<std::string> d_class_method_names;
+
+   /**
+    * Set of all enabled timers. Used to quickly determine whether or not a
+    * timer has already been enabled.
+    */
+   std::set<std::string> d_all_active_timer_names;
 
    /*
     * These values hold the length of the package, class, and class_method
