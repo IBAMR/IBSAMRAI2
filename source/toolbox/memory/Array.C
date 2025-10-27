@@ -34,7 +34,7 @@ template <class TYPE>
 Array<TYPE>::Array(const int n)
 {
    d_objects  = Allocator::getAllocator().allocate(n);
-   d_counter  = new ReferenceCounter;
+   d_counter  = nullptr;
    d_elements = n;
 }
 
@@ -42,7 +42,7 @@ template <class TYPE>
 Array<TYPE>::Array(const int n, const Pointer<Arena>& /*pool*/)
 {
    d_objects  = Allocator::getAllocator().allocate(n);
-   d_counter  = new ReferenceCounter;
+   d_counter  = nullptr;
    d_elements = n;
 }
 
@@ -50,11 +50,12 @@ template <class TYPE>
 Array<TYPE>& Array<TYPE>::operator=(const Array<TYPE>& rhs)
 {
    if (this != &rhs) {
-      if (d_counter && d_counter->deleteReference()) deleteObjects();
+      if (d_counter == nullptr || d_counter->deleteReference()) deleteObjects();
       d_objects  = rhs.d_objects;
+      if (rhs.d_counter == nullptr) rhs.d_counter = new ReferenceCounter;
       d_counter  = rhs.d_counter;
       d_elements = rhs.d_elements;
-      if (d_counter) d_counter->addReference();
+      d_counter->addReference();
    }
    return(*this);
 }
@@ -85,7 +86,9 @@ void Array<TYPE>::resizeArray(const int n)
       for (int i = 0; i < s; i++) {
          array.d_objects[i] = d_objects[i];
       }
-      this->operator=(array);
+      std::swap(this->d_objects, array.d_objects);
+      std::swap(this->d_counter, array.d_counter);
+      std::swap(this->d_elements, array.d_elements);
    }
 }
 
