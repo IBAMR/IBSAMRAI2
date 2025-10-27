@@ -197,6 +197,11 @@ public:
    Array(const Array<TYPE>& rhs);
 
    /**
+    * Move constructor.
+    */
+   Array(Array<TYPE>&& rhs);
+
+   /**
     * Destructor for the array.  If the reference count for the array data
     * has gone to zero, then the array data is deallocated from the memory
     * arena from which it was allocated.
@@ -204,7 +209,7 @@ public:
    ~Array();
 
    /**
-    * Array assignment.  The assignment operator copies a pointer to the
+    * Copy assignment.  The assignment operator copies a pointer to the
     * array data and increments the reference count.  Both array objects refer 
     * to the same data, and changes to individual array entry values in one will 
     * be reflected in the other array.  However, this assignment operation DOES NOT 
@@ -213,6 +218,11 @@ public:
     * other container.
     */
    Array<TYPE>& operator=(const Array<TYPE>& rhs);
+
+   /**
+    * Move assignment. The moved-from array will be empty at the end of this function.
+    */
+   Array<TYPE>& operator=(Array<TYPE>&& rhs);
 
    /**
     * Non-const array subscripting.  Return a reference the object at array

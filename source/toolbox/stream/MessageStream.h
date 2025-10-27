@@ -18,6 +18,7 @@
 #endif
 
 #include "tbox/AbstractStream.h"
+#include "tbox/Array.h"
 #include "tbox/XDRStream.h"
 
 namespace SAMRAI {
@@ -51,6 +52,11 @@ public:
    enum StreamMode { Read, Write };
 
    /**
+    * Default constructor. Sets up an empty message.
+    */
+   MessageStream();
+
+   /**
     * Create a message stream of the specified size in bytes
     * and the stream mode (one of MessageStream::Read or
     * MessageStream::Write).  The choice of XDR translation
@@ -66,8 +72,30 @@ public:
     * independent of the class-wide XDR flag.
     */
    MessageStream(const int bytes,
-                      const StreamMode mode,
-                      const bool use_xdr);
+                 const StreamMode mode,
+                 const bool use_xdr);
+
+   /**
+    * Copy constructor.
+    */
+   MessageStream(const MessageStream &) = default;
+
+   /**
+    * Copy assignment operator.
+    */
+   MessageStream &
+   operator=(const MessageStream &) = default;
+
+   /**
+    * Move constructor.
+    */
+   MessageStream(MessageStream &&) = default;
+
+   /**
+    * Move assignment operator.
+    */
+   MessageStream &
+   operator=(MessageStream &&) = default;
 
    /**
     * Virtual destructor for a message stream.
@@ -225,14 +253,10 @@ public:
 private:
    void *getPointerAndAdvanceCursor(const int bytes);
 
-   MessageStream(const MessageStream&);	// not implemented
-   void operator=(const MessageStream&);		// not implemented
-
-   int d_buffer_size;
    int d_current_size;
    int d_buffer_index;
    int d_use_xdr;
-   char *d_buffer;
+   tbox::Array<char> d_buffer;
 #ifdef HAVE_XDR
    XDR d_xdr_stream;
    XDRStream d_xdr_manager;
