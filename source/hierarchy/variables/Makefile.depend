@@ -16,9 +16,10 @@ DEPENDS_0:=\
 	$(INCLUDE_SAM)/BoxArray.h $(INCLUDE_SAM)/BoxList.I		\
 	$(INCLUDE_SAM)/BoxList.h $(INCLUDE_SAM)/Index.I			\
 	$(INCLUDE_SAM)/Index.h $(INCLUDE_SAM)/IntVector.I		\
-	$(INCLUDE_SAM)/IntVector.h $(INCLUDE_SAM)/tbox/Arena.I		\
-	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
-	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
+	$(INCLUDE_SAM)/IntVector.h $(INCLUDE_SAM)/tbox/Allocator.h	\
+	$(INCLUDE_SAM)/tbox/Arena.I $(INCLUDE_SAM)/tbox/Arena.h		\
+	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
+	$(INCLUDE_SAM)/tbox/Complex.h					\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.h				\
 	$(INCLUDE_SAM)/tbox/DatabaseBox.I				\
@@ -54,9 +55,10 @@ DEPENDS_1:=\
 	$(INCLUDE_SAM)/BoxArray.h $(INCLUDE_SAM)/BoxList.I		\
 	$(INCLUDE_SAM)/BoxList.h $(INCLUDE_SAM)/Index.I			\
 	$(INCLUDE_SAM)/Index.h $(INCLUDE_SAM)/IntVector.I		\
-	$(INCLUDE_SAM)/IntVector.h $(INCLUDE_SAM)/tbox/Arena.I		\
-	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
-	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
+	$(INCLUDE_SAM)/IntVector.h $(INCLUDE_SAM)/tbox/Allocator.h	\
+	$(INCLUDE_SAM)/tbox/Arena.I $(INCLUDE_SAM)/tbox/Arena.h		\
+	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
+	$(INCLUDE_SAM)/tbox/Complex.h					\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.h				\
 	$(INCLUDE_SAM)/tbox/DatabaseBox.I				\
@@ -87,7 +89,8 @@ ${FILE_1:X.o=${NDIM}.o}: ${DEPENDS_1}
 
 FILE_2=ComponentSelector.o
 DEPENDS_2:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -138,7 +141,8 @@ DEPENDS_3:=\
 	$(INCLUDE_SAM)/ProcessorMapping.I				\
 	$(INCLUDE_SAM)/ProcessorMapping.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\
@@ -221,7 +225,8 @@ DEPENDS_4:=\
 	$(INCLUDE_SAM)/ProcessorMapping.I				\
 	$(INCLUDE_SAM)/ProcessorMapping.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\
@@ -288,7 +293,8 @@ DEPENDS_5:=\
 	$(INCLUDE_SAM)/BoxList.h $(INCLUDE_SAM)/Index.I			\
 	$(INCLUDE_SAM)/Index.h $(INCLUDE_SAM)/IntVector.I		\
 	$(INCLUDE_SAM)/IntVector.h $(INCLUDE_SAM)/tbox/AbstractStream.I	\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -328,7 +334,8 @@ DEPENDS_6:=\
 	$(INCLUDE_SAM)/BoxList.h $(INCLUDE_SAM)/Index.I			\
 	$(INCLUDE_SAM)/Index.h $(INCLUDE_SAM)/IntVector.I		\
 	$(INCLUDE_SAM)/IntVector.h $(INCLUDE_SAM)/tbox/AbstractStream.I	\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -370,7 +377,8 @@ DEPENDS_7:=\
 	$(INCLUDE_SAM)/BoxList.h $(INCLUDE_SAM)/Index.I			\
 	$(INCLUDE_SAM)/Index.h $(INCLUDE_SAM)/IntVector.I		\
 	$(INCLUDE_SAM)/IntVector.h $(INCLUDE_SAM)/tbox/AbstractStream.I	\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -414,7 +422,8 @@ DEPENDS_8:=\
 	$(INCLUDE_SAM)/BoxList.h $(INCLUDE_SAM)/Index.I			\
 	$(INCLUDE_SAM)/Index.h $(INCLUDE_SAM)/IntVector.I		\
 	$(INCLUDE_SAM)/IntVector.h $(INCLUDE_SAM)/tbox/AbstractStream.I	\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -471,7 +480,8 @@ DEPENDS_10:=\
 	$(INCLUDE_SAM)/BoxList.h $(INCLUDE_SAM)/Index.I			\
 	$(INCLUDE_SAM)/Index.h $(INCLUDE_SAM)/IntVector.I		\
 	$(INCLUDE_SAM)/IntVector.h $(INCLUDE_SAM)/tbox/AbstractStream.I	\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\

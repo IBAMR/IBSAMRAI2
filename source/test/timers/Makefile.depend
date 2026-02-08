@@ -11,7 +11,8 @@
 
 FILE_0=Foo.o
 DEPENDS_0:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Clock.h		\
 	$(INCLUDE_SAM)/tbox/Complex.h					\
@@ -47,7 +48,8 @@ FILE_1=main_stats.o
 DEPENDS_1:=\
 	$(OBJECT)/include/SAMRAI_config.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -88,7 +90,8 @@ ${FILE_1:X.o=${NDIM}.o}: ${DEPENDS_1}
 
 FILE_2=main_timer.o
 DEPENDS_2:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Clock.h		\
 	$(INCLUDE_SAM)/tbox/Complex.h					\

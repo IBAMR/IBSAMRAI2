@@ -310,7 +310,8 @@ DEPENDS_0:=\
 	$(INCLUDE_SAM)/VisItDataWriter.h				\
 	$(INCLUDE_SAM)/VisMaterialsDataStrategy.h			\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\
@@ -688,7 +689,8 @@ DEPENDS_2:=\
 	$(INCLUDE_SAM)/VariableDatabase.h				\
 	$(INCLUDE_SAM)/VariableFillPattern.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\
@@ -843,7 +845,8 @@ DEPENDS_3:=\
 	$(INCLUDE_SAM)/VariableDatabase.h				\
 	$(INCLUDE_SAM)/VariableFillPattern.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\
@@ -997,7 +1000,8 @@ DEPENDS_4:=\
 	$(INCLUDE_SAM)/VariableDatabase.h				\
 	$(INCLUDE_SAM)/VariableFillPattern.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\
@@ -1151,7 +1155,8 @@ DEPENDS_5:=\
 	$(INCLUDE_SAM)/VariableDatabase.h				\
 	$(INCLUDE_SAM)/VariableFillPattern.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\
@@ -1305,7 +1310,8 @@ DEPENDS_6:=\
 	$(INCLUDE_SAM)/VariableDatabase.h				\
 	$(INCLUDE_SAM)/VariableFillPattern.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\
@@ -1472,7 +1478,8 @@ DEPENDS_8:=\
 	$(INCLUDE_SAM)/VariableDatabase.I				\
 	$(INCLUDE_SAM)/VariableDatabase.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\
@@ -1631,7 +1638,8 @@ DEPENDS_9:=\
 	$(INCLUDE_SAM)/VariableDatabase.I				\
 	$(INCLUDE_SAM)/VariableDatabase.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\
@@ -2052,7 +2060,8 @@ DEPENDS_12:=\
 	$(INCLUDE_SAM)/VisItDataWriter.h				\
 	$(INCLUDE_SAM)/VisMaterialsDataStrategy.h			\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\
@@ -2399,7 +2408,8 @@ DEPENDS_13:=\
 	$(INCLUDE_SAM)/VariableDatabase.I				\
 	$(INCLUDE_SAM)/VariableDatabase.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Complex.h					\
@@ -2498,7 +2508,8 @@ DEPENDS_14:=\
 	$(INCLUDE_SAM)/VariableDatabase.I				\
 	$(INCLUDE_SAM)/VariableDatabase.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/ArenaManager.h	\
 	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
 	$(INCLUDE_SAM)/tbox/Clock.h $(INCLUDE_SAM)/tbox/Complex.h	\

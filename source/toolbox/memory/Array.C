@@ -12,6 +12,7 @@
 
 #include "tbox/Array.h"
 #include "tbox/Arena.h"
+#include "tbox/Allocator.h"
 #include "tbox/Pointer.h"
 
 #ifdef DEBUG_NO_INLINE
@@ -22,18 +23,9 @@ namespace SAMRAI {
    namespace tbox {
 
 template <class TYPE>
-bool Array<TYPE>::Allocator::s_is_available = false;
-
-template <class TYPE>
-std::size_t Array<TYPE>::Allocator::s_number_of_allocations = 0;
-
-template <class TYPE>
-std::vector<std::vector<TYPE *>> Array<TYPE>::Allocator::s_block_stacks;
-
-template <class TYPE>
 Array<TYPE>::Array(const int n)
 {
-   d_objects  = Allocator::getAllocator().allocate(n);
+   d_objects  = Allocator::getAllocator().allocate<TYPE>(n);
    d_counter  = nullptr;
    d_elements = n;
 }
@@ -41,7 +33,7 @@ Array<TYPE>::Array(const int n)
 template <class TYPE>
 Array<TYPE>::Array(const int n, const Pointer<Arena>& /*pool*/)
 {
-   d_objects  = Allocator::getAllocator().allocate(n);
+   d_objects  = Allocator::getAllocator().allocate<TYPE>(n);
    d_counter  = nullptr;
    d_elements = n;
 }
@@ -76,13 +68,13 @@ Array<TYPE>& Array<TYPE>::operator=(Array<TYPE>&& rhs)
 template <class TYPE>
 TYPE *Array<TYPE>::allocateObjects(const int n, Arena */*arena*/)
 {
-   return Allocator::getAllocator().allocate(n);
+   return Allocator::getAllocator().allocate<TYPE>(n);
 }
 
 template <class TYPE>
 void Array<TYPE>::deleteObjects()
 {
-   Allocator::deallocate(d_objects, d_elements);
+   Allocator::deallocate<TYPE>(d_objects, d_elements);
    delete d_counter;
 
    d_objects  = (TYPE *) NULL;
@@ -115,7 +107,7 @@ void Array<TYPE>::resizeArray(
 template <class TYPE>
 std::size_t Array<TYPE>::getNumberOfAllocations()
 {
-   return Allocator::getNumberOfAllocations();
+   return Allocator::getNumberOfAllocations<TYPE>();
 }
 
 

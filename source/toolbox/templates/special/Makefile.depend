@@ -23,7 +23,8 @@ ${FILE_0:X.o=${NDIM}.o}: ${DEPENDS_0}
 
 FILE_1=MathUtilitiesInst.o
 DEPENDS_1:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -71,7 +72,8 @@ ${FILE_3:X.o=${NDIM}.o}: ${DEPENDS_3}
 
 FILE_4=tbox_List-tbox_TimerPointer.o
 DEPENDS_4:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Clock.h		\
 	$(INCLUDE_SAM)/tbox/Complex.h					\

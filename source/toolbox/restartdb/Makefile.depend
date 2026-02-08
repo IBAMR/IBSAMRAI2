@@ -11,7 +11,8 @@
 
 FILE_0=HDFDatabase.o
 DEPENDS_0:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -43,7 +44,8 @@ ${FILE_0:X.o=${NDIM}.o}: ${DEPENDS_0}
 
 FILE_1=HDFDatabaseFactory.o
 DEPENDS_1:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -75,7 +77,8 @@ ${FILE_1:X.o=${NDIM}.o}: ${DEPENDS_1}
 
 FILE_2=NullDatabase.o
 DEPENDS_2:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -105,7 +108,8 @@ ${FILE_2:X.o=${NDIM}.o}: ${DEPENDS_2}
 
 FILE_3=RestartManager.o
 DEPENDS_3:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -144,7 +148,8 @@ ${FILE_3:X.o=${NDIM}.o}: ${DEPENDS_3}
 
 FILE_4=SiloDatabase.o
 DEPENDS_4:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
@@ -176,7 +181,8 @@ ${FILE_4:X.o=${NDIM}.o}: ${DEPENDS_4}
 
 FILE_5=SiloDatabaseFactory.o
 DEPENDS_5:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Complex.h	\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\

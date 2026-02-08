@@ -11,7 +11,8 @@
 
 FILE_0=AsyncCommGroup.o
 DEPENDS_0:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/AsyncCommGroup.I\
 	$(INCLUDE_SAM)/tbox/AsyncCommGroup.h $(INCLUDE_SAM)/tbox/Clock.h\
@@ -51,7 +52,8 @@ ${FILE_0:X.o=${NDIM}.o}: ${DEPENDS_0}
 
 FILE_1=AsyncCommStage.o
 DEPENDS_1:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/AsyncCommGroup.I\
 	$(INCLUDE_SAM)/tbox/AsyncCommGroup.h				\
@@ -90,7 +92,8 @@ ${FILE_1:X.o=${NDIM}.o}: ${DEPENDS_1}
 
 FILE_2=JobRelauncher.o
 DEPENDS_2:=\
-	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
+	$(OBJECT)/include/SAMRAI_config.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/AsyncCommGroup.I\
 	$(INCLUDE_SAM)/tbox/AsyncCommGroup.h				\
@@ -146,7 +149,8 @@ FILE_4=Schedule.o
 DEPENDS_4:=\
 	$(OBJECT)/include/SAMRAI_config.h				\
 	$(INCLUDE_SAM)/tbox/AbstractStream.I				\
-	$(INCLUDE_SAM)/tbox/AbstractStream.h $(INCLUDE_SAM)/tbox/Arena.I\
+	$(INCLUDE_SAM)/tbox/AbstractStream.h				\
+	$(INCLUDE_SAM)/tbox/Allocator.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.I		\
 	$(INCLUDE_SAM)/tbox/Array.h $(INCLUDE_SAM)/tbox/Clock.h		\
 	$(INCLUDE_SAM)/tbox/Complex.h					\

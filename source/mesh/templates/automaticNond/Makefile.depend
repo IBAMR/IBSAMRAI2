@@ -12,9 +12,10 @@
 FILE_0=tbox__Array-mesh__SpatialKey.o
 DEPENDS_0:=\
 	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/SpatialKey.I	\
-	$(INCLUDE_SAM)/SpatialKey.h $(INCLUDE_SAM)/tbox/Arena.I		\
-	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/Array.C		\
-	$(INCLUDE_SAM)/tbox/Array.I $(INCLUDE_SAM)/tbox/Array.h		\
+	$(INCLUDE_SAM)/SpatialKey.h $(INCLUDE_SAM)/tbox/Allocator.h	\
+	$(INCLUDE_SAM)/tbox/Arena.I $(INCLUDE_SAM)/tbox/Arena.h		\
+	$(INCLUDE_SAM)/tbox/Array.C $(INCLUDE_SAM)/tbox/Array.I		\
+	$(INCLUDE_SAM)/tbox/Array.h					\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.I				\
 	$(INCLUDE_SAM)/tbox/ConstPointerBase.h				\
 	$(INCLUDE_SAM)/tbox/DescribedClass.h				\
