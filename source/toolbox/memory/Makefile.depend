@@ -11,7 +11,7 @@
 
 FILE_0=Allocator.o
 DEPENDS_0:=\
-	$(OBJECT)/include/SAMRAI_config.h Allocator.C
+	$(OBJECT)/include/SAMRAI_config.h Allocator.C Allocator.h
 
 ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
 DEPENDS_0 +=\

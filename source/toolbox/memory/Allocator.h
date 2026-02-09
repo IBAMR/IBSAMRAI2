@@ -5,9 +5,8 @@
 
 #include "tbox/Utilities.h"
 
-#include <cmath>
 #include <cstdlib>
-#include <vector>
+#include <utility>
 #include <type_traits>
 
 namespace SAMRAI {
@@ -18,6 +17,9 @@ namespace tbox {
    */
   class Allocator {
   public:
+     static Allocator &getAllocator();
+
+  private:
      Allocator();
 
      Allocator(const Allocator &) = delete;
@@ -26,14 +28,6 @@ namespace tbox {
 
     ~Allocator();
 
-     static Allocator &getAllocator() {
-      // we need a static instance so that we can deallocate arrays after main()
-      // finishes
-      static Allocator s_allocator;
-      return s_allocator;
-    }
-
-  private:
     template <typename TYPE>
     static std::size_t &count()
     {
@@ -41,10 +35,13 @@ namespace tbox {
       return s_count;
     }
 
-    template <typename TYPE>
-    static std::size_t get_block_id(const std::size_t block_size) {
-      return (block_size < 2 ? 0 : std::ilogb(block_size * sizeof(TYPE) - 1) + 1);
-    }
+    static
+    std::pair<bool, void *>
+    internal_allocate(std::size_t n_bytes);
+
+    static
+    void
+    internal_deallocate(void *buffer, std::size_t n_bytes);
 
   public:
     template <typename TYPE>
@@ -65,31 +62,11 @@ namespace tbox {
       if (block_size == 0)
         return nullptr;
 
-      const std::size_t block_id = get_block_id<TYPE>(block_size);
-      const std::size_t allocation_size = 1 << block_id;
-      TBOX_ASSERT(block_size <= allocation_size);
-      // In unusual circumstances (such as code running after main() finishes)
-      // we may allocate memory after ~Allocator() is called: in that case, just
-      // completely ignore the pool infrastructure
-      if (!s_is_available) {
-         return static_cast<TYPE *>(std::malloc(allocation_size));
-      }
-
-      if (block_id >= s_block_stacks.size()) {
-        s_block_stacks.resize(block_id + 1);
-      }
-
-      if (s_block_stacks[block_id].empty()) {
-        auto block =
-            static_cast<TYPE *>(std::malloc(allocation_size));
-        s_block_stacks[block_id].reserve(s_block_stacks[block_id].capacity() +
-                                         1);
-        s_block_stacks[block_id].push_back(block);
+      auto pair = internal_allocate(block_size * sizeof(TYPE));
+      if (pair.first) {
         ++count<TYPE>();
       }
-
-      auto *block = static_cast<TYPE *>(s_block_stacks[block_id].back());
-      s_block_stacks[block_id].pop_back();
+      auto* block = static_cast<TYPE *>(pair.second);
       if (!std::is_fundamental<TYPE>::value) {
         for (std::size_t k = 0; k < block_size; ++k) {
           new (&block[k]) TYPE;
@@ -114,20 +91,8 @@ namespace tbox {
         }
       }
 
-      // 2 of 2: don't return memory to the Allocator if it has already been
-      // destructed
-      if (s_is_available) {
-        TBOX_ASSERT(get_block_id<TYPE>(block_size) < s_block_stacks.size());
-        s_block_stacks[get_block_id<TYPE>(block_size)].push_back(block);
-      } else {
-        std::free(block);
-      }
+      internal_deallocate(block, block_size * sizeof(TYPE));
     }
-
-  private:
-    static bool s_is_available;
-
-    static std::vector<std::vector<void *>> s_block_stacks;
   };
 }
 }
