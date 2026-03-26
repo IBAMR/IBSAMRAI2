@@ -19,14 +19,14 @@ include $(OBJECT)/config/Makefile.config
 
 library:	lib1d lib2d lib3d
 
-OBJS	      = Arena.o ArenaManager.o  		\
-		DescribedClass.o			\
-                ConstPointerBase.o	\
-		FixedArena.o MemoryUtilities.o		\
-		PointerBase.o		         	\
+OBJS	      = Arena.o ArenaManager.o Allocator.o  \
+				DescribedClass.o					\
+                ConstPointerBase.o					\
+				FixedArena.o MemoryUtilities.o		\
+				PointerBase.o						\
                 ReferenceCounter.o ScratchArena.o	\
-                StandardArena.o                         \
-	        ArraySpecial.o                          
+                StandardArena.o                     \
+		        ArraySpecial.o
 
 lib1d:		$(OBJS)
 lib2d:		$(OBJS)
