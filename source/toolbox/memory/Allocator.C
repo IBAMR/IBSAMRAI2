@@ -107,7 +107,46 @@ Allocator::internal_deallocate(void *buffer, std::size_t n_bytes) {
     // destructed
     std::free(buffer);
   } else {
-    s_block_stacks[get_block_id(n_bytes)].push_back(buffer);
+    const auto block_id = get_block_id(n_bytes);
+    const std::size_t allocation_size = 1 << block_id;
+    TBOX_ASSERT(allocation_size >= n_bytes);
+    if (allocation_size < s_large_threshold) {
+      s_block_stacks[get_block_id(n_bytes)].push_back(buffer);
+      // Every so often, partially clear the cache to ensure massive allocations
+      // aren't sticking around. This is based on some profiling which shows
+      // that, over 100 time steps and 8 processors, we allocate about 500k
+      // small things and 20k large things
+      static std::size_t counter = 0;
+      ++counter;
+      if (counter % 65536 == 0) {
+          for (auto &block_stack : s_block_stacks) {
+              const auto n_frees = 3 * block_stack.size() / 4;
+              for (std::size_t i = 0; i < n_frees; ++i) {
+                  std::free(block_stack[i]);
+              }
+              block_stack.erase(block_stack.begin(),
+                                block_stack.begin() + n_frees);
+          }
+      }
+    } else {
+      if (s_large_blocks.size() == s_n_large_blocks) {
+        std::free(s_large_blocks.front().first);
+        s_large_blocks.pop_front();
+      }
+
+      // same
+      static std::size_t counter = 0;
+      ++counter;
+      if (counter % 1024 == 0) {
+          const auto n_frees = s_large_blocks.size() / 4;
+          for (std::size_t i = 0; i < n_frees; ++i) {
+              std::free(s_large_blocks.front().first);
+              s_large_blocks.pop_front();
+          }
+      }
+
+      s_large_blocks.emplace_back(buffer, n_bytes);
+    }
   }
 }
 
