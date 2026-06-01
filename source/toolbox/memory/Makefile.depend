@@ -237,8 +237,7 @@ DEPENDS_11:=\
 	$(OBJECT)/include/SAMRAI_config.h $(INCLUDE_SAM)/tbox/Arena.I	\
 	$(INCLUDE_SAM)/tbox/Arena.h $(INCLUDE_SAM)/tbox/DescribedClass.h\
 	$(INCLUDE_SAM)/tbox/ReferenceCounter.I				\
-	$(INCLUDE_SAM)/tbox/ReferenceCounter.h				\
-	$(INCLUDE_SAM)/tbox/ShutdownRegistry.h ReferenceCounter.C
+	$(INCLUDE_SAM)/tbox/ReferenceCounter.h ReferenceCounter.C
 
 ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
 DEPENDS_11 +=\
