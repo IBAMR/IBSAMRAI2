@@ -144,7 +144,7 @@ c
      &  cilo0,cihi0,
      &  filo0,fihi0
       integer ratio(0:1-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0),
      &  arrayf(filo0:fihi0)
       integer ic0,if0
@@ -312,7 +312,7 @@ c
      &  cilo0,cihi0,
      &  filo0,fihi0
       integer ratio(0:1-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0),
      &  arrayf(filo0:fihi0)
       integer ie0,if0
@@ -482,7 +482,7 @@ c
      &  cilo0,cihi0,
      &  filo0,fihi0
       integer ratio(0:1-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0+1),
      &  arrayf(filo0:fihi0+1)
       integer ie0,if0,it
@@ -636,7 +636,7 @@ c
      &  cilo0,cihi0,
      &  filo0,fihi0
       integer ratio(0:1-1)
-      double complex
+      complex(8)
      &  arrayc(1),
      &  arrayf(1)
 c
@@ -790,7 +790,7 @@ c
      &  cilo0,cihi0,
      &  filo0,fihi0
       integer ratio(0:1-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0+1),
      &  arrayf(filo0:fihi0+1)
       integer ie0,if0,it

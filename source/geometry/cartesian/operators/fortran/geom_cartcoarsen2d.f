@@ -183,7 +183,7 @@ c
       double precision
      &  dxf(0:2-1),
      &  dxc(0:2-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0,
      &          filo1:fihi1),
      &  arrayc(cilo0:cihi0,
@@ -495,7 +495,7 @@ c
       double precision
      &  dxf(0:2-1),
      &  dxc(0:2-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0,
      &          filo1:fihi1+1),
      &  arrayc(cilo0:cihi0,
@@ -555,7 +555,7 @@ c
       double precision
      &  dxf(0:2-1),
      &  dxc(0:2-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0+1,
      &          filo1:fihi1),
      &  arrayc(cilo0:cihi0+1,
@@ -859,7 +859,7 @@ c
       double precision
      &  dxf(0:2-1),
      &  dxc(0:2-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0+1,
      &          filo1:fihi1),
      &  arrayc(cilo0:cihi0+1,
@@ -917,7 +917,7 @@ c
       double precision
      &  dxf(0:2-1),
      &  dxc(0:2-1)
-      double complex
+      complex(8)
      &  arrayf(filo1:fihi1+1,
      &          filo0:fihi0),
      &  arrayc(cilo1:cihi1+1,
@@ -1179,7 +1179,7 @@ c
       double precision
      &  dxf(0:2-1),
      &  dxc(0:2-1)
-      double complex
+      complex(8)
      &  arrayf(filo1:fihi1),
      &  arrayc(cilo1:cihi1)
       double precision lengthf, lengthc
@@ -1227,7 +1227,7 @@ c
       double precision
      &  dxf(0:2-1),
      &  dxc(0:2-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0),
      &  arrayc(cilo0:cihi0)
       double precision lengthf, lengthc
@@ -1627,7 +1627,7 @@ c
       double precision
      &  dxf(0:2-1),
      &  dxc(0:2-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0+1,
      &          filo1:fihi1),
      &  arrayc(cilo0:cihi0+1,
@@ -1687,7 +1687,7 @@ c
       double precision
      &  dxf(0:2-1),
      &  dxc(0:2-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0,
      &          filo1:fihi1+1),
      &  arrayc(cilo0:cihi0,

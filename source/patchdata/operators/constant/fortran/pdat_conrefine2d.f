@@ -164,7 +164,7 @@ c
      &  cilo0,cilo1,cihi0,cihi1,
      &  filo0,filo1,fihi0,fihi1
       integer ratio(0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0,
      &          cilo1:cihi1),
      &  arrayf(filo0:fihi0,
@@ -462,7 +462,7 @@ c
      &  cilo0,cilo1,cihi0,cihi1,
      &  filo0,filo1,fihi0,fihi1
       integer ratio(0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0,
      &          cilo1:cihi1+1),
      &  arrayf(filo0:fihi0,
@@ -509,7 +509,7 @@ c
      &  cilo0,cilo1,cihi0,cihi1,
      &  filo0,filo1,fihi0,fihi1
       integer ratio(0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0+1,
      &          cilo1:cihi1),
      &  arrayf(filo0:fihi0+1,
@@ -854,7 +854,7 @@ c
      &  cilo0,cilo1,cihi0,cihi1,
      &  filo0,filo1,fihi0,fihi1
       integer ratio(0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0+1,
      &          cilo1:cihi1),
      &  arrayf(filo0:fihi0+1,
@@ -901,7 +901,7 @@ c
      &  cilo0,cilo1,cihi0,cihi1,
      &  filo0,filo1,fihi0,fihi1
       integer ratio(0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo1:cihi1+1,
      &          cilo0:cihi0),
      &  arrayf(filo1:fihi1+1,
@@ -1210,7 +1210,7 @@ c
      &  cilo0,cilo1,cihi0,cihi1,
      &  filo0,filo1,fihi0,fihi1
       integer ratio(0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo1:cihi1),
      &  arrayf(filo1:fihi1)
       integer ic1,if1
@@ -1248,7 +1248,7 @@ c
      &  cilo0,cilo1,cihi0,cihi1,
      &  filo0,filo1,fihi0,fihi1
       integer ratio(0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0),
      &  arrayf(filo0:fihi0)
       integer ic0,if0
@@ -1566,7 +1566,7 @@ c
      &  cilo0,cilo1,cihi0,cihi1,
      &  filo0,filo1,fihi0,fihi1
       integer ratio(0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0+1,
      &          cilo1:cihi1),
      &  arrayf(filo0:fihi0+1,
@@ -1613,7 +1613,7 @@ c
      &  cilo0,cilo1,cihi0,cihi1,
      &  filo0,filo1,fihi0,fihi1
       integer ratio(0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0,
      &          cilo1:cihi1+1),
      &  arrayf(filo0:fihi0,

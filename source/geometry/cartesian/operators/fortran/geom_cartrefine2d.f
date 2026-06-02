@@ -230,7 +230,7 @@ c
       double precision
      &  dxc(0:2-1),
      &  dxf(0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0,
      &          cilo1:cihi1),
      &  arrayf(filo0:fihi0,
@@ -541,7 +541,7 @@ c
      &  dxc(0:2-1),
      &  dxf(0:2-1),
      &  deltax(0:15,0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0,
      &          cilo1:cihi1),
      &  arrayf(filo0:fihi0,
@@ -1578,9 +1578,9 @@ c Conservative linear interpolation for 2d face-centered complex data
 c***********************************************************************
 c
 c      subroutine cartclinreffacecplx2d0(
-ccart_clinref_op_face_2d(double complex,0,1)cc
+ccart_clinref_op_face_2d(complex(8),0,1)cc
 c      subroutine cartclinreffacecplx2d1(
-ccart_clinref_op_face_2d(double complex,1,0)c
+ccart_clinref_op_face_2d(complex(8),1,0)c
 c***********************************************************************
 c Linear interpolation for 2d node-centered double data
 c***********************************************************************
@@ -1739,7 +1739,7 @@ c
       double precision
      &  dxc(0:2-1),
      &  dxf(0:2-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0+1,
      &          cilo1:cihi1+1),
      &  arrayf(filo0:fihi0+1,
@@ -2084,9 +2084,9 @@ c Conservative linear interpolation for 2d outerface complex data
 c***********************************************************************
 c
 c      subroutine cartclinrefoutfacecplx2d0(
-ccart_clinref_op_outerface_2d(double complex,0,1)cc
+ccart_clinref_op_outerface_2d(complex(8),0,1)cc
 c      subroutine cartclinrefoutfacecplx2d1(
-ccart_clinref_op_outerface_2d(double complex,1,0)c
+ccart_clinref_op_outerface_2d(complex(8),1,0)c
 c***********************************************************************
 c Conservative linear interpolation for 2d side-centered double data
 c***********************************************************************
@@ -2560,6 +2560,6 @@ c Conservative linear interpolation for 2d side-centered complex data
 c***********************************************************************
 c
 c      subroutine cartclinrefsidecplx2d0(
-ccart_clinref_op_side_2d(double complex,0,1)cc
+ccart_clinref_op_side_2d(complex(8),0,1)cc
 c      subroutine cartclinrefsidecplx2d1(
-ccart_clinref_op_side_2d(double complex,1,0)c
+ccart_clinref_op_side_2d(complex(8),1,0)c

@@ -92,7 +92,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+ng,
      &          fi1-ng:la1+ng,
      &          fi2-ng:la2+ng)
@@ -286,7 +286,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+1+ng,
      &          fi1-ng:la1+ng,
      &          fi2-ng:la2+ng)
@@ -313,7 +313,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi1-ng:la1+1+ng,
      &          fi2-ng:la2+ng,
      &          fi0-ng:la0+ng)
@@ -340,7 +340,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi2-ng:la2+1+ng,
      &          fi0-ng:la0+ng,
      &          fi1-ng:la1+ng)
@@ -426,7 +426,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+1+ng,
      &          fi1-ng:la1+1+ng,
      &          fi2-ng:la2+1+ng)
@@ -602,7 +602,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi1-ng:la1+ng,
      &          fi2-ng:la2+ng)
       integer ic1,ic2  
@@ -626,7 +626,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi2-ng:la2+ng,
      &          fi0-ng:la0+ng)
       integer ic2,ic0  
@@ -650,7 +650,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+ng,
      &          fi1-ng:la1+ng)
       integer ic0,ic1  
@@ -823,7 +823,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi1-ng:la1+ng,
      &          fi2-ng:la2+ng)
       integer ic1,ic2  
@@ -847,7 +847,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+ng,
      &          fi2-ng:la2+ng)
       integer ic2,ic0  
@@ -871,7 +871,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+ng,
      &          fi1-ng:la1+ng)
       integer ic0,ic1  
@@ -1062,7 +1062,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+1+ng,
      &          fi1-ng:la1+ng,
      &          fi2-ng:la2+ng)
@@ -1089,7 +1089,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+ng,
      &          fi1-ng:la1+1+ng,
      &          fi2-ng:la2+ng)
@@ -1116,7 +1116,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+ng,
      &          fi1-ng:la1+ng,
      &          fi2-ng:la2+1+ng)
@@ -1310,7 +1310,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+ng,
      &          fi1-ng:la1+1+ng,
      &          fi2-ng:la2+1+ng)
@@ -1337,7 +1337,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+1+ng,
      &          fi1-ng:la1+ng,
      &          fi2-ng:la2+1+ng)
@@ -1364,7 +1364,7 @@ c     =============================================================
       implicit none
       integer fi0,la0,fi1,la1,fi2,la2,ng,
      &   ibeg0,iend0,ibeg1,iend1,ibeg2,iend2
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+1+ng,
      &          fi1-ng:la1+1+ng,
      &          fi2-ng:la2+ng)
