@@ -1861,8 +1861,6 @@ template<int DIM> void VisItDataWriter<DIM>::writeVisItVariablesToHDFFile(
                                             hierarchy->getPatchLevel(ln);
 
          int nblocks = mblk_level->getNumberOfBlocks();
-
-         int patch_counter = 0;
          for (int b = 0; b < nblocks; b++) {
             tbox::Pointer< hier::PatchLevel<DIM> > patch_level =
                mblk_level->getPatchLevelForBlock(b);
@@ -1910,7 +1908,6 @@ template<int DIM> void VisItDataWriter<DIM>::writeVisItVariablesToHDFFile(
                   }
 
                }
-               patch_counter += patch_level->getNumberOfPatches();
             }
          }
       }
@@ -3772,7 +3769,6 @@ template<int DIM> void VisItDataWriter<DIM>::exchangeMinMaxPatchInformation(
     */
    int ln, pn, comp, item_ctr;
    int number_local_patches = 0;
-   int tot_number_of_patches = 0;
 
    if (d_is_multiblock) {
       for (ln = coarsest_plot_level; ln <= finest_plot_level; ln++) {
@@ -3782,7 +3778,6 @@ template<int DIM> void VisItDataWriter<DIM>::exchangeMinMaxPatchInformation(
             tbox::Pointer< hier::PatchLevel<DIM> > patch_level =
                mblk_level->getPatchLevelForBlock(b);
             if (!patch_level.isNull()) {
-               tot_number_of_patches += patch_level->getNumberOfPatches();
                for (typename hier::PatchLevel<DIM>::Iterator ip(patch_level);
                     ip; ip++) {
                   number_local_patches++;
@@ -3794,7 +3789,6 @@ template<int DIM> void VisItDataWriter<DIM>::exchangeMinMaxPatchInformation(
       for (ln = coarsest_plot_level; ln <= finest_plot_level; ln++) {
          tbox::Pointer< hier::PatchLevel<DIM> > patch_level =
             hierarchy->getPatchLevel(ln);
-         tot_number_of_patches += patch_level->getNumberOfPatches();
          for (typename hier::PatchLevel<DIM>::Iterator ip(patch_level);
               ip; ip++) {
             number_local_patches++;
