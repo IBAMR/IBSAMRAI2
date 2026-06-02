@@ -513,7 +513,7 @@ static void yy_flex_strncpy YY_PROTO(( char *, yyconst char *, int ));
 static int yy_flex_strlen YY_PROTO(( yyconst char * ));
 #endif
 
-#ifndef YY_NO_INPUT
+#if 0
 #ifdef __cplusplus
 static int yyinput YY_PROTO(( void ));
 #else
@@ -1402,7 +1402,7 @@ char *yy_bp;
 #endif	/* ifndef YY_NO_UNPUT */
 
 
-#ifndef YY_NO_INPUT
+#if 0
 #ifdef __cplusplus
 static int yyinput()
 #else
