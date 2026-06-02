@@ -2932,7 +2932,7 @@ c
      &          filo1:fihi1+1,
      &          filo2:fihi2+1)
       double precision x,y,z,realrat0,realrat1,realrat2
-      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2,i,j,k
+      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2
 c
 c***********************************************************************
 c
@@ -3014,7 +3014,7 @@ c
      &          filo1:fihi1+1,
      &          filo2:fihi2+1)
       double precision x,y,z,realrat0,realrat1,realrat2
-      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2,i,j,k
+      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2
 c
 c***********************************************************************
 c
@@ -3096,7 +3096,7 @@ c
      &          filo1:fihi1+1,
      &          filo2:fihi2+1)
       double precision x,y,z,realrat0,realrat1,realrat2
-      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2,i,j,k
+      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2
 c
 c***********************************************************************
 c

@@ -776,7 +776,7 @@ c
      &  arrayc(cilo0:cihi0+1),
      &  arrayf(filo0:fihi0+1)
       double precision realrat,x
-      integer i,ic0,if0,ie0,ir0
+      integer ic0,if0,ie0,ir0
 c
 c***********************************************************************
 c
@@ -835,7 +835,7 @@ c
      &  arrayc(cilo0:cihi0+1),
      &  arrayf(filo0:fihi0+1)
       double precision realrat,x
-      integer i,ic0,if0,ie0,ir0
+      integer ic0,if0,ie0,ir0
 c
 c***********************************************************************
 c
@@ -894,7 +894,7 @@ c
      &  arrayc(cilo0:cihi0+1),
      &  arrayf(filo0:fihi0+1)
       double precision realrat,x
-      integer i,ic0,if0,ie0,ir0
+      integer ic0,if0,ie0,ir0
 c
 c***********************************************************************
 c

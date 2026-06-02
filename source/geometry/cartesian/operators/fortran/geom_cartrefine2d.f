@@ -1613,7 +1613,7 @@ c
      &  arrayf(filo0:fihi0+1,
      &          filo1:fihi1+1)
       double precision x,y,realrat0,realrat1
-      integer ic0,ic1,if0,if1,ie0,ie1,ir0,ir1,i,j
+      integer ic0,ic1,if0,if1,ie0,ie1,ir0,ir1
 c
 c***********************************************************************
 c
@@ -1679,7 +1679,7 @@ c
      &  arrayf(filo0:fihi0+1,
      &          filo1:fihi1+1)
       double precision x,y,realrat0,realrat1
-      integer ic0,ic1,if0,if1,ie0,ie1,ir0,ir1,i,j
+      integer ic0,ic1,if0,if1,ie0,ie1,ir0,ir1
 c
 c***********************************************************************
 c
@@ -1745,7 +1745,7 @@ c
      &  arrayf(filo0:fihi0+1,
      &          filo1:fihi1+1)
       double precision x,y,realrat0,realrat1
-      integer ic0,ic1,if0,if1,ie0,ie1,ir0,ir1,i,j
+      integer ic0,ic1,if0,if1,ie0,ie1,ir0,ir1
 c
 c***********************************************************************
 c
