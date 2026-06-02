@@ -378,6 +378,22 @@ c
       integer ipivot0,ipivot1,ipivot2
       integer face_loc0,face_loc1,face_loc2
       double precision    dirsign0,dirsign1,dirsign2
+
+      ! TODO: there are multiple undefined variables here and below,
+      ! such as dirsign0. It isn't clear to me if these are copy-paste
+      ! bugs (should dirsign0 be dirsign1?) or omissions of
+      ! initializations. Set them to huge values so things fail if we
+      ! read them.
+      ipivot0   = HUGE(0)
+      ipivot1   = HUGE(0)
+      ipivot2   = HUGE(0)
+      face_loc0 = HUGE(0)
+      face_loc1 = HUGE(0)
+      face_loc2 = HUGE(0)
+      dirsign0  = HUGE(0.d0)
+      dirsign1  = HUGE(0.d0)
+      dirsign2  = HUGE(0.d0)
+
 c
 c***********************************************************************
 c***********************************************************************
@@ -1030,6 +1046,17 @@ c
       integer ipivot0,ipivot1,ipivot2
       integer face_loc0,face_loc1,face_loc2
       double precision    dirsign0,dirsign1,dirsign2
+
+      ! see the note in getcartedgebdry3d
+      dirsign0  = HUGE(0.d0)
+      dirsign1  = HUGE(0.d0)
+      dirsign2  = HUGE(0.d0)
+      face_loc0 = HUGE(0)
+      face_loc1 = HUGE(0)
+      face_loc2 = HUGE(0)
+      ipivot0   = HUGE(0)
+      ipivot1   = HUGE(0)
+      ipivot2   = HUGE(0)
 c
 c***********************************************************************
 c***********************************************************************
