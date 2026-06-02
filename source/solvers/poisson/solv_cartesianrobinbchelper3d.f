@@ -124,124 +124,124 @@ c***********************************************************************
       integer ibeg, iend, jbeg, jend, kbeg, kend
       if     ( location .eq. 0 ) then
 c        min j min k edge, running along i
-	 j = lower(1)
+       j = lower(1)
          k = lower(2)
          ibeg = lower(0)
          iend = upper(0)
-	 do i=ibeg,iend
-	    data(i,j,k) = -data(i,j+1,k+1)
+       do i=ibeg,iend
+          data(i,j,k) = -data(i,j+1,k+1)
      &         + ( data(i,j,k+1) + data(i,j+1,k) )
-	 enddo
+       enddo
       elseif ( location .eq. 1 ) then
 c        max j min k edge, running along i
-	 j = lower(1)
+       j = lower(1)
          k = lower(2)
          ibeg = lower(0)
          iend = upper(0)
-	 do i=ibeg,iend
-	    data(i,j,k) = -data(i,j-1,k+1)
+       do i=ibeg,iend
+          data(i,j,k) = -data(i,j-1,k+1)
      &         + ( data(i,j,k+1) + data(i,j-1,k) )
-	 enddo
+       enddo
       elseif ( location .eq. 2 ) then
 c        min j max k edge, running along i
-	 j = lower(1)
+       j = lower(1)
          k = lower(2)
          ibeg = lower(0)
          iend = upper(0)
-	 do i=ibeg,iend
-	    data(i,j,k) = -data(i,j+1,k-1)
+       do i=ibeg,iend
+          data(i,j,k) = -data(i,j+1,k-1)
      &         + ( data(i,j,k-1) + data(i,j+1,k) )
-	 enddo
+       enddo
       elseif ( location .eq. 3 ) then
 c        max j max k edge, running along i
-	 j = lower(1)
+       j = lower(1)
          k = lower(2)
          ibeg = lower(0)
          iend = upper(0)
-	 do i=ibeg,iend
-	    data(i,j,k) = -data(i,j-1,k-1)
+       do i=ibeg,iend
+          data(i,j,k) = -data(i,j-1,k-1)
      &         + ( data(i,j-1,k) + data(i,j,k-1) )
-	 enddo
+       enddo
       elseif ( location .eq. 4 ) then
 c        min i min k edge, running along j
-	 i = lower(0)
+       i = lower(0)
          k = lower(2)
          jbeg = lower(1)
          jend = upper(1)
-	 do j=jbeg,jend
-	    data(i,j,k) = -data(i+1,j,k+1)
+       do j=jbeg,jend
+          data(i,j,k) = -data(i+1,j,k+1)
      &         + ( data(i+1,j,k) + data(i,j,k+1) )
-	 enddo
+       enddo
       elseif ( location .eq. 5 ) then
 c        min i max k edge, running along j
-	 i = lower(0)
+       i = lower(0)
          k = lower(2)
          jbeg = lower(1)
          jend = upper(1)
-	 do j=jbeg,jend
-	    data(i,j,k) = -data(i+1,j,k-1)
+       do j=jbeg,jend
+          data(i,j,k) = -data(i+1,j,k-1)
      &         + ( data(i+1,j,k) + data(i,j,k-1) )
-	 enddo
+       enddo
       elseif ( location .eq. 6 ) then
 c        max i min k edge, running along j
-	 i = lower(0)
+       i = lower(0)
          k = lower(2)
          jbeg = lower(1)
          jend = upper(1)
-	 do j=jbeg,jend
-	    data(i,j,k) = -data(i-1,j,k+1)
+       do j=jbeg,jend
+          data(i,j,k) = -data(i-1,j,k+1)
      &         + ( data(i-1,j,k) + data(i,j,k+1) )
-	 enddo
+       enddo
       elseif ( location .eq. 7 ) then
 c        max i max k edge, running along j
-	 i = lower(0)
+       i = lower(0)
          k = lower(2)
          jbeg = lower(1)
          jend = upper(1)
-	 do j=jbeg,jend
-	    data(i,j,k) = -data(i-1,j,k-1)
+       do j=jbeg,jend
+          data(i,j,k) = -data(i-1,j,k-1)
      &         + ( data(i,j,k-1) + data(i-1,j,k) )
-	 enddo
+       enddo
       elseif ( location .eq. 8 ) then
 c        min i min j edge, running along k
-	 i = lower(0)
+       i = lower(0)
          j = lower(1)
          kbeg = lower(2)
          kend = upper(2)
-	 do k=kbeg,kend
-	    data(i,j,k) = -data(i+1,j+1,k)
+       do k=kbeg,kend
+          data(i,j,k) = -data(i+1,j+1,k)
      &         + ( data(i+1,j,k) + data(i,j+1,k) )
-	 enddo
+       enddo
       elseif ( location .eq. 9 ) then
 c        max i min j edge, running along k
-	 i = lower(0)
+       i = lower(0)
          j = lower(1)
          kbeg = lower(2)
          kend = upper(2)
-	 do k=kbeg,kend
-	    data(i,j,k) = -data(i-1,j+1,k)
+       do k=kbeg,kend
+          data(i,j,k) = -data(i-1,j+1,k)
      &         + ( data(i-1,j,k) + data(i,j+1,k) )
-	 enddo
+       enddo
       elseif ( location .eq. 10 ) then
 c        min i max j edge, running along k
-	 i = lower(0)
+       i = lower(0)
          j = lower(1)
          kbeg = lower(2)
          kend = upper(2)
-	 do k=kbeg,kend
-	    data(i,j,k) = -data(i+1,j-1,k)
+       do k=kbeg,kend
+          data(i,j,k) = -data(i+1,j-1,k)
      &         + ( data(i+1,j,k) + data(i,j-1,k) )
-	 enddo
+       enddo
       elseif ( location .eq. 11 ) then
 c        max i max j edge, running along k
-	 i = lower(0)
+       i = lower(0)
          j = lower(1)
          kbeg = lower(2)
          kend = upper(2)
-	 do k=kbeg,kend
-	    data(i,j,k) = -data(i-1,j-1,k)
+       do k=kbeg,kend
+          data(i,j,k) = -data(i-1,j-1,k)
      &         + ( data(i,j-1,k) + data(i-1,j,k) )
-	 enddo
+       enddo
       endif
       return
       end
@@ -263,7 +263,7 @@ c        min i min j min k node
          i = lower(0)
          j = lower(1)
          k = lower(2)
-	 data(i,j,k) = -data(i+1,j+1,k+1)
+       data(i,j,k) = -data(i+1,j+1,k+1)
      &               + 2./3.*( data(i,j+1,k+1) 
      &                       + data(i+1,j,k+1) 
      &                       + data(i+1,j+1,k) )
@@ -272,7 +272,7 @@ c        max i min j min k node
          i = upper(0)
          j = lower(1)
          k = lower(2)
-	 data(i,j,k) = -data(i-1,j+1,k+1)
+       data(i,j,k) = -data(i-1,j+1,k+1)
      &               + 2./3.*( data(i,j+1,k+1) 
      &                       + data(i-1,j,k+1) 
      &                       + data(i-1,j+1,k) )
@@ -281,7 +281,7 @@ c        min i max j min k node
          i = lower(0)
          j = upper(1)
          k = lower(2)
-	 data(i,j,k) = -data(i+1,j-1,k+1)
+       data(i,j,k) = -data(i+1,j-1,k+1)
      &               + 2./3.*( data(i,j-1,k+1) 
      &                       + data(i+1,j,k+1) 
      &                       + data(i+1,j-1,k) )
@@ -290,7 +290,7 @@ c        max i max j min k node
          i = upper(0)
          j = upper(1)
          k = lower(2)
-	 data(i,j,k) = -data(i-1,j-1,k+1)
+       data(i,j,k) = -data(i-1,j-1,k+1)
      &               + 2./3.*( data(i,j-1,k+1) 
      &                       + data(i-1,j,k+1) 
      &                       + data(i-1,j-1,k) )
@@ -299,7 +299,7 @@ c        min i min j max k node
          i = lower(0)
          j = lower(1)
          k = upper(2)
-	 data(i,j,k) = -data(i+1,j+1,k-1)
+       data(i,j,k) = -data(i+1,j+1,k-1)
      &               + 2./3.*( data(i,j+1,k-1) 
      &                       + data(i+1,j,k-1) 
      &                       + data(i+1,j+1,k) )
@@ -308,7 +308,7 @@ c        max i min j max k node
          i = upper(0)
          j = lower(1)
          k = upper(2)
-	 data(i,j,k) = -data(i-1,j+1,k-1)
+       data(i,j,k) = -data(i-1,j+1,k-1)
      &               + 2./3.*( data(i,j+1,k-1) 
      &                       + data(i-1,j,k-1) 
      &                       + data(i-1,j+1,k) )
@@ -317,7 +317,7 @@ c        min i max j max k node
          i = lower(0)
          j = upper(1)
          k = upper(2)
-	 data(i,j,k) = -data(i+1,j-1,k-1)
+       data(i,j,k) = -data(i+1,j-1,k-1)
      &               + 2./3.*( data(i,j-1,k-1) 
      &                       + data(i+1,j,k-1) 
      &                       + data(i+1,j-1,k) )
@@ -326,7 +326,7 @@ c        max i max j max k node
          i = upper(0)
          j = upper(1)
          k = upper(2)
-	 data(i,j,k) = -data(i-1,j-1,k-1)
+       data(i,j,k) = -data(i-1,j-1,k-1)
      &               + 2./3.*( data(i,j-1,k-1) 
      &                       + data(i-1,j,k-1) 
      &                       + data(i-1,j-1,k) )
