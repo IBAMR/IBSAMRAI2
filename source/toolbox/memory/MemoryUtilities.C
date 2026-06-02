@@ -60,7 +60,15 @@ void MemoryUtilities::printMemoryInfo(std::ostream& os)
     */
    
    /* Get malloc info structure */
+#ifdef __GLIBC__
+#  if (__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 33)
+   struct mallinfo2 my_mallinfo = mallinfo2();
+#  else
    struct mallinfo my_mallinfo = mallinfo();
+#  endif
+#else
+   struct mallinfo my_mallinfo = mallinfo();
+#endif
    
    /* Get total memory reserved by the system for malloc currently*/
    double reserved_mem = my_mallinfo.arena;
