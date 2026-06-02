@@ -162,7 +162,7 @@ ArrayDataMiscellaneousOpsReal<DIM,TYPE>::computeConstrProdPosWithControlVolume(
                   cv_step *= cv_w[k];
                }
                d1_counter = d1_b[dim_jump-1] + d1_step;
-               d2_counter = d2_b[dim_jump-1] + d1_step;
+               d2_counter = d2_b[dim_jump-1] + d2_step;
                cv_counter = cv_b[dim_jump-1] + cv_step;
 
                for (int m = 0; m < dim_jump; m++) {
@@ -267,7 +267,7 @@ ArrayDataMiscellaneousOpsReal<DIM,TYPE>::computeConstrProdPos(
                   d2_step *= d2_w[k];
                }
                d1_counter = d1_b[dim_jump-1] + d1_step;
-               d2_counter = d2_b[dim_jump-1] + d1_step;
+               d2_counter = d2_b[dim_jump-1] + d2_step;
 
                for (int m = 0; m < dim_jump; m++) {
                   d1_b[m] = d1_counter;
