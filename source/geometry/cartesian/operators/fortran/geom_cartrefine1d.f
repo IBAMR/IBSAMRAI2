@@ -182,7 +182,7 @@ c
       double precision
      &  dxc(0:1-1),
      &  dxf(0:1-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0),
      &  arrayf(filo0:fihi0)
       double precision deltax(0:15,0:1-1),x
@@ -388,7 +388,7 @@ c
      &  dxc(0:1-1),
      &  dxf(0:1-1),
      &  deltax(0:15,0:1-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0),
      &  arrayf(filo0:fihi0),
      &  diff0(cilo0:cihi0+1),
@@ -745,7 +745,7 @@ c Conservative linear interpolation for 1d face-centered complex data
 c***********************************************************************
 c
 c      subroutine cartclinreffacecplx1d(
-ccart_clinref_op_face_1d(double complex)c
+ccart_clinref_op_face_1d(complex(8))c
 c***********************************************************************
 c Linear interpolation for 1d node-centered double data
 c***********************************************************************
@@ -776,7 +776,7 @@ c
      &  arrayc(cilo0:cihi0+1),
      &  arrayf(filo0:fihi0+1)
       double precision realrat,x
-      integer i,ic0,if0,ie0,ir0
+      integer ic0,if0,ie0,ir0
 c
 c***********************************************************************
 c
@@ -835,7 +835,7 @@ c
      &  arrayc(cilo0:cihi0+1),
      &  arrayf(filo0:fihi0+1)
       double precision realrat,x
-      integer i,ic0,if0,ie0,ir0
+      integer ic0,if0,ie0,ir0
 c
 c***********************************************************************
 c
@@ -890,11 +890,11 @@ c
       double precision
      &  dxc(0:1-1),
      &  dxf(0:1-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0+1),
      &  arrayf(filo0:fihi0+1)
       double precision realrat,x
-      integer i,ic0,if0,ie0,ir0
+      integer ic0,if0,ie0,ir0
 c
 c***********************************************************************
 c
@@ -1039,7 +1039,7 @@ c Conservative linear interpolation for 1d outerface complex data
 c***********************************************************************
 c
 c      subroutine cartclinrefoutfacecplx1d(
-ccart_clinref_op_face_1d(double complex)c
+ccart_clinref_op_face_1d(complex(8))c
 c***********************************************************************
 c Conservative linear interpolation for 1d side-centered double data
 c***********************************************************************
@@ -1193,4 +1193,4 @@ c Conservative linear interpolation for 1d side-centered complex data
 c***********************************************************************
 c
 c      subroutine cartclinrefsidecplx1d(
-ccart_clinref_op_side_1d(double complex)c
+ccart_clinref_op_side_1d(complex(8))c

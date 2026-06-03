@@ -283,7 +283,7 @@ c
       double precision
      &  dxc(0:3-1),
      &  dxf(0:3-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0,
      &          cilo1:cihi1,
      &          cilo2:cihi2),
@@ -710,7 +710,7 @@ c
      &  dxc(0:3-1),
      &  dxf(0:3-1),
      &  deltax(0:15,0:3-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0,
      &          cilo1:cihi1,
      &          cilo2:cihi2),
@@ -2893,11 +2893,11 @@ c Conservative linear interpolation for 3d face-centered complex data
 c***********************************************************************
 c
 c     subroutine cartclinreffacecplx3d0(
-ccart_clinref_op_face_3d(double complex,0,1,2)c
+ccart_clinref_op_face_3d(complex(8),0,1,2)c
 c      subroutine cartclinreffacecplx3d1(
-ccart_clinref_op_face_3d(double complex,1,2,0)c
+ccart_clinref_op_face_3d(complex(8),1,2,0)c
 c      subroutine cartclinreffacecplx3d2(
-ccart_clinref_op_face_3d(double complex,2,0,1)c
+ccart_clinref_op_face_3d(complex(8),2,0,1)c
 c***********************************************************************
 c Linear interpolation for 3d node-centered double data
 c***********************************************************************
@@ -2932,7 +2932,7 @@ c
      &          filo1:fihi1+1,
      &          filo2:fihi2+1)
       double precision x,y,z,realrat0,realrat1,realrat2
-      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2,i,j,k
+      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2
 c
 c***********************************************************************
 c
@@ -3014,7 +3014,7 @@ c
      &          filo1:fihi1+1,
      &          filo2:fihi2+1)
       double precision x,y,z,realrat0,realrat1,realrat2
-      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2,i,j,k
+      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2
 c
 c***********************************************************************
 c
@@ -3088,7 +3088,7 @@ c
       double precision
      &  dxc(0:3-1),
      &  dxf(0:3-1)
-      double complex
+      complex(8)
      &  arrayc(cilo0:cihi0+1,
      &          cilo1:cihi1+1,
      &          cilo2:cihi2+1),
@@ -3096,7 +3096,7 @@ c
      &          filo1:fihi1+1,
      &          filo2:fihi2+1)
       double precision x,y,z,realrat0,realrat1,realrat2
-      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2,i,j,k
+      integer ic0,ic1,ic2,ie0,ie1,ie2,if0,if1,if2,ir0,ir1,ir2
 c
 c***********************************************************************
 c
@@ -3841,11 +3841,11 @@ c Conservative linear interpolation for 3d outerface complex data
 c***********************************************************************
 c
 c     subroutine cartclinrefoutfacecplx3d0(
-ccart_clinref_op_outerface_3d(double complex,0,1,2)c
+ccart_clinref_op_outerface_3d(complex(8),0,1,2)c
 c      subroutine cartclinrefoutfacecplx3d1(
-ccart_clinref_op_outerface_3d(double complex,1,2,0)c
+ccart_clinref_op_outerface_3d(complex(8),1,2,0)c
 c      subroutine cartclinrefoutfacecplx3d2(
-ccart_clinref_op_outerface_3d(double complex,2,0,1)c
+ccart_clinref_op_outerface_3d(complex(8),2,0,1)c
 c***********************************************************************
 c Conservative linear interpolation for 3d side-centered double data
 c***********************************************************************
@@ -4909,8 +4909,8 @@ c Conservative linear interpolation for 3d side-centered complex data
 c***********************************************************************
 c
 c     subroutine cartclinrefsidecplx3d0(
-ccart_clinref_op_side_3d(double complex,0,1,2)c
+ccart_clinref_op_side_3d(complex(8),0,1,2)c
 c      subroutine cartclinrefsidecplx3d1(
-ccart_clinref_op_side_3d(double complex,1,2,0)c
+ccart_clinref_op_side_3d(complex(8),1,2,0)c
 c      subroutine cartclinrefsidecplx3d2(
-ccart_clinref_op_side_3d(double complex,2,0,1)c
+ccart_clinref_op_side_3d(complex(8),2,0,1)c

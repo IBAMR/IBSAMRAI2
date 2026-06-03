@@ -204,7 +204,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0,
      &          filo1:fihi1,
      &          filo2:fihi2),
@@ -761,7 +761,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0,
      &          filo1:fihi1+1,
      &          filo2:fihi2+1),
@@ -840,7 +840,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0+1,
      &          filo1:fihi1,
      &          filo2:fihi2+1),
@@ -919,7 +919,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0+1,
      &          filo1:fihi1+1,
      &          filo2:fihi2),
@@ -1424,7 +1424,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0+1,
      &          filo1:fihi1,
      &          filo2:fihi2),
@@ -1493,7 +1493,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo1:fihi1+1,
      &          filo2:fihi2,
      &          filo0:fihi0),
@@ -1562,7 +1562,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo2:fihi2+1,
      &          filo0:fihi0,
      &          filo1:fihi1),
@@ -2003,7 +2003,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo1:fihi1,
      &          filo2:fihi2),
      &  arrayc(cilo1:cihi1,
@@ -2063,7 +2063,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo2:fihi2,
      &          filo0:fihi0),
      &  arrayc(cilo2:cihi2,
@@ -2123,7 +2123,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0,
      &          filo1:fihi1),
      &  arrayc(cilo0:cihi0,
@@ -2889,7 +2889,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0+1,
      &          filo1:fihi1,
      &          filo2:fihi2),
@@ -2970,7 +2970,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0,
      &          filo1:fihi1+1,
      &          filo2:fihi2),
@@ -3051,7 +3051,7 @@ c
       double precision
      &  dxf(0:3-1),
      &  dxc(0:3-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0,
      &          filo1:fihi1,
      &          filo2:fihi2+1),

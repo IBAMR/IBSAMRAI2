@@ -119,7 +119,7 @@ c
      &  filo0,fihi0,
      &  cilo0,cihi0
       integer ratio(0:1-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0+1),
      &  arrayc(cilo0:cihi0+1)
       integer ie0

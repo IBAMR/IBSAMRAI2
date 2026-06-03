@@ -128,7 +128,7 @@ c
      &  cilo0,cilo1,cihi0,cihi1,
      &  filo0,filo1,fihi0,fihi1
       integer ratio(0:2-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0+1,
      &          filo1:fihi1+1),
      &  arrayc(cilo0:cihi0+1,

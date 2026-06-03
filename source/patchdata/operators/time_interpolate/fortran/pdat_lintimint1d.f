@@ -140,7 +140,7 @@ c
      &  dilo0,dihi0
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0),
      &  arraynew(nilo0:nihi0),
      &  arraydst(dilo0:dihi0)
@@ -266,7 +266,7 @@ c
      &  dilo0,dihi0
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0),
      &  arraynew(nilo0:nihi0),
      &  arraydst(dilo0:dihi0)
@@ -392,7 +392,7 @@ c
      &  dilo0,dihi0
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0+1),
      &  arraynew(nilo0:nihi0+1),
      &  arraydst(dilo0:dihi0+1)
@@ -518,7 +518,7 @@ c
      &  dilo0,dihi0
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0+1),
      &  arraynew(nilo0:nihi0+1),
      &  arraydst(dilo0:dihi0+1)
@@ -638,7 +638,7 @@ c
      &  dilo0,dihi0
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(1),
      &  arraynew(1),
      &  arraydst(1)
@@ -755,7 +755,7 @@ c
      &  dilo0,dihi0
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(1),
      &  arraynew(1),
      &  arraydst(1)
@@ -878,7 +878,7 @@ c
      &  dilo0,dihi0
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0+1),
      &  arraynew(nilo0:nihi0+1),
      &  arraydst(dilo0:dihi0+1)

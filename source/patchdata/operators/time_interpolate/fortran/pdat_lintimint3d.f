@@ -163,7 +163,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0,
      &          oilo1:oihi1,
      &          oilo2:oihi2),
@@ -518,7 +518,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0,
      &          oilo1:oihi1+1,
      &          oilo2:oihi2+1),
@@ -567,7 +567,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0+1,
      &          oilo1:oihi1,
      &          oilo2:oihi2+1),
@@ -616,7 +616,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0+1,
      &          oilo1:oihi1+1,
      &          oilo2:oihi2),
@@ -971,7 +971,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0+1,
      &          oilo1:oihi1,
      &          oilo2:oihi2),
@@ -1020,7 +1020,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo1:oihi1+1,
      &          oilo2:oihi2,
      &          oilo0:oihi0),
@@ -1069,7 +1069,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo2:oihi2+1,
      &          oilo0:oihi0,
      &          oilo1:oihi1),
@@ -1228,7 +1228,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0+1,
      &          oilo1:oihi1+1,
      &          oilo2:oihi2+1),
@@ -1547,7 +1547,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo1:oihi1,
      &          oilo2:oihi2),
      &  arraynew(nilo1:nihi1,
@@ -1590,7 +1590,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo2:oihi2,
      &          oilo0:oihi0),
      &  arraynew(nilo2:nihi2,
@@ -1633,7 +1633,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0,
      &          oilo1:oihi1),
      &  arraynew(nilo0:nihi0,
@@ -1946,7 +1946,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo1:oihi1,
      &          oilo2:oihi2),
      &  arraynew(nilo1:nihi1,
@@ -1989,7 +1989,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0,
      &          oilo2:oihi2),
      &  arraynew(nilo0:nihi0,
@@ -2032,7 +2032,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0,
      &          oilo1:oihi1),
      &  arraynew(nilo0:nihi0,
@@ -2381,7 +2381,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0+1,
      &          oilo1:oihi1,
      &          oilo2:oihi2),
@@ -2430,7 +2430,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0,
      &          oilo1:oihi1+1,
      &          oilo2:oihi2),
@@ -2479,7 +2479,7 @@ c
      &  dilo0,dilo1,dilo2,dihi0,dihi1,dihi2
       double precision
      &  tfrac, oldfrac
-      double complex
+      complex(8)
      &  arrayold(oilo0:oihi0,
      &          oilo1:oihi1,
      &          oilo2:oihi2+1),

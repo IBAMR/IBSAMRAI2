@@ -158,7 +158,7 @@ c
       double precision
      &  dxf(0:1-1),
      &  dxc(0:1-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0),
      &  arrayc(cilo0:cihi0)
       double precision dVf,dVc
@@ -314,7 +314,7 @@ c
       double precision
      &  dxf(0:1-1),
      &  dxc(0:1-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0),
      &  arrayc(cilo0:cihi0)
       double precision dVf,dVc
@@ -440,7 +440,7 @@ c
       double precision
      &  dxf(0:1-1),
      &  dxc(0:1-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0+1),
      &  arrayc(cilo0:cihi0+1)
       integer ie0
@@ -545,7 +545,7 @@ c
       double precision
      &  dxf(0:1-1),
      &  dxc(0:1-1)
-      double complex
+      complex(8)
      &  arrayf(1),
      &  arrayc(1)
 c
@@ -687,7 +687,7 @@ c
       double precision
      &  dxf(0:1-1),
      &  dxc(0:1-1)
-      double complex
+      complex(8)
      &  arrayf(filo0:fihi0+1),
      &  arrayc(cilo0:cihi0+1)
       integer ie0

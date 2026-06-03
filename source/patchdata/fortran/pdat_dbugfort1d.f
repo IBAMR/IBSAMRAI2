@@ -70,7 +70,7 @@ c
 c     =============================================================
       implicit none
       integer fi0,la0,ng,ibeg0,iend0
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+ng)
       integer ic0
 c     =============================================================
@@ -129,7 +129,7 @@ c
 c     =============================================================
       implicit none
       integer fi0,la0,ng,ibeg0,iend0
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+1+ng)
       integer ie0
 c     =============================================================
@@ -188,7 +188,7 @@ c
 c     =============================================================
       implicit none
       integer fi0,la0,ng,ibeg0,iend0
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+1+ng)
       integer ie0
 c     =============================================================
@@ -241,7 +241,7 @@ c
 c     =============================================================
       implicit none
       integer fi0,la0,ng,ibeg0,iend0
-      double complex
+      complex(8)
      &  array(1)
 c     =============================================================
 
@@ -291,7 +291,7 @@ c
 c     =============================================================
       implicit none
       integer fi0,la0,ng,ibeg0,iend0
-      double complex
+      complex(8)
      &  array(1)
 c     =============================================================
 
@@ -347,7 +347,7 @@ c
 c     =============================================================
       implicit none
       integer fi0,la0,ng,ibeg0,iend0
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+1+ng)
       integer ie0
 c     =============================================================
@@ -406,7 +406,7 @@ c
 c     =============================================================
       implicit none
       integer fi0,la0,ng,ibeg0,iend0
-      double complex
+      complex(8)
      &  array(fi0-ng:la0+ng)
       integer ie0
 c     =============================================================

@@ -269,6 +269,14 @@ c
       integer ipivot0,ipivot1
       integer edge_loc0,edge_loc1
       double precision    dirsign0,dirsign1
+
+      ! fix some uninitialized variable warnings
+      dirsign0  = HUGE(0.d0)
+      dirsign1  = HUGE(0.d0)
+      edge_loc0 = HUGE(0)
+      edge_loc1 = HUGE(0)
+      ipivot0   = HUGE(0)
+      ipivot1   = HUGE(0)
 c
 c***********************************************************************
 c***********************************************************************

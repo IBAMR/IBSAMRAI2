@@ -929,14 +929,8 @@ yydestruct (yytype, yyvaluep)
 #endif
 {
   /* Pacify ``unused variable'' warnings.  */
-  if(0) {char *temp = (char *)&yyvaluep; temp++;}
-
-  switch (yytype)
-    {
-
-      default:
-        break;
-    }
+    (void)yytype;
+    (void)yyvaluep;
 }
 
 
