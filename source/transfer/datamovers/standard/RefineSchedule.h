@@ -584,6 +584,11 @@ private:
    tbox::Pointer< hier::PatchLevel<DIM> > d_dst_level;
 
    /*!
+    * Whether source and destination data live on the same patch level.
+    */
+   bool d_source_level_is_destination;
+
+   /*!
     * Object supporting interface to user-defined boundary filling and
     * spatial data interpolation operations.
     */
@@ -746,4 +751,3 @@ private:
 #endif
 
 #endif
-

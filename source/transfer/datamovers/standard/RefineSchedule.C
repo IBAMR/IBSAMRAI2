@@ -20,6 +20,7 @@
 #include "ComponentSelector.h"
 #include "Patch.h"
 #include "PatchData.h"
+#include "PatchDataFactory.h"
 #include "PatchGeometry.h"
 #include "tbox/ArenaManager.h"
 #include "tbox/InputManager.h"
@@ -135,6 +136,7 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    d_transaction_factory = transaction_factory;
 
    d_dst_level                 = dst_level;
+   d_source_level_is_destination = (dst_level == src_level);
 
    d_refine_patch_strategy     = patch_strategy;
 
@@ -266,6 +268,7 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    d_transaction_factory = transaction_factory;
 
    d_dst_level                 = dst_level;
+   d_source_level_is_destination = (dst_level == src_level);
 
    d_refine_patch_strategy     = patch_strategy;
 
@@ -383,6 +386,7 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    d_transaction_factory = transaction_factory;
 
    d_dst_level                 = dst_level;
+   d_source_level_is_destination = (dst_level == src_level);
 
    d_refine_patch_strategy     = patch_strategy;
 
@@ -975,6 +979,64 @@ template<int DIM> void RefineSchedule<DIM>::recursiveFill(
    if (!d_coarse_schedule.isNull()) {
 
       /*
+       * Coarse-to-fine interpolation may write values on the patch border
+       * that are also interior values of boundary-centered data.  When fine
+       * data has priority, the fine-priority communication schedule normally
+       * restores those values after interpolation.  That restoration cannot
+       * work when source and scratch are the same patch data object: the
+       * original fine values have already been overwritten.  Preserve the
+       * fine data adjacent to the coarse fill boxes for such transactions so
+       * that in-place and out-of-place fills have the same priority semantics.
+       */
+      tbox::Array<tbox::Array<tbox::Array<tbox::Pointer<hier::PatchData<DIM> > > > >
+         preserved_data(d_number_refine_items);
+      if (d_source_level_is_destination) {
+         tbox::Pointer<hier::PatchDescriptor<DIM> > patch_descriptor =
+            d_dst_level->getPatchDescriptor();
+         for (int iri = 0; iri < d_number_refine_items; ++iri) {
+            const typename xfer::RefineClasses<DIM>::Data* const refine_item =
+               d_refine_items[iri];
+            tbox::Pointer<hier::PatchDataFactory<DIM> > scratch_factory =
+               patch_descriptor->getPatchDataFactory(refine_item->d_scratch);
+            if (refine_item->d_fine_bdry_reps_var &&
+                scratch_factory->dataLivesOnPatchBorder() &&
+                refine_item->d_src == refine_item->d_scratch) {
+               const int scratch_id = refine_item->d_scratch;
+               tbox::Pointer<hier::PatchDataFactory<DIM> > backup_factory =
+                  scratch_factory->cloneFactory(s_constant_zero_intvector);
+               preserved_data[iri].resizeArray(d_coarse_level->getNumberOfPatches());
+               for (typename hier::PatchLevel<DIM>::Iterator p(d_coarse_level); p; p++) {
+                  const int mapping = d_coarse_to_fine_mapping[p()];
+                  tbox::Pointer<hier::Patch<DIM> > fine_patch =
+                     d_dst_level->getPatch(mapping);
+                  const hier::BoxList<DIM>& fill_boxes =
+                     d_fine_fill_boxes[p()].getBoxList();
+                  preserved_data[iri][p()].resizeArray(fill_boxes.getNumberOfItems());
+                  int box_num = 0;
+                  for (typename hier::BoxList<DIM>::Iterator b(fill_boxes); b; b++) {
+                     /*
+                      * Grow by one cell before intersecting the patch interior
+                      * since boundary-centered data in an adjacent fill box
+                      * share an index with data on the patch border.
+                      */
+                     const hier::Box<DIM> preserve_box =
+                        hier::Box<DIM>::grow(b(), s_constant_one_intvector) *
+                        fine_patch->getBox();
+                     if (!preserve_box.empty()) {
+                        preserved_data[iri][p()][box_num] = backup_factory->allocate(
+                           preserve_box,
+                           tbox::ArenaManager::getManager()->getScratchAllocator());
+                        preserved_data[iri][p()][box_num]->copy(
+                           *fine_patch->getPatchData(scratch_id));
+                     }
+                     ++box_num;
+                  }
+               }
+            }
+         }
+      }
+
+      /*
        * Allocate data on the coarser level and keep track of the allocated
        * components so that they may be deallocated later.
        */
@@ -995,6 +1057,29 @@ template<int DIM> void RefineSchedule<DIM>::recursiveFill(
        */
 
       refineScratchData();
+
+      /*
+       * Restore fine-priority data next to the coarse fill boxes before
+       * communicating fine data so that the usual patch-priority ordering
+       * still resolves values shared by neighboring patches.
+       */
+      for (int iri = 0; iri < d_number_refine_items; ++iri) {
+         if (preserved_data[iri].getSize() > 0) {
+            const int scratch_id = d_refine_items[iri]->d_scratch;
+            for (typename hier::PatchLevel<DIM>::Iterator p(d_coarse_level); p; p++) {
+               const int mapping = d_coarse_to_fine_mapping[p()];
+               tbox::Pointer<hier::Patch<DIM> > fine_patch =
+                  d_dst_level->getPatch(mapping);
+               const int num_boxes = preserved_data[iri][p()].getSize();
+               for (int box_num = 0; box_num < num_boxes; ++box_num) {
+                  if (!preserved_data[iri][p()][box_num].isNull()) {
+                     fine_patch->getPatchData(scratch_id)->copy(
+                        *preserved_data[iri][p()][box_num]);
+                  }
+               }
+            }
+         }
+      }
 
       /*
        * Deallocate the scratch data from the coarse grid.
