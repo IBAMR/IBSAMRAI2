@@ -6,8 +6,8 @@
 #define INCLUDED_SAMRAI_CONFIG_H
 
 #define SAMRAI_VERSION_MAJOR 2026
-#define SAMRAI_VERSION_MINOR 06
-#define SAMRAI_VERSION_PATCHLEVEL 21
+#define SAMRAI_VERSION_MINOR 9
+#define SAMRAI_VERSION_PATCHLEVEL 3
 
 
 /* Define if bool type is not properly supported */
