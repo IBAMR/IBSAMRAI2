@@ -106,7 +106,7 @@ public:
 
 private:
    // The following two functions are not implemented
-   OuteredgeSumTransactionFactory<DIM>(const OuteredgeSumTransactionFactory<DIM>&);
+   OuteredgeSumTransactionFactory(const OuteredgeSumTransactionFactory<DIM>&);
    void operator=(const OuteredgeSumTransactionFactory<DIM>&);
 
    const typename xfer::RefineClasses<DIM>::Data** d_refine_items;

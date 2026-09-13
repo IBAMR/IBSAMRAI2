@@ -12,6 +12,9 @@
 
 #include "SAMRAI_config.h"
 
+#include <algorithm>
+#include <functional>
+
 namespace SAMRAI {
     namespace pdat {
 

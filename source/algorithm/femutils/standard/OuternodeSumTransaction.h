@@ -148,7 +148,7 @@ public:
    virtual void printClassData(std::ostream& stream) const;
 
 private:
-   OuternodeSumTransaction<DIM>(const OuternodeSumTransaction<DIM>&); // not implemented
+   OuternodeSumTransaction(const OuternodeSumTransaction<DIM>&); // not implemented
    void operator=(const OuternodeSumTransaction<DIM>&); // not implemented
 
    static const typename xfer::RefineClasses<DIM>::Data** s_refine_items;

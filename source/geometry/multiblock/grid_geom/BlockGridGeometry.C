@@ -125,7 +125,7 @@ template<int DIM>  BlockGridGeometry<DIM>::BlockGridGeometry(
          registerRestartItem(d_object_name, this);
    }
 
-   setPhysicalDomain(domain);
+   this->setPhysicalDomain(domain);
 
    makeStandardOperators();
 
@@ -255,32 +255,32 @@ template<int DIM> void BlockGridGeometry<DIM>::makeStandardOperators()
     * Standard linear time interpolation operators.
     */
 #ifdef HAVE_DCOMPLEX
-   addTimeInterpolateOperator(new pdat::CellComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::SideComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::FaceComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::NodeComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OuterfaceComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OutersideComplexLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::SideComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::CellComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::SideComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::FaceComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::NodeComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OuterfaceComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OutersideComplexLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::SideComplexLinearTimeInterpolateOp<DIM>());
 #endif
 
 #ifdef HAVE_FLOAT
-   addTimeInterpolateOperator(new pdat::CellFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::SideFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::FaceFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::NodeFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OuterfaceFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OutersideFloatLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::SideFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::CellFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::SideFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::FaceFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::NodeFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OuterfaceFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OutersideFloatLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::SideFloatLinearTimeInterpolateOp<DIM>());
 #endif
 
-   addTimeInterpolateOperator(new pdat::CellDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::SideDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::FaceDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::NodeDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OuterfaceDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::OutersideDoubleLinearTimeInterpolateOp<DIM>());
-   addTimeInterpolateOperator(new pdat::SideDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::CellDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::SideDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::FaceDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::NodeDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OuterfaceDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::OutersideDoubleLinearTimeInterpolateOp<DIM>());
+   this->addTimeInterpolateOperator(new pdat::SideDoubleLinearTimeInterpolateOp<DIM>());
 
 
 }
@@ -348,7 +348,7 @@ template<int DIM> void BlockGridGeometry<DIM>::putToDatabase(
    tbox::Array<tbox::DatabaseBox> temp_box_array = this -> getPhysicalDomain();
    db->putDatabaseBoxArray("d_physical_domain", temp_box_array);
 
-   hier::IntVector<DIM> level0_shift = getPeriodicShift(hier::IntVector<DIM>(1));
+   hier::IntVector<DIM> level0_shift = this->getPeriodicShift(hier::IntVector<DIM>(1));
    int* temp_shift = level0_shift;
    db->putIntegerArray("d_periodic_shift", temp_shift, DIM);
 
@@ -409,9 +409,9 @@ template<int DIM> void BlockGridGeometry<DIM>::getFromInput(
             db->getBool("use_original_location_indices");
       }
 
-      setPhysicalDomain(domain);
+      this->setPhysicalDomain(domain);
 
-      initializePeriodicShift(per_bc);
+      this->initializePeriodicShift(per_bc);
 
      
    }
@@ -448,12 +448,12 @@ template<int DIM> void BlockGridGeometry<DIM>::getFromRestart()
    }
    hier::BoxArray<DIM> domain = db->getDatabaseBoxArray("d_physical_domain");
 
-   setPhysicalDomain(domain);
+   this->setPhysicalDomain(domain);
 
    hier::IntVector<DIM> periodic_shift;
    int* temp_shift = periodic_shift;
    db->getIntegerArray("d_periodic_shift", temp_shift, DIM);
-   initializePeriodicShift(periodic_shift);
+   this->initializePeriodicShift(periodic_shift);
  
    d_using_original_locations = db->getBool("d_using_original_locations");
 }

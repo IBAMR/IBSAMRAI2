@@ -43,7 +43,7 @@ public:
     * patch boundary information and the ratio to the coarsest level to
     * hier::PatchGeometry constructor.
     */
-   SkeletonPatchGeometry<DIM>(
+   SkeletonPatchGeometry(
       const hier::IntVector<DIM>& ratio_to_level_zero,
       const tbox::Array< tbox::Array<bool> >& touches_regular_bdry,
       const tbox::Array< tbox::Array<bool> >& touches_periodic_bdry);

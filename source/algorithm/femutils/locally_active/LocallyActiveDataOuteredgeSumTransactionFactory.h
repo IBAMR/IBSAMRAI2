@@ -110,7 +110,7 @@ public:
 
 private:
    // The following two functions are not implemented
-   LocallyActiveDataOuteredgeSumTransactionFactory<DIM>(
+   LocallyActiveDataOuteredgeSumTransactionFactory(
       const LocallyActiveDataOuteredgeSumTransactionFactory<DIM>&);
    void operator=(const LocallyActiveDataOuteredgeSumTransactionFactory<DIM>&);
 

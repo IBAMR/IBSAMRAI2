@@ -152,7 +152,7 @@ public:
    virtual void printClassData(std::ostream& stream) const;
 
 private:
-   OuteredgeSumTransaction<DIM>(const OuteredgeSumTransaction<DIM>&); // not implemented
+   OuteredgeSumTransaction(const OuteredgeSumTransaction<DIM>&); // not implemented
    void operator=(const OuteredgeSumTransaction<DIM>&); // not implemented
 
    static const typename xfer::RefineClasses<DIM>::Data** s_refine_items;
