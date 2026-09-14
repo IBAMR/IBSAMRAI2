@@ -121,7 +121,7 @@ void LocallyActiveDataFillBoxSet<DIM>::setTo(
 
       this->clearLocallyActiveFillBoxData();
 
-      resetFillBoxes(la_fill_box_set.getBoxList());
+      this->resetFillBoxes(la_fill_box_set.getBoxList());
       const hier::BoxList<DIM>& new_boxes = FillBoxSet<DIM>::getBoxList();
 
       typename tbox::List< xfer::LocallyActiveDataFillBox<DIM> >::Iterator 
@@ -164,7 +164,7 @@ void LocallyActiveDataFillBoxSet<DIM>::resetLocallyActiveFillBoxes(
 
       d_refine_data = true;
 
-      resetFillBoxes(box);
+      this->resetFillBoxes(box);
       clearLocallyActiveFillBoxData(); 
 
       xfer::LocallyActiveDataFillBox<DIM> fill_box(FillBoxSet<DIM>::getBoundingBox(),
@@ -194,7 +194,7 @@ void LocallyActiveDataFillBoxSet<DIM>::resetLocallyActiveFillBoxes(
 
       d_refine_data = false;
 
-      resetFillBoxes(box);
+      this->resetFillBoxes(box);
       clearLocallyActiveFillBoxData();
 
       xfer::LocallyActiveDataFillBox<DIM> fill_box(FillBoxSet<DIM>::getBoundingBox(),
@@ -302,7 +302,7 @@ void LocallyActiveDataFillBoxSet<DIM>::intersectBoxes(const hier::Box<DIM>& box)
    }
 
    clearLocallyActiveFillBoxData();
-   resetFillBoxes(intersection_boxes);
+   this->resetFillBoxes(intersection_boxes);
 
    const hier::BoxList<DIM>& new_boxes = FillBoxSet<DIM>::getBoxList();
    typename tbox::List< xfer::LocallyActiveDataFillBox<DIM> >::Iterator 
@@ -367,7 +367,7 @@ void LocallyActiveDataFillBoxSet<DIM>::intersectBoxes(const hier::BoxList<DIM>& 
    }
 
    clearLocallyActiveFillBoxData();
-   resetFillBoxes(intersection_boxes);
+   this->resetFillBoxes(intersection_boxes);
 
    const hier::BoxList<DIM>& new_boxes = FillBoxSet<DIM>::getBoxList();
    typename tbox::List< xfer::LocallyActiveDataFillBox<DIM> >::Iterator 
