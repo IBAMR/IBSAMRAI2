@@ -63,18 +63,14 @@ void SAMRAI_MPI::setCallAbortInSerialInsteadOfExit(bool)
 {
 }
 
-void SAMRAI_MPI::abort()
+[[noreturn]] void SAMRAI_MPI::abort()
 {
 #ifdef HAVE_MPI
    if (getNodes() > 1) {
       MPI_Abort(s_communicator, -1);
-   } else {
-      std::abort();
    }
-#else
-   std::abort();
 #endif
-
+   std::abort();
 }
 
 /*

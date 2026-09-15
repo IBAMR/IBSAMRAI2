@@ -100,7 +100,7 @@ struct Utilities
     * Aborts the run after printing an error message with file and
     * linenumber information.
     */
-   static void abort(const std::string &message, 
+   [[noreturn]] static void abort(const std::string &message,
 		     const std::string &filename,
 		     const int line);
 
