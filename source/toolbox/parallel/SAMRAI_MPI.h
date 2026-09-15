@@ -92,7 +92,7 @@ struct SAMRAI_MPI
    /**
     * Call std::abort() in serial and MPI_Abort() in parallel.
     */
-   static void abort();
+   [[noreturn]] static void abort();
    
    /**
     * Call MPI_Init.  Use of this function avoids guarding MPI init calls

@@ -178,7 +178,7 @@ std::string Utilities::blockToString(int num) {
 /*
  * Routine that calls abort and prints calling location to error stream.
  */
-void Utilities::abort(const std::string &message, 
+[[noreturn]] void Utilities::abort(const std::string &message,
 	              const std::string &filename, 
 	              const int line) 
 {
