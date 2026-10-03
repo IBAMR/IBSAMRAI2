@@ -17,8 +17,11 @@
 #include <iostream>
 #endif
 
+#include <vector>
+
 #include "tbox/Array.h"
 #include "BoxList.h"
+#include "BoxOverlap.h"
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
@@ -584,11 +587,6 @@ private:
    tbox::Pointer< hier::PatchLevel<DIM> > d_dst_level;
 
    /*!
-    * Whether source and destination data live on the same patch level.
-    */
-   bool d_source_level_is_destination;
-
-   /*!
     * Object supporting interface to user-defined boundary filling and
     * spatial data interpolation operations.
     */
@@ -714,6 +712,23 @@ private:
     * This array has one entry for each local patch on the coarse patch level.
     */
    tbox::Array< xfer::FillBoxSet<DIM> > d_fine_fill_boxes;
+
+   /*!
+    * Data on the border of a destination patch that refining into the fine
+    * fill boxes also sets, for one refine item.
+    */
+   struct FineBorderData {
+      int d_dst_patch;
+      int d_refine_item;
+      tbox::Pointer< hier::BoxOverlap<DIM> > d_overlap;
+   };
+
+   /*!
+    * The data on destination patch borders that must be kept when filling
+    * in place.  This is empty unless the source and destination levels are
+    * the same.
+    */
+   std::vector<FineBorderData> d_fine_border_data;
 
    /*!
     * Arrays for overlaps and source mask boxes used in
