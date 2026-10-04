@@ -723,10 +723,20 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
               (rep_item.d_gcw_to_coarsen == s_constant_zero_intvector) ) {
             const hier::Box<DIM> src_region =
                hier::Box<DIM>::grow(src_box, s_constant_one_intvector);
-            hier::BoxList<DIM> src_boxes_nearby;
-            src_level->findOverlapBoxes(src_boxes_nearby, src_region);
-            hier::BoxList<DIM> uncovered_boxes(src_region);
-            uncovered_boxes.removeIntersections(src_boxes_nearby);
+            if (static_cast<int>(d_nearby_src_boxes.size()) !=
+                src_level->getNumberOfPatches()) {
+               d_nearby_src_boxes.assign(src_level->getNumberOfPatches(),
+                                         hier::BoxList<DIM>());
+               d_found_nearby_src_boxes.assign(
+                  src_level->getNumberOfPatches(), false);
+            }
+            if (!d_found_nearby_src_boxes[src_patch_id]) {
+               src_level->findOverlapBoxes(d_nearby_src_boxes[src_patch_id],
+                                           src_region);
+               d_found_nearby_src_boxes[src_patch_id] = true;
+            }
+            hier::BoxList<DIM> src_boxes_nearby(
+               d_nearby_src_boxes[src_patch_id]);
             src_boxes_nearby.shift(shift);
             tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
                dst_pdf->getBoxGeometry(dst_box);
@@ -749,6 +759,9 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
                }
                domain.grow(periodic_growth);
 
+               hier::BoxList<DIM> uncovered_boxes(src_region);
+               uncovered_boxes.removeIntersections(
+                  d_nearby_src_boxes[src_patch_id]);
                uncovered_boxes.intersectBoxes(domain);
                uncovered_boxes.shift(shift);
                overlap_off_interface =

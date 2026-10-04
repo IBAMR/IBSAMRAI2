@@ -16,6 +16,9 @@
 #include <iostream>
 #endif
 
+#include <vector>
+
+#include "BoxList.h"
 #include "IntVector.h"
 #include "ComponentSelector.h"
 #include "PatchLevel.h"
@@ -284,6 +287,13 @@ private:
     */
    static const hier::IntVector<DIM> s_constant_zero_intvector;
    static const hier::IntVector<DIM> s_constant_one_intvector;
+
+   /*!
+    * For each source patch, the source level boxes next to it, found when
+    * they are first needed to construct transactions.
+    */
+   std::vector< hier::BoxList<DIM> > d_nearby_src_boxes;
+   std::vector<bool> d_found_nearby_src_boxes;
 
    /*!
     * Selects algorithm used to generate communication schedule.

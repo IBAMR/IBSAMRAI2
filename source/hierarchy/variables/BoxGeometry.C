@@ -51,22 +51,67 @@ template<int DIM> void BoxGeometry<DIM>::computeOwnedDataBoxes(
    const BoxList<DIM>& level_boxes,
    const tbox::Array< IntVector<DIM> >& offsets)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT(offsets.getSize() > 0 && offsets[0] == IntVector<DIM>(0));
+#endif
+
    /*
     * The datum at a given offset from a cell of the box is owned by the
-    * box unless a cell of the level touches it at an earlier offset.
+    * box unless a cell of the level touches it at an earlier offset.  The
+    * first offset is zero, so the box owns every datum that has the index
+    * of one of its cells.
     */
-   for (int k = 0; k < offsets.getSize(); k++) {
-      BoxList<DIM> boxes(Box<DIM>::shift(box, offsets[k]));
-      for (int j = 0; j < k; j++) {
-         BoxList<DIM> taken(level_boxes);
-         taken.shift(offsets[j]);
-         boxes.removeIntersections(taken);
+   owned_boxes.appendItem(box);
+
+   /*
+    * The other data are on the upper border of the box, and the highest
+    * cell of the box that touches one of them is the one below it in the
+    * directions in which it is on the border.  So the data whose highest
+    * such cell is at a given offset form one box, and the box owns those
+    * that no level cell outside it touches at an earlier offset.  Only
+    * level cells next to the box can do that.
+    */
+   const Box<DIM> nearby_region(Box<DIM>::grow(box, IntVector<DIM>(1)));
+   BoxList<DIM> outside_boxes;
+   for (typename BoxList<DIM>::Iterator b(level_boxes); b; b++) {
+      const Box<DIM> nearby_box(b() * nearby_region);
+      if (nearby_box.empty() || box.contains(nearby_box)) {
+         continue;
+      }
+      if ((nearby_box * box).empty()) {
+         outside_boxes.appendItem(nearby_box);
+      } else {
+         BoxList<DIM> pieces(nearby_box);
+         pieces.removeIntersections(box);
+         for (typename BoxList<DIM>::Iterator p(pieces); p; p++) {
+            outside_boxes.appendItem(p());
+         }
+      }
+   }
+
+   for (int k = 1; k < offsets.getSize(); k++) {
+      Box<DIM> border_box(box);
+      for (int d = 0; d < DIM; d++) {
+#ifdef DEBUG_CHECK_ASSERTIONS
+         TBOX_ASSERT(offsets[k](d) == 0 || offsets[k](d) == 1);
+#endif
+         if (offsets[k](d) != 0) {
+            border_box.lower(d) = border_box.upper(d) = box.upper(d) + 1;
+         }
+      }
+      BoxList<DIM> boxes(border_box);
+      for (int j = 0; j < k && !boxes.isEmpty(); j++) {
+         for (typename BoxList<DIM>::Iterator b(outside_boxes); b; b++) {
+            const Box<DIM> taken(Box<DIM>::shift(b(), offsets[j]));
+            if (taken.intersects(border_box)) {
+               boxes.removeIntersections(taken);
+            }
+         }
       }
       for (typename BoxList<DIM>::Iterator b(boxes); b; b++) {
          owned_boxes.appendItem(b());
       }
    }
-   owned_boxes.coalesceBoxes();
 }
 
 template<int DIM> void BoxGeometry<DIM>::intersectOverlapBoxes(

@@ -798,8 +798,11 @@ void LocallyActiveDataCoarsenSchedule<DIM>::constructScheduleTransactions(
                               src_boxes_nearby,
                               hier::PatchDataId(l().d_src),
                               src_region);
-                           hier::BoxList<DIM> uncovered_boxes(src_region);
-                           uncovered_boxes.removeIntersections(src_boxes_nearby);
+                           hier::BoxList<DIM> uncovered_boxes;
+                           if (!l().d_fine_bdry_reps_var) {
+                              uncovered_boxes.appendItem(src_region);
+                              uncovered_boxes.removeIntersections(src_boxes_nearby);
+                           }
                            src_boxes_nearby.shift(shift);
                            tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
                               dst_pdf->getBoxGeometry(dst_box);
