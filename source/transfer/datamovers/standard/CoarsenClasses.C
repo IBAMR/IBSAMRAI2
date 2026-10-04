@@ -418,13 +418,10 @@ template<int DIM> int CoarsenClasses<DIM>::getEquivalenceClassIndex(
       }
 
       /*
-       * If src_id and dst_id are the same, there is nothing more to check.
-       * Otherwise, if destinations were equivalent, check if sources
-       * are equivalent.
+       * If destinations were equivalent, check if sources are equivalent
+       * to that of the class representative.
        */
-      if (dst_id == src_id) {
-         src_equiv = dst_equiv;
-      } else if (dst_equiv) {
+      if (dst_equiv) {
          int rep_src_id = class_rep.d_src;
          tbox::Pointer< hier::PatchDataFactory<DIM> > rep_src_pdf =
             pd->getPatchDataFactory(rep_src_id);
