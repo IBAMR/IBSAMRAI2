@@ -13,6 +13,7 @@
 #include "SAMRAI_config.h"
 #include "Box.h"
 #include "BoxGeometry.h"
+#include "BoxList.h"
 #include "BoxOverlap.h"
 #include "SideOverlap.h"
 #include "IntVector.h"
@@ -77,6 +78,23 @@ public:
       const bool overwrite_interior,
       const hier::IntVector<DIM>& src_offset,
       const bool retry) const;
+
+   /*!
+    * @brief Return the part of the given overlap whose destination data
+    * are owned by the given source box.
+    */
+   virtual tbox::Pointer< hier::BoxOverlap<DIM> > restrictOverlapToOwnedData(
+      const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
+      const hier::Box<DIM>& src_box,
+      const hier::BoxList<DIM>& level_boxes) const;
+
+   /*!
+    * @brief Return the part of the given overlap whose destination data
+    * are not touched by any cell of the given boxes.
+    */
+   virtual tbox::Pointer< hier::BoxOverlap<DIM> > removeOverlapOnBoxes(
+      const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
+      const hier::BoxList<DIM>& boxes) const;
 
    /*!
     * @brief Return the box for this side centered box geometry

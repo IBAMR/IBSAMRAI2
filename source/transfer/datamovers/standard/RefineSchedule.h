@@ -731,6 +731,14 @@ private:
    std::vector<FineBorderData> d_fine_border_data;
 
    /*!
+    * The source level boxes near the destination patch for which
+    * constructScheduleTransactions() was last called, and the number of
+    * that patch.
+    */
+   hier::BoxList<DIM> d_nearby_src_boxes;
+   int d_nearby_dst_patch_id;
+
+   /*!
     * Arrays for overlaps and source mask boxes used in
     * the private member function constructScheduleTransactions().
     *

@@ -188,6 +188,83 @@ tbox::Pointer< hier::BoxOverlap<DIM> > EdgeGeometry<DIM>::doOverlap(
    return(tbox::Pointer< hier::BoxOverlap<DIM> >(overlap));
 }
 
+/*
+*************************************************************************
+*                                                                       *
+* Restrict an overlap to the data owned by the source box.  An edge     *
+* in direction d is touched by the cell with the same index and by the  *
+* cells below it in any combination of the other directions.            *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
+EdgeGeometry<DIM>::restrictOverlapToOwnedData(
+   const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
+   const hier::Box<DIM>& src_box,
+   const hier::BoxList<DIM>& level_boxes) const
+{
+   const EdgeOverlap<DIM>* t_overlap =
+      dynamic_cast<const EdgeOverlap<DIM>*>(overlap.getPointer());
+   if (t_overlap == NULL) {
+      return(overlap);
+   }
+
+   hier::BoxList<DIM> dst_boxes[DIM];
+   for (int d = 0; d < DIM; d++) {
+      /*
+       * Bit i of k is the offset in direction i, so that the offsets are
+       * sorted with the last coordinate compared first.
+       */
+      tbox::Array< hier::IntVector<DIM> > offsets(1 << (DIM - 1));
+      int n = 0;
+      for (int k = 0; k < (1 << DIM); k++) {
+         if ((k >> d) & 1) continue;
+         for (int i = 0; i < DIM; i++) {
+            offsets[n](i) = (k >> i) & 1;
+         }
+         n++;
+      }
+      hier::BoxList<DIM> owned_boxes;
+      hier::BoxGeometry<DIM>::computeOwnedDataBoxes(
+         owned_boxes, src_box, level_boxes, offsets);
+      hier::BoxGeometry<DIM>::intersectOverlapBoxes(
+         dst_boxes[d], t_overlap->getDestinationBoxList(d), owned_boxes);
+   }
+
+   return(new EdgeOverlap<DIM>(dst_boxes, t_overlap->getSourceOffset()));
+}
+
+/*
+*************************************************************************
+*                                                                       *
+* Remove from an overlap the data touched by the cells of some boxes.   *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
+EdgeGeometry<DIM>::removeOverlapOnBoxes(
+   const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
+   const hier::BoxList<DIM>& boxes) const
+{
+   const EdgeOverlap<DIM>* t_overlap =
+      dynamic_cast<const EdgeOverlap<DIM>*>(overlap.getPointer());
+   if (t_overlap == NULL) {
+      return(overlap);
+   }
+
+   hier::BoxList<DIM> dst_boxes[DIM];
+   for (int d = 0; d < DIM; d++) {
+      dst_boxes[d] = t_overlap->getDestinationBoxList(d);
+      for (typename hier::BoxList<DIM>::Iterator b(boxes); b; b++) {
+         dst_boxes[d].removeIntersections(toEdgeBox(b(), d));
+      }
+   }
+
+   return(new EdgeOverlap<DIM>(dst_boxes, t_overlap->getSourceOffset()));
+}
+
 }
 }
 #endif

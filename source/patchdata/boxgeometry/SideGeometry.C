@@ -185,6 +185,76 @@ template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> > SideGeometry<DIM>::doOv
    return(tbox::Pointer< hier::BoxOverlap<DIM> >(overlap));
 }
 
+/*
+*************************************************************************
+*                                                                       *
+* Restrict an overlap to the data owned by the source box.  A side      *
+* with normal direction d is touched by the cell with the same index    *
+* and by the cell below it in direction d.                              *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
+SideGeometry<DIM>::restrictOverlapToOwnedData(
+   const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
+   const hier::Box<DIM>& src_box,
+   const hier::BoxList<DIM>& level_boxes) const
+{
+   const SideOverlap<DIM>* t_overlap =
+      dynamic_cast<const SideOverlap<DIM>*>(overlap.getPointer());
+   if (t_overlap == NULL) {
+      return(overlap);
+   }
+
+   hier::BoxList<DIM> dst_boxes[DIM];
+   tbox::Array< hier::IntVector<DIM> > offsets(2);
+   for (int d = 0; d < DIM; d++) {
+      if (d_directions(d)) {
+         offsets[0] = hier::IntVector<DIM>(0);
+         offsets[1] = hier::IntVector<DIM>(0);
+         offsets[1](d) = 1;
+         hier::BoxList<DIM> owned_boxes;
+         hier::BoxGeometry<DIM>::computeOwnedDataBoxes(
+            owned_boxes, src_box, level_boxes, offsets);
+         hier::BoxGeometry<DIM>::intersectOverlapBoxes(
+            dst_boxes[d], t_overlap->getDestinationBoxList(d), owned_boxes);
+      }
+   }
+
+   return(new SideOverlap<DIM>(dst_boxes, t_overlap->getSourceOffset()));
+}
+
+/*
+*************************************************************************
+*                                                                       *
+* Remove from an overlap the data touched by the cells of some boxes.   *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
+SideGeometry<DIM>::removeOverlapOnBoxes(
+   const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
+   const hier::BoxList<DIM>& boxes) const
+{
+   const SideOverlap<DIM>* t_overlap =
+      dynamic_cast<const SideOverlap<DIM>*>(overlap.getPointer());
+   if (t_overlap == NULL) {
+      return(overlap);
+   }
+
+   hier::BoxList<DIM> dst_boxes[DIM];
+   for (int d = 0; d < DIM; d++) {
+      dst_boxes[d] = t_overlap->getDestinationBoxList(d);
+      for (typename hier::BoxList<DIM>::Iterator b(boxes); b; b++) {
+         dst_boxes[d].removeIntersections(toSideBox(b(), d));
+      }
+   }
+
+   return(new SideOverlap<DIM>(dst_boxes, t_overlap->getSourceOffset()));
+}
+
 }
 }
 #endif

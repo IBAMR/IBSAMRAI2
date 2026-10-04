@@ -466,6 +466,12 @@ public:
     */
    tbox::Pointer< BoxTree<DIM> > getBoxTree();
 
+   /*!
+    * @brief Find the boxes of this level, including their periodic images,
+    * that intersect the given box.
+    */
+   void findOverlapBoxes(BoxList<DIM>& overlap_boxes, const Box<DIM>& box);
+
    /**
     * Returns pointer to BinaryTree 
     */

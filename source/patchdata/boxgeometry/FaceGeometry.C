@@ -180,6 +180,86 @@ tbox::Pointer< hier::BoxOverlap<DIM> > FaceGeometry<DIM>::doOverlap(
    return(tbox::Pointer< hier::BoxOverlap<DIM> >(overlap));
 }
 
+/*
+*************************************************************************
+*                                                                       *
+* Restrict an overlap to the data owned by the source box.  A face      *
+* with normal direction d is touched by the cell with the same index    *
+* and by the cell below it in direction d.  Face indices are permuted   *
+* so that the normal direction comes first.                             *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
+FaceGeometry<DIM>::restrictOverlapToOwnedData(
+   const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
+   const hier::Box<DIM>& src_box,
+   const hier::BoxList<DIM>& level_boxes) const
+{
+   const FaceOverlap<DIM>* t_overlap =
+      dynamic_cast<const FaceOverlap<DIM>*>(overlap.getPointer());
+   if (t_overlap == NULL) {
+      return(overlap);
+   }
+
+   hier::BoxList<DIM> dst_boxes[DIM];
+   tbox::Array< hier::IntVector<DIM> > offsets(2);
+   for (int d = 0; d < DIM; d++) {
+      offsets[0] = hier::IntVector<DIM>(0);
+      offsets[1] = hier::IntVector<DIM>(0);
+      offsets[1](d) = 1;
+      hier::BoxList<DIM> owned_boxes;
+      hier::BoxGeometry<DIM>::computeOwnedDataBoxes(
+         owned_boxes, src_box, level_boxes, offsets);
+
+      hier::BoxList<DIM> owned_face_boxes;
+      for (typename hier::BoxList<DIM>::Iterator b(owned_boxes); b; b++) {
+         hier::Box<DIM> face_box;
+         for (int i = 0; i < DIM; i++) {
+            face_box.lower(i) = b().lower((d + i) % DIM);
+            face_box.upper(i) = b().upper((d + i) % DIM);
+         }
+         owned_face_boxes.appendItem(face_box);
+      }
+
+      hier::BoxGeometry<DIM>::intersectOverlapBoxes(
+         dst_boxes[d], t_overlap->getDestinationBoxList(d), owned_face_boxes);
+   }
+
+   return(new FaceOverlap<DIM>(dst_boxes, t_overlap->getSourceOffset()));
+}
+
+/*
+*************************************************************************
+*                                                                       *
+* Remove from an overlap the data touched by the cells of some boxes.   *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
+FaceGeometry<DIM>::removeOverlapOnBoxes(
+   const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
+   const hier::BoxList<DIM>& boxes) const
+{
+   const FaceOverlap<DIM>* t_overlap =
+      dynamic_cast<const FaceOverlap<DIM>*>(overlap.getPointer());
+   if (t_overlap == NULL) {
+      return(overlap);
+   }
+
+   hier::BoxList<DIM> dst_boxes[DIM];
+   for (int d = 0; d < DIM; d++) {
+      dst_boxes[d] = t_overlap->getDestinationBoxList(d);
+      for (typename hier::BoxList<DIM>::Iterator b(boxes); b; b++) {
+         dst_boxes[d].removeIntersections(toFaceBox(b(), d));
+      }
+   }
+
+   return(new FaceOverlap<DIM>(dst_boxes, t_overlap->getSourceOffset()));
+}
+
 }
 }
 #endif
