@@ -672,6 +672,17 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
 
          hier::Box<DIM> dst_fill_box(hier::Box<DIM>::grow(dst_box, dst_gcw));
 
+         /*
+          * Nothing can be transferred from a source patch that does not
+          * even touch the region to be filled, so do not compute an
+          * overlap for it.
+          */
+         if ( (rep_item.d_gcw_to_coarsen == s_constant_zero_intvector) &&
+              !hier::Box<DIM>::grow(dst_fill_box, s_constant_one_intvector).
+                 intersects(shifted) ) {
+            continue;
+         }
+
          hier::Box<DIM> test_mask(dst_fill_box*shifted);
          if ( test_mask.empty() &&
               (dst_gcw == s_constant_zero_intvector) &&

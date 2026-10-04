@@ -502,12 +502,18 @@ private:
       tbox::Pointer<tbox::Schedule> fine_priority_schedule,
       tbox::Pointer<tbox::Schedule> coarse_priority_schedule,
       const hier::BoxList<DIM>& fill_boxes,
-      const hier::BoxList<DIM>* unfilled_boxes,
+      const hier::BoxList<DIM>* uncovered_boxes,
       tbox::Pointer< hier::PatchLevel<DIM> > dst_level,
       int dst_patch_id,
       tbox::Pointer< hier::PatchLevel<DIM> > src_level,
       int src_patch_id,
       bool use_time_interpolation);
+
+   /*!
+    * @brief Return whether some refine item moves data that live on patch
+    * borders and are taken only from the patches that own them.
+    */
+   bool ownedBorderDataAreTransferred() const;
 
    /*!
     * @brief This function is called from each constructor to cache local copies

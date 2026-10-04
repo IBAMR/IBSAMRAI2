@@ -1592,8 +1592,22 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                         if (src_next_to_fill_box) {
                            src_region.grow(s_constant_one_intvector);
                         }
+                        /*
+                         * When the fill box is the whole ghost box of the
+                         * data, source cells next to it on its upper sides
+                         * touch the data on its upper rim.
+                         */
+                        const bool src_above_ghost_box =
+                           !src_next_to_fill_box &&
+                           dst_pdf->dataLivesOnPatchBorder() &&
+                           (dst_fill_box ==
+                            hier::Box<DIM>::grow(dst_box, dst_gcw));
+                        if (src_above_ghost_box) {
+                           src_region.upper() += s_constant_one_intvector;
+                        }
                         hier::Box<DIM> test_mask(dst_fill_box*shifted);
-                        if (test_mask.empty() && src_next_to_fill_box) {
+                        if ( test_mask.empty() &&
+                             (src_next_to_fill_box || src_above_ghost_box) ) {
                            test_mask = src_region * shifted;
                         }
                         hier::Box<DIM> src_mask( hier::Box<DIM>::shift( test_mask,-shift) );
