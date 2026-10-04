@@ -131,6 +131,16 @@ public:
     * before a call to invoke the communication schedule.   Note that the 
     * source and destination components may be the same in any case.
     *
+    * Data that live on patch borders (e.g., node, side, face, and edge
+    * data) are also defined on the boundary between the source level and
+    * the rest of the destination level.  Destination data there are
+    * overwritten only if the source component on the boundary of the fine
+    * level represents the variable (see
+    * hier::Variable<DIM>::fineBoundaryRepresentsVariable()); otherwise they
+    * are left unchanged.  To coarsen fine boundary values in that case,
+    * coarsen them from a copy held in outernode, outerside, outerface, or
+    * outeredge data, which always represent the variable.
+    *
     * Some special circumstances require that data be coarsened from the 
     * ghost cell regions of a finer level and the resulting coarsened data 
     * should be copied to the destination patch level.  When this is the case, 

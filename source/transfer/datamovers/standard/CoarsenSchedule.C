@@ -705,22 +705,70 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
                        << "\n src mask = " << src_mask << std::endl);
          }
 
-         if (!overlap->isOverlapEmpty()) {
+         /*
+          * Data on patch borders are shared by the source patches that
+          * touch them, so take each such value only from the source patch
+          * that owns it.  For items whose source data on the boundary of
+          * the fine level do not represent the variable, also leave the
+          * destination data on the coarse-fine interface alone; these are
+          * the data touched by cells of the domain that the source level
+          * does not cover.
+          */
+         tbox::Pointer< hier::BoxOverlap<DIM> > overlap_off_interface = overlap;
+         if ( dst_pdf->dataLivesOnPatchBorder() &&
+              !overlap->isOverlapEmpty() ) {
+            const hier::Box<DIM> src_region =
+               hier::Box<DIM>::grow(shifted, s_constant_one_intvector);
+            hier::BoxList<DIM> src_boxes_nearby;
+            src_level->findOverlapBoxes(src_boxes_nearby, src_region);
+            tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
+               dst_pdf->getBoxGeometry(dst_box);
+            overlap = dst_geometry->restrictOverlapToOwnedData(
+               overlap, shifted, src_boxes_nearby);
+            overlap_off_interface = overlap;
 
-            for (typename tbox::List<typename xfer::CoarsenClasses<DIM>::Data>::Iterator 
+            bool fine_bdry_reps_var = true;
+            for (typename tbox::List<typename xfer::CoarsenClasses<DIM>::Data>::Iterator
                     l(d_coarsen_classes->getIterator(nc)); l; l++) {
+               fine_bdry_reps_var = fine_bdry_reps_var && l().d_fine_bdry_reps_var;
+            }
+            if (!fine_bdry_reps_var) {
+               hier::BoxList<DIM> domain(dst_level->getPhysicalDomain());
+               const hier::IntVector<DIM> periodic_shift =
+                  dst_level->getGridGeometry()->getPeriodicShift(dst_level->getRatio());
+               hier::IntVector<DIM> periodic_growth(0);
+               for (int d = 0; d < DIM; d++) {
+                  if (periodic_shift(d) != 0) periodic_growth(d) = 1;
+               }
+               domain.grow(periodic_growth);
+
+               hier::BoxList<DIM> uncovered_boxes(src_region);
+               uncovered_boxes.removeIntersections(src_boxes_nearby);
+               uncovered_boxes.intersectBoxes(domain);
+               overlap_off_interface =
+                  dst_geometry->removeOverlapOnBoxes(overlap, uncovered_boxes);
+            }
+         }
+
+         for (typename tbox::List<typename xfer::CoarsenClasses<DIM>::Data>::Iterator 
+                 l(d_coarsen_classes->getIterator(nc)); l; l++) {
+
+            const tbox::Pointer< hier::BoxOverlap<DIM> >& item_overlap =
+               l().d_fine_bdry_reps_var ? overlap : overlap_off_interface;
+
+            if (!item_overlap->isOverlapEmpty()) {
 
                d_schedule->addTransaction(
                   d_transaction_factory->allocate(dst_level,
                                                   src_level,
-                                                  overlap,
+                                                  item_overlap,
                                                   dst_patch_id,
                                                   src_patch_id,
                                                   l().d_tag) );
 
-            } // iterate over coarsen components in equivalence class
+            }
 
-         }
+         } // iterate over coarsen components in equivalence class
 
       }  // iterate over all coarsen equivalence classes
 
