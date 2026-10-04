@@ -842,9 +842,14 @@ template<int DIM> void RefineSchedule<DIM>::finishScheduleConstruction(
             tbox::Pointer< hier::PatchDataFactory<DIM> > factory =
                d_dst_level->getPatchDescriptor()->
                   getPatchDataFactory(rep_item.d_scratch);
-            if (!rep_item.d_fine_bdry_reps_var ||
-                rep_item.d_oprefine.isNull() ||
-                !factory->dataLivesOnPatchBorder()) continue;
+            bool keep_border_data = false;
+            for (typename tbox::List<typename xfer::RefineClasses<DIM>::Data>::Iterator
+                    l(d_refine_classes->getIterator(nc)); l; l++) {
+               if (l().d_fine_bdry_reps_var && !l().d_oprefine.isNull()) {
+                  keep_border_data = true;
+               }
+            }
+            if (!keep_border_data || !factory->dataLivesOnPatchBorder()) continue;
 
             factory = factory->cloneFactory(s_constant_zero_intvector);
             for (typename hier::PatchLevel<DIM>::Iterator p(d_coarse_level); p; p++) {
@@ -861,8 +866,10 @@ template<int DIM> void RefineSchedule<DIM>::finishScheduleConstruction(
                   if (border_data.d_overlap->isOverlapEmpty()) continue;
                   for (typename tbox::List<typename xfer::RefineClasses<DIM>::Data>::Iterator
                           l(d_refine_classes->getIterator(nc)); l; l++) {
-                     border_data.d_refine_item = l().d_tag;
-                     d_fine_border_data.push_back(border_data);
+                     if (l().d_fine_bdry_reps_var && !l().d_oprefine.isNull()) {
+                        border_data.d_refine_item = l().d_tag;
+                        d_fine_border_data.push_back(border_data);
+                     }
                   }
                }
             }
