@@ -289,11 +289,15 @@ private:
    static const hier::IntVector<DIM> s_constant_one_intvector;
 
    /*!
-    * For each source patch, the source level boxes next to it, found when
-    * they are first needed to construct transactions.
+    * For each source patch, the source level boxes next to it, and for
+    * each coarsen equivalence class and source patch the border data owned
+    * by those boxes (see hier::BoxGeometry<DIM>::computeOwnedBorderData()).
+    * Both are found when they are first needed to construct transactions.
     */
    std::vector< hier::BoxList<DIM> > d_nearby_src_boxes;
    std::vector<bool> d_found_nearby_src_boxes;
+   std::vector< tbox::Array< hier::BoxList<DIM> > > d_owned_border_data;
+   std::vector<bool> d_found_owned_border_data;
 
    /*!
     * Selects algorithm used to generate communication schedule.

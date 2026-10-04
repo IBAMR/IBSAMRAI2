@@ -1449,19 +1449,22 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
 
    /*
     * For data that live on patch borders, the region from which each fill
-    * box can be given data, and for each refine item the boxes of the
-    * source patches near the destination patch on which its source data
-    * are active.  The latter are found when they are first needed.
+    * box can be given data, and for each refine item the border data owned
+    * by the cells of the source patches on which its source data are
+    * active that can supply data to the destination patch (see
+    * hier::BoxGeometry<DIM>::computeOwnedBorderData()).  The latter are
+    * found when they are first needed.
     */
    std::vector< hier::Box<DIM> > src_regions(d_max_fill_boxes);
-   std::vector< hier::BoxList<DIM> > nearby_src_boxes(d_number_refine_items);
-   std::vector<bool> found_nearby_src_boxes(d_number_refine_items);
+   std::vector< tbox::Array< hier::BoxList<DIM> > >
+      owned_border_data(d_number_refine_items);
+   std::vector<bool> found_owned_border_data(d_number_refine_items);
 
    for (int dst_patch_id = 0; dst_patch_id < dst_npatches; dst_patch_id++) {
 
       const hier::Box<DIM>& dst_box = dst_boxes[dst_patch_id]; 
 
-      found_nearby_src_boxes.assign(d_number_refine_items, false);
+      found_owned_border_data.assign(d_number_refine_items, false);
 
       hier::Box<DIM> dst_box_plus_ghosts = dst_box;
       dst_box_plus_ghosts.grow(dst_growth);
@@ -1659,38 +1662,32 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                                  d_overlaps[i];
                               if ( dst_pdf->dataLivesOnPatchBorder() &&
                                    !overlap->isOverlapEmpty() ) {
-                                 if (!found_nearby_src_boxes[ritem_count]) {
+                                 tbox::Pointer< hier::BoxGeometry<DIM> >
+                                    dst_geometry = dst_pdf->getBoxGeometry(dst_box);
+                                 if (!found_owned_border_data[ritem_count]) {
+                                    hier::BoxList<DIM> supplied_region;
+                                    for (int j = 0; j < num_fill_boxes; j++) {
+                                       if (!src_regions[j].empty()) {
+                                          supplied_region.appendItem(src_regions[j]);
+                                       }
+                                    }
+                                    hier::BoxList<DIM> supplying_src_boxes;
                                     src_level_mgr->findActiveOverlapBoxes(
-                                       nearby_src_boxes[ritem_count],
+                                       supplying_src_boxes,
                                        hier::PatchDataId(src_id),
                                        hier::Box<DIM>::grow(
                                           dst_box,
                                           hier::IntVector<DIM>(max_gcw + 1)));
-                                    found_nearby_src_boxes[ritem_count] = true;
+                                    supplying_src_boxes.intersectBoxes(supplied_region);
+                                    dst_geometry->computeOwnedBorderData(
+                                       owned_border_data[ritem_count],
+                                       supplying_src_boxes);
+                                    found_owned_border_data[ritem_count] = true;
                                  }
-                                 const hier::Box<DIM> src_cells(
-                                    src_regions[i] * shifted);
-                                 const hier::Box<DIM> near_region(
-                                    hier::Box<DIM>::grow(
-                                       src_cells, s_constant_one_intvector));
-                                 hier::BoxList<DIM> near_src_boxes;
-                                 for (typename hier::BoxList<DIM>::Iterator
-                                         b(nearby_src_boxes[ritem_count]); b; b++) {
-                                    const hier::Box<DIM> box(b() * near_region);
-                                    if (!box.empty()) near_src_boxes.appendItem(box);
-                                 }
-                                 hier::BoxList<DIM> near_supplied_region;
-                                 for (int j = 0; j < num_fill_boxes; j++) {
-                                    const hier::Box<DIM> box(
-                                       src_regions[j] * near_region);
-                                    if (!box.empty()) {
-                                       near_supplied_region.appendItem(box);
-                                    }
-                                 }
-                                 near_src_boxes.intersectBoxes(near_supplied_region);
-                                 overlap = dst_pdf->getBoxGeometry(dst_box)->
-                                    restrictOverlapToOwnedData(
-                                       overlap, src_cells, near_src_boxes);
+                                 overlap = dst_geometry->restrictOverlapToOwnedData(
+                                    overlap,
+                                    src_regions[i] * shifted,
+                                    owned_border_data[ritem_count]);
                               }
 
                               if (!overlap->isOverlapEmpty()) {

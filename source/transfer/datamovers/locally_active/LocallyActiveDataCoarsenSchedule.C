@@ -798,6 +798,7 @@ void LocallyActiveDataCoarsenSchedule<DIM>::constructScheduleTransactions(
                               src_boxes_nearby,
                               hier::PatchDataId(l().d_src),
                               src_region);
+                           src_boxes_nearby.intersectBoxes(src_region);
                            hier::BoxList<DIM> uncovered_boxes;
                            if (!l().d_fine_bdry_reps_var) {
                               uncovered_boxes.appendItem(src_region);
@@ -806,8 +807,11 @@ void LocallyActiveDataCoarsenSchedule<DIM>::constructScheduleTransactions(
                            src_boxes_nearby.shift(shift);
                            tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
                               dst_pdf->getBoxGeometry(dst_box);
+                           tbox::Array< hier::BoxList<DIM> > owned_border_data;
+                           dst_geometry->computeOwnedBorderData(
+                              owned_border_data, src_boxes_nearby);
                            item_overlap = dst_geometry->restrictOverlapToOwnedData(
-                              overlap, shifted, src_boxes_nearby);
+                              overlap, shifted, owned_border_data);
 
                            if (!l().d_fine_bdry_reps_var) {
                               hier::BoxList<DIM> domain(dst_level->getPhysicalDomain());

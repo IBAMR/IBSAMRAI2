@@ -2148,17 +2148,29 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
                   d_nearby_src_boxes,
                   hier::Box<DIM>::grow(dst_box, hier::IntVector<DIM>(growth.max() + 1)));
                d_nearby_dst_patch_id = dst_patch_id;
-               d_supplied_regions.resize(num_equiv_classes);
-               d_found_supplied_regions.assign(num_equiv_classes, false);
+               d_owned_border_data.resize(num_equiv_classes);
+               d_found_owned_border_data.assign(num_equiv_classes, false);
             }
-            if (!d_found_supplied_regions[nc]) {
-               d_supplied_regions[nc].clearItems();
+            if (!d_found_owned_border_data[nc]) {
+               hier::BoxList<DIM> supplied_region;
                for (typename hier::BoxList<DIM>::Iterator b(fill_boxes); b; b++) {
                   hier::Box<DIM> box(hier::Box<DIM>::grow(dst_box, dst_gcw) * b());
                   if (src_next_to_fill_box) box.grow(s_constant_one_intvector);
-                  if (!box.empty()) d_supplied_regions[nc].appendItem(box);
+                  if (!box.empty()) supplied_region.appendItem(box);
                }
-               d_found_supplied_regions[nc] = true;
+               /*
+                * The supplying source cells are those of the supplied
+                * region that the source level covers.  Remove the part
+                * that it does not cover, which is usually empty, rather
+                * than intersecting with every nearby source box.
+                */
+               hier::BoxList<DIM> uncovered_region(supplied_region);
+               uncovered_region.removeIntersections(d_nearby_src_boxes);
+               hier::BoxList<DIM> supplying_src_boxes(supplied_region);
+               supplying_src_boxes.removeIntersections(uncovered_region);
+               dst_pdf->getBoxGeometry(dst_box)->computeOwnedBorderData(
+                  d_owned_border_data[nc], supplying_src_boxes);
+               d_found_owned_border_data[nc] = true;
             }
          }
 
@@ -2224,28 +2236,8 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
 #endif
 
             if (restrict_to_owned_data && !overlap->isOverlapEmpty()) {
-               /*
-                * Only the supplying source cells next to the source cells
-                * of this transaction can own data that it would set.
-                */
-               const hier::Box<DIM> src_cells(src_region * shifted);
-               const hier::Box<DIM> near_region(
-                  hier::Box<DIM>::grow(src_cells, s_constant_one_intvector));
-               hier::BoxList<DIM> near_src_boxes;
-               for (typename hier::BoxList<DIM>::Iterator
-                       b(d_nearby_src_boxes); b; b++) {
-                  const hier::Box<DIM> box(b() * near_region);
-                  if (!box.empty()) near_src_boxes.appendItem(box);
-               }
-               hier::BoxList<DIM> near_supplied_region;
-               for (typename hier::BoxList<DIM>::Iterator
-                       b(d_supplied_regions[nc]); b; b++) {
-                  const hier::Box<DIM> box(b() * near_region);
-                  if (!box.empty()) near_supplied_region.appendItem(box);
-               }
-               near_src_boxes.intersectBoxes(near_supplied_region);
                overlap = dst_geometry->restrictOverlapToOwnedData(
-                  overlap, src_cells, near_src_boxes);
+                  overlap, src_region * shifted, d_owned_border_data[nc]);
             }
 
 	    d_src_masks[box_num] = src_mask;

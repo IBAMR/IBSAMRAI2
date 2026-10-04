@@ -195,30 +195,47 @@ template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> > SideGeometry<DIM>::doOv
 *************************************************************************
 */
 
+template<int DIM> void
+SideGeometry<DIM>::computeOwnedBorderData(
+   tbox::Array< hier::BoxList<DIM> >& owned_border_data,
+   const hier::BoxList<DIM>& level_boxes) const
+{
+   hier::BoxList<DIM> boxes(level_boxes);
+   boxes.coalesceBoxes();
+
+   owned_border_data.resizeArray(DIM);
+   hier::IntVector<DIM> offsets[2];
+   for (int d = 0; d < DIM; d++) {
+      offsets[0] = hier::IntVector<DIM>(0);
+      offsets[1] = hier::IntVector<DIM>(0);
+      offsets[1](d) = 1;
+      hier::BoxGeometry<DIM>::computeOwnedBorderBoxes(
+         owned_border_data, d, boxes, offsets, 2);
+   }
+}
+
 template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
 SideGeometry<DIM>::restrictOverlapToOwnedData(
    const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
    const hier::Box<DIM>& src_box,
-   const hier::BoxList<DIM>& level_boxes) const
+   const tbox::Array< hier::BoxList<DIM> >& owned_border_data) const
 {
    const SideOverlap<DIM>* t_overlap =
       dynamic_cast<const SideOverlap<DIM>*>(overlap.getPointer());
-   if (t_overlap == NULL) {
+   if (t_overlap == NULL || owned_border_data.getSize() != DIM) {
       return(overlap);
    }
 
    hier::BoxList<DIM> dst_boxes[DIM];
-   tbox::Array< hier::IntVector<DIM> > offsets(2);
+   hier::IntVector<DIM> offsets[2];
    for (int d = 0; d < DIM; d++) {
       if (d_directions(d)) {
          offsets[0] = hier::IntVector<DIM>(0);
          offsets[1] = hier::IntVector<DIM>(0);
          offsets[1](d) = 1;
-         hier::BoxList<DIM> owned_boxes;
-         hier::BoxGeometry<DIM>::computeOwnedDataBoxes(
-            owned_boxes, src_box, level_boxes, offsets);
          hier::BoxGeometry<DIM>::intersectOverlapBoxes(
-            dst_boxes[d], t_overlap->getDestinationBoxList(d), owned_boxes);
+            dst_boxes[d], t_overlap->getDestinationBoxList(d), src_box,
+            owned_border_data, d, offsets, 2);
       }
    }
 

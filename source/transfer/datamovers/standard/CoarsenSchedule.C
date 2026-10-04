@@ -723,25 +723,44 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
               (rep_item.d_gcw_to_coarsen == s_constant_zero_intvector) ) {
             const hier::Box<DIM> src_region =
                hier::Box<DIM>::grow(src_box, s_constant_one_intvector);
-            if (static_cast<int>(d_nearby_src_boxes.size()) !=
-                src_level->getNumberOfPatches()) {
-               d_nearby_src_boxes.assign(src_level->getNumberOfPatches(),
-                                         hier::BoxList<DIM>());
-               d_found_nearby_src_boxes.assign(
-                  src_level->getNumberOfPatches(), false);
+            const int num_src_patches = src_level->getNumberOfPatches();
+            if (static_cast<int>(d_nearby_src_boxes.size()) != num_src_patches) {
+               d_nearby_src_boxes.assign(num_src_patches, hier::BoxList<DIM>());
+               d_found_nearby_src_boxes.assign(num_src_patches, false);
+               d_owned_border_data.assign(
+                  num_src_patches * num_equiv_classes,
+                  tbox::Array< hier::BoxList<DIM> >());
+               d_found_owned_border_data.assign(
+                  num_src_patches * num_equiv_classes, false);
             }
             if (!d_found_nearby_src_boxes[src_patch_id]) {
                src_level->findOverlapBoxes(d_nearby_src_boxes[src_patch_id],
                                            src_region);
+               d_nearby_src_boxes[src_patch_id].intersectBoxes(src_region);
                d_found_nearby_src_boxes[src_patch_id] = true;
             }
-            hier::BoxList<DIM> src_boxes_nearby(
-               d_nearby_src_boxes[src_patch_id]);
-            src_boxes_nearby.shift(shift);
             tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
                dst_pdf->getBoxGeometry(dst_box);
-            overlap = dst_geometry->restrictOverlapToOwnedData(
-               overlap, shifted, src_boxes_nearby);
+            const int cache_id = src_patch_id * num_equiv_classes + nc;
+            if (!d_found_owned_border_data[cache_id]) {
+               dst_geometry->computeOwnedBorderData(
+                  d_owned_border_data[cache_id],
+                  d_nearby_src_boxes[src_patch_id]);
+               d_found_owned_border_data[cache_id] = true;
+            }
+            if (shift == s_constant_zero_intvector) {
+               overlap = dst_geometry->restrictOverlapToOwnedData(
+                  overlap, shifted, d_owned_border_data[cache_id]);
+            } else {
+               tbox::Array< hier::BoxList<DIM> > shifted_border_data(
+                  d_owned_border_data[cache_id].getSize());
+               for (int i = 0; i < shifted_border_data.getSize(); i++) {
+                  shifted_border_data[i] = d_owned_border_data[cache_id][i];
+                  shifted_border_data[i].shift(shift);
+               }
+               overlap = dst_geometry->restrictOverlapToOwnedData(
+                  overlap, shifted, shifted_border_data);
+            }
             overlap_off_interface = overlap;
 
             bool fine_bdry_reps_var = true;

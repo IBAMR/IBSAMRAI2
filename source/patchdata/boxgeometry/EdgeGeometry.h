@@ -78,13 +78,21 @@ public:
       const bool retry) const;
 
    /*!
+    * @brief Find the data that the cells of the given level boxes own on
+    * their upper borders.
+    */
+   virtual void computeOwnedBorderData(
+      tbox::Array< hier::BoxList<DIM> >& owned_border_data,
+      const hier::BoxList<DIM>& level_boxes) const;
+
+   /*!
     * @brief Return the part of the given overlap whose destination data
-    * are owned by the given source box.
+    * are owned by cells of the given source box.
     */
    virtual tbox::Pointer< hier::BoxOverlap<DIM> > restrictOverlapToOwnedData(
       const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
       const hier::Box<DIM>& src_box,
-      const hier::BoxList<DIM>& level_boxes) const;
+      const tbox::Array< hier::BoxList<DIM> >& owned_border_data) const;
 
    /*!
     * @brief Return the part of the given overlap whose destination data

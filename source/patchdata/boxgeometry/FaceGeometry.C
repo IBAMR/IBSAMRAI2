@@ -191,40 +191,66 @@ tbox::Pointer< hier::BoxOverlap<DIM> > FaceGeometry<DIM>::doOverlap(
 *************************************************************************
 */
 
-template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
-FaceGeometry<DIM>::restrictOverlapToOwnedData(
-   const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
-   const hier::Box<DIM>& src_box,
+template<int DIM> void
+FaceGeometry<DIM>::computeOwnedBorderData(
+   tbox::Array< hier::BoxList<DIM> >& owned_border_data,
    const hier::BoxList<DIM>& level_boxes) const
 {
-   const FaceOverlap<DIM>* t_overlap =
-      dynamic_cast<const FaceOverlap<DIM>*>(overlap.getPointer());
-   if (t_overlap == NULL) {
-      return(overlap);
-   }
+   hier::BoxList<DIM> boxes(level_boxes);
+   boxes.coalesceBoxes();
 
-   hier::BoxList<DIM> dst_boxes[DIM];
-   tbox::Array< hier::IntVector<DIM> > offsets(2);
+   /*
+    * The index of a face with normal direction d starts with its
+    * component in direction d, so store the boxes in that order.
+    */
+   owned_border_data.resizeArray(DIM);
+   hier::IntVector<DIM> offsets[2];
    for (int d = 0; d < DIM; d++) {
       offsets[0] = hier::IntVector<DIM>(0);
       offsets[1] = hier::IntVector<DIM>(0);
       offsets[1](d) = 1;
-      hier::BoxList<DIM> owned_boxes;
-      hier::BoxGeometry<DIM>::computeOwnedDataBoxes(
-         owned_boxes, src_box, level_boxes, offsets);
+      hier::BoxGeometry<DIM>::computeOwnedBorderBoxes(
+         owned_border_data, d, boxes, offsets, 2);
 
-      hier::BoxList<DIM> owned_face_boxes;
-      for (typename hier::BoxList<DIM>::Iterator b(owned_boxes); b; b++) {
+      hier::BoxList<DIM> face_boxes;
+      for (typename hier::BoxList<DIM>::Iterator b(owned_border_data[d]); b; b++) {
          hier::Box<DIM> face_box;
          for (int i = 0; i < DIM; i++) {
             face_box.lower(i) = b().lower((d + i) % DIM);
             face_box.upper(i) = b().upper((d + i) % DIM);
          }
-         owned_face_boxes.appendItem(face_box);
+         face_boxes.appendItem(face_box);
       }
+      owned_border_data[d] = face_boxes;
+   }
+}
 
+template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
+FaceGeometry<DIM>::restrictOverlapToOwnedData(
+   const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
+   const hier::Box<DIM>& src_box,
+   const tbox::Array< hier::BoxList<DIM> >& owned_border_data) const
+{
+   const FaceOverlap<DIM>* t_overlap =
+      dynamic_cast<const FaceOverlap<DIM>*>(overlap.getPointer());
+   if (t_overlap == NULL || owned_border_data.getSize() != DIM) {
+      return(overlap);
+   }
+
+   hier::BoxList<DIM> dst_boxes[DIM];
+   hier::IntVector<DIM> offsets[2];
+   offsets[0] = hier::IntVector<DIM>(0);
+   offsets[1] = hier::IntVector<DIM>(0);
+   offsets[1](0) = 1;
+   for (int d = 0; d < DIM; d++) {
+      hier::Box<DIM> src_face_box;
+      for (int i = 0; i < DIM; i++) {
+         src_face_box.lower(i) = src_box.lower((d + i) % DIM);
+         src_face_box.upper(i) = src_box.upper((d + i) % DIM);
+      }
       hier::BoxGeometry<DIM>::intersectOverlapBoxes(
-         dst_boxes[d], t_overlap->getDestinationBoxList(d), owned_face_boxes);
+         dst_boxes[d], t_overlap->getDestinationBoxList(d), src_face_box,
+         owned_border_data, d, offsets, 2);
    }
 
    return(new FaceOverlap<DIM>(dst_boxes, t_overlap->getSourceOffset()));
