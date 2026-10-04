@@ -81,7 +81,7 @@ void LocallyActiveDataCoarsenAlgorithm<DIM>::registerCoarsen(
    data.d_dst                = dst;
    data.d_src                = src;
    data.d_fine_bdry_reps_var = hier::LocallyActiveVariableDatabase<DIM>::getDatabase()->
-                                  getPatchDescriptor()->getPatchDataFactory(dst)->
+                                  getPatchDescriptor()->getPatchDataFactory(src)->
                                      fineBoundaryRepresentsVariable();
    data.d_gcw_to_coarsen     = gcw_to_coarsen;
    data.d_opcoarsen          = opcoarsen;

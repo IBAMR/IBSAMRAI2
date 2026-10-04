@@ -207,6 +207,20 @@ public:
                            const PatchNumber& patch_number) const;
 
    /*!
+    * Find the boxes of the patches of the level on which the given patch
+    * data is active, including their periodic images, that intersect the
+    * given box.
+    *
+    * @param overlap_boxes  box list that is set to the boxes found.
+    * @param patch_data_id const reference to PatchDataId type indicating 
+    *                   the patch data index of interest. 
+    * @param box  box that the boxes found intersect.
+    */
+   void findActiveOverlapBoxes(hier::BoxList<DIM>& overlap_boxes,
+                               const PatchDataId& patch_data_id,
+                               const hier::Box<DIM>& box) const;
+
+   /*!
     * Return const reference to component selector indicating active/inactive 
     * patch data indices for given patch.
     *

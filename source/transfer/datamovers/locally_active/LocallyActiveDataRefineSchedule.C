@@ -23,6 +23,7 @@
 #include "PatchDescriptor.h"
 #include "ProcessorMapping.h"
 #include "tbox/ArenaManager.h"
+#include "tbox/MessageStream.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 #include "tbox/MathUtilities.h"
@@ -30,6 +31,9 @@
 #include "RefineCopyTransaction.h"
 
 #include "tbox/PIO.h"
+
+#include <utility>
+#include <vector>
 
 
 namespace SAMRAI {
@@ -798,6 +802,46 @@ void LocallyActiveDataRefineSchedule<DIM>::finishScheduleConstruction(
       }
 
       /*
+       * Interpolating into the fine fill boxes also sets the data on the
+       * borders of the destination patches that are shared with the fill
+       * boxes.  When the source and destination levels are the same, find
+       * those data for each refine item whose data live on patch borders,
+       * for which fine data take priority, and that has a refine operator,
+       * so that refineScratchData() can keep them when filling in place.
+       */
+
+      if (src_level == d_dst_level) {
+         for (typename hier::PatchLevel<DIM>::Iterator p(d_coarse_level); p; p++) {
+            const int fp = d_coarse_to_fine_mapping[p()];
+            const hier::Box<DIM>& fine_box = d_dst_level->getBoxes()[fp];
+            for (typename tbox::List< xfer::LocallyActiveDataFillBox<DIM> >::Iterator
+                    fbi(d_la_fine_fill_boxes[p()].getLocallyActiveDataBoxes()); fbi; fbi++) {
+               for (typename tbox::List<const typename xfer::RefineClasses<DIM>::Data*>::Iterator
+                       vi(fbi().getActiveRefineVarData()); vi; vi++) {
+                  tbox::Pointer< hier::PatchDataFactory<DIM> > factory =
+                     d_dst_level->getPatchDescriptor()->
+                        getPatchDataFactory(vi()->d_scratch);
+                  if (!vi()->d_fine_bdry_reps_var ||
+                      (vi()->d_oprefine).isNull() ||
+                      !factory->dataLivesOnPatchBorder()) continue;
+
+                  factory = factory->cloneFactory(s_constant_zero_intvector);
+                  FineBorderData border_data;
+                  border_data.d_dst_patch = fp;
+                  border_data.d_refine_item = vi()->d_tag;
+                  border_data.d_overlap =
+                     factory->getBoxGeometry(fine_box)->calculateOverlap(
+                        *factory->getBoxGeometry(fbi().getBox()),
+                        fbi().getBox(), true, s_constant_zero_intvector);
+                  if (!border_data.d_overlap->isOverlapEmpty()) {
+                     d_fine_border_data.push_back(border_data);
+                  }
+               }
+            }
+         }
+      }
+
+      /*
        * Recursively fill the coarse schedule using the private
        * refine schedule constructor.
        */
@@ -1140,6 +1184,36 @@ void LocallyActiveDataRefineSchedule<DIM>::refineScratchData() const
       d_dst_level->getRatio() / d_coarse_level->getRatio();
 
    /*
+    * When fine data take priority, the fine priority schedule normally
+    * resets the data on patch borders that are set below by copying the
+    * source data over them.  There is no such transaction when the source
+    * and scratch data are the same patch data object, so save those values
+    * here and restore them after refining.
+    */
+
+   std::vector< std::pair< hier::PatchData<DIM>*,
+                           const hier::BoxOverlap<DIM>* > > saved_data;
+   int saved_data_size = 0;
+   for (size_t i = 0; i < d_fine_border_data.size(); i++) {
+      const FineBorderData& border_data = d_fine_border_data[i];
+      const typename xfer::RefineClasses<DIM>::Data* const ref_item =
+         d_refine_items[border_data.d_refine_item];
+      if (ref_item->d_src == ref_item->d_scratch) {
+         hier::PatchData<DIM>* const data = d_dst_level->
+            getPatch(border_data.d_dst_patch)->
+            getPatchData(ref_item->d_scratch).getPointer();
+         saved_data.push_back(std::make_pair(
+            data, border_data.d_overlap.getPointer()));
+         saved_data_size += data->getDataStreamSize(*border_data.d_overlap);
+      }
+   }
+   tbox::MessageStream saved_data_stream(saved_data_size,
+                                         tbox::MessageStream::Write);
+   for (size_t i = 0; i < saved_data.size(); i++) {
+      saved_data[i].first->packStream(saved_data_stream, *saved_data[i].second);
+   }
+
+   /*
     * Loop over all the coarse patches and find the corresponding destination
     * patch and destination fill boxes.
     */
@@ -1201,6 +1275,11 @@ void LocallyActiveDataRefineSchedule<DIM>::refineScratchData() const
                                                          fill_boxes,
                                                          ratio);
       }
+   }
+
+   saved_data_stream.resetIndex();
+   for (size_t i = 0; i < saved_data.size(); i++) {
+      saved_data[i].first->unpackStream(saved_data_stream, *saved_data[i].second);
    }
 }
 
@@ -1368,9 +1447,21 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
 
    const bool same_level = (dst_level == src_level);
 
+   /*
+    * For data that live on patch borders, the region from which each fill
+    * box can be given data, and for each refine item the boxes of the
+    * source patches near the destination patch on which its source data
+    * are active.  The latter are found when they are first needed.
+    */
+   std::vector< hier::Box<DIM> > src_regions(d_max_fill_boxes);
+   std::vector< hier::BoxList<DIM> > nearby_src_boxes(d_number_refine_items);
+   std::vector<bool> found_nearby_src_boxes(d_number_refine_items);
+
    for (int dst_patch_id = 0; dst_patch_id < dst_npatches; dst_patch_id++) {
 
       const hier::Box<DIM>& dst_box = dst_boxes[dst_patch_id]; 
+
+      found_nearby_src_boxes.assign(d_number_refine_items, false);
 
       hier::Box<DIM> dst_box_plus_ghosts = dst_box;
       dst_box_plus_ghosts.grow(dst_growth);
@@ -1491,14 +1582,14 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                         hier::Box<DIM> dst_fill_box(hier::Box<DIM>::grow(dst_box, dst_gcw));
                         dst_fill_box = dst_fill_box * fill_box;
    
+                        hier::Box<DIM> src_region(dst_fill_box);
                         hier::Box<DIM> test_mask(dst_fill_box*shifted);
                         if ( test_mask.empty() &&
                              (dst_gcw == s_constant_zero_intvector) &&
                              dst_pdf->dataLivesOnPatchBorder() ) {
-                           hier::Box<DIM> tmp_dst_fill_box(
-                                          hier::Box<DIM>::grow(dst_fill_box,
-                                                               s_constant_one_intvector));
-                           test_mask = tmp_dst_fill_box * shifted;
+                           src_region = hier::Box<DIM>::grow(dst_fill_box,
+                                                             s_constant_one_intvector);
+                           test_mask = src_region * shifted;
                         }
                         hier::Box<DIM> src_mask( hier::Box<DIM>::shift( test_mask,-shift) );
    
@@ -1520,6 +1611,7 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                         }
 #endif
 
+                        src_regions[box_num] = src_region;
                         d_src_masks[box_num] = src_mask;
                         d_overlaps[box_num] = overlap;
                         box_num++;
@@ -1549,7 +1641,40 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                             */
                            for (int i = 0; i < num_fill_boxes; i++) {
 
-                              if (!d_overlaps[i]->isOverlapEmpty()) {
+                              /*
+                               * Data on patch borders are shared by the
+                               * source patches that touch them.  Take each
+                               * such value only from the source patch that
+                               * owns it among those on which the source
+                               * data are active, so that every destination
+                               * value is set by exactly one source patch
+                               * and the result does not depend on the
+                               * order of the transactions.
+                               */
+                              tbox::Pointer< hier::BoxOverlap<DIM> > overlap =
+                                 d_overlaps[i];
+                              if ( dst_pdf->dataLivesOnPatchBorder() &&
+                                   !overlap->isOverlapEmpty() ) {
+                                 if (!found_nearby_src_boxes[ritem_count]) {
+                                    src_level_mgr->findActiveOverlapBoxes(
+                                       nearby_src_boxes[ritem_count],
+                                       hier::PatchDataId(src_id),
+                                       hier::Box<DIM>::grow(
+                                          dst_box,
+                                          hier::IntVector<DIM>(max_gcw + 1)));
+                                    found_nearby_src_boxes[ritem_count] = true;
+                                 }
+                                 hier::BoxList<DIM> src_region_boxes(
+                                    nearby_src_boxes[ritem_count]);
+                                 src_region_boxes.intersectBoxes(src_regions[i]);
+                                 overlap = dst_pdf->getBoxGeometry(dst_box)->
+                                    restrictOverlapToOwnedData(
+                                       overlap,
+                                       hier::Box<DIM>::shift(d_src_masks[i], shift),
+                                       src_region_boxes);
+                              }
+
+                              if (!overlap->isOverlapEmpty()) {
 
                                  bool do_time_interpolation = 
                                     (use_time_interpolation &&
@@ -1558,7 +1683,7 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                                  tbox::Pointer<tbox::Transaction> transaction =
                                     d_transaction_factory->allocate(dst_level,
                                                                     src_level,
-                                                                    d_overlaps[i],
+                                                                    overlap,
                                                                     dst_patch_id,
                                                                     src_patch_id,
                                                                     ritem_count,

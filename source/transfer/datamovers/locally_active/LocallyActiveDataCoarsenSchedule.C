@@ -769,13 +769,62 @@ void LocallyActiveDataCoarsenSchedule<DIM>::constructScheduleTransactions(
                             getPatchDataActive( hier::PatchDataId(l().d_dst),
                                                 hier::PatchNumber(dst_patch_id) ) ) {
 
-                        d_schedule->addTransaction(
-                           d_transaction_factory->allocate(dst_level,
-                                                           src_level,
-                                                           overlap,
-                                                           dst_patch_id,
-                                                           src_patch_id,
-                                                           l().d_tag) );
+                        /*
+                         * Data on patch borders are shared by the source
+                         * patches that touch them, so take each such value
+                         * only from the source patch that owns it among
+                         * those on which the source data are active.  When
+                         * the source data on the boundary of the fine level
+                         * do not represent the variable, also leave the
+                         * destination data on the coarse-fine interface
+                         * alone; these are the data touched by cells of
+                         * the domain that those source patches do not
+                         * cover.
+                         */
+                        tbox::Pointer< hier::BoxOverlap<DIM> > item_overlap =
+                           overlap;
+                        if (dst_pdf->dataLivesOnPatchBorder()) {
+                           const hier::Box<DIM> src_region =
+                              hier::Box<DIM>::grow(shifted,
+                                                   s_constant_one_intvector);
+                           hier::BoxList<DIM> src_boxes_nearby;
+                           src_level_mgr->findActiveOverlapBoxes(
+                              src_boxes_nearby,
+                              hier::PatchDataId(l().d_src),
+                              src_region);
+                           tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
+                              dst_pdf->getBoxGeometry(dst_box);
+                           item_overlap = dst_geometry->restrictOverlapToOwnedData(
+                              overlap, shifted, src_boxes_nearby);
+
+                           if (!l().d_fine_bdry_reps_var) {
+                              hier::BoxList<DIM> domain(dst_level->getPhysicalDomain());
+                              const hier::IntVector<DIM> periodic_shift =
+                                 dst_level->getGridGeometry()->
+                                    getPeriodicShift(dst_level->getRatio());
+                              hier::IntVector<DIM> periodic_growth(0);
+                              for (int d = 0; d < DIM; d++) {
+                                 if (periodic_shift(d) != 0) periodic_growth(d) = 1;
+                              }
+                              domain.grow(periodic_growth);
+
+                              hier::BoxList<DIM> uncovered_boxes(src_region);
+                              uncovered_boxes.removeIntersections(src_boxes_nearby);
+                              uncovered_boxes.intersectBoxes(domain);
+                              item_overlap = dst_geometry->removeOverlapOnBoxes(
+                                 item_overlap, uncovered_boxes);
+                           }
+                        }
+
+                        if (!item_overlap->isOverlapEmpty()) {
+                           d_schedule->addTransaction(
+                              d_transaction_factory->allocate(dst_level,
+                                                              src_level,
+                                                              item_overlap,
+                                                              dst_patch_id,
+                                                              src_patch_id,
+                                                              l().d_tag) );
+                        }
                      }
 
                   } // iterate over coarsen components in equivalence class
