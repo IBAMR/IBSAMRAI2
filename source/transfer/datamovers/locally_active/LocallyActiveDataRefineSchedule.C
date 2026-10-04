@@ -1681,7 +1681,8 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                                     supplying_src_boxes.intersectBoxes(supplied_region);
                                     dst_geometry->computeOwnedBorderData(
                                        owned_border_data[ritem_count],
-                                       supplying_src_boxes);
+                                       supplying_src_boxes,
+                                       supplying_src_boxes.getBoundingBox());
                                     found_owned_border_data[ritem_count] = true;
                                  }
                                  overlap = dst_geometry->restrictOverlapToOwnedData(

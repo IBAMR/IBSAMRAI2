@@ -809,7 +809,7 @@ void LocallyActiveDataCoarsenSchedule<DIM>::constructScheduleTransactions(
                               dst_pdf->getBoxGeometry(dst_box);
                            tbox::Array< hier::BoxList<DIM> > owned_border_data;
                            dst_geometry->computeOwnedBorderData(
-                              owned_border_data, src_boxes_nearby);
+                              owned_border_data, src_boxes_nearby, shifted);
                            item_overlap = dst_geometry->restrictOverlapToOwnedData(
                               overlap, shifted, owned_border_data);
 

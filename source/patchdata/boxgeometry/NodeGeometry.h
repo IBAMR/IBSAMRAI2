@@ -81,7 +81,8 @@ public:
     */
    virtual void computeOwnedBorderData(
       tbox::Array< hier::BoxList<DIM> >& owned_border_data,
-      const hier::BoxList<DIM>& level_boxes) const;
+      const hier::BoxList<DIM>& level_boxes,
+      const hier::Box<DIM>& owner_box) const;
 
    /*!
     * @brief Return the part of the given overlap whose destination data

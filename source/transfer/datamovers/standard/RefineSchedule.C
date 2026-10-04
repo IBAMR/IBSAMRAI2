@@ -161,7 +161,7 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    d_coarse_level.setNull();
 
    d_max_fill_boxes = 0;
-   d_nearby_dst_patch_id = -1;
+   d_owned_dst_patch_id = -1;
 
    /*
     * Initialize destination level, ghost cell widths,
@@ -293,7 +293,7 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    d_coarse_level.setNull();
 
    d_max_fill_boxes = 0;
-   d_nearby_dst_patch_id = -1;
+   d_owned_dst_patch_id = -1;
 
    /*
     * Initialize destination level, ghost cell widths,
@@ -410,7 +410,7 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    d_coarse_level.setNull();
 
    d_max_fill_boxes = 0;
-   d_nearby_dst_patch_id = -1;
+   d_owned_dst_patch_id = -1;
 
    /*
     * Initialize destination level, ghost cell widths,
@@ -1405,7 +1405,7 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationSchedule(
    TBOX_ASSERT(unfilled_boxes.getSize() == dst_level->getNumberOfPatches());
 #endif
 
-   d_nearby_dst_patch_id = -1;
+   d_owned_dst_patch_id = -1;
 
    if (s_schedule_generation_method == "ORIG_NSQUARED") {
 
@@ -1496,6 +1496,7 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleNSquare
 	    constructScheduleTransactions(fine_priority_schedule,
 					  coarse_priority_schedule,
 					  fill_boxes[dp].getBoxList(),
+					  NULL,
 					  dst_level, dp,
 					  src_level, sp,
 					  use_time_interpolation);
@@ -1588,6 +1589,7 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxGrap
 	 constructScheduleTransactions(fine_priority_schedule,
 				       coarse_priority_schedule,
 				       fill_boxes[dp].getBoxList(),
+				       &unfilled_boxes[dp].getBoxList(),
 				       dst_level, dp,
 				       src_level, sp,
 				       use_time_interpolation);
@@ -1668,6 +1670,7 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
 	 constructScheduleTransactions(fine_priority_schedule,
 				       coarse_priority_schedule,
 				       fill_boxes[dp].getBoxList(),
+				       &unfilled_boxes[dp].getBoxList(),
 				       dst_level, dp,
 				       src_level, sp,
 				       use_time_interpolation);
@@ -2035,6 +2038,7 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
    tbox::Pointer<tbox::Schedule> fine_priority_schedule,
    tbox::Pointer<tbox::Schedule> coarse_priority_schedule,
    const hier::BoxList<DIM>& fill_boxes,
+   const hier::BoxList<DIM>* unfilled_boxes,
    tbox::Pointer< hier::PatchLevel<DIM> > dst_level,
    int dst_patch_id,
    tbox::Pointer< hier::PatchLevel<DIM> > src_level,
@@ -2141,13 +2145,8 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
          const bool restrict_to_owned_data = data_on_border &&
             rep_item.d_var_fill_pattern->restrictOverlapsToOwnedData();
          if (restrict_to_owned_data) {
-            if (d_nearby_dst_patch_id != dst_patch_id) {
-               const hier::IntVector<DIM> growth = hier::IntVector<DIM>::max(
-                  d_max_scratch_gcw, getMaxDestinationGhosts());
-               src_level->findOverlapBoxes(
-                  d_nearby_src_boxes,
-                  hier::Box<DIM>::grow(dst_box, hier::IntVector<DIM>(growth.max() + 1)));
-               d_nearby_dst_patch_id = dst_patch_id;
+            if (d_owned_dst_patch_id != dst_patch_id) {
+               d_owned_dst_patch_id = dst_patch_id;
                d_owned_border_data.resize(num_equiv_classes);
                d_found_owned_border_data.assign(num_equiv_classes, false);
             }
@@ -2158,18 +2157,29 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
                   if (src_next_to_fill_box) box.grow(s_constant_one_intvector);
                   if (!box.empty()) supplied_region.appendItem(box);
                }
+
                /*
                 * The supplying source cells are those of the supplied
-                * region that the source level covers.  Remove the part
-                * that it does not cover, which is usually empty, rather
-                * than intersecting with every nearby source box.
+                * region that the source level covers.  The part of the
+                * fill boxes that it does not cover is usually empty, and
+                * is already known when the caller has found the unfilled
+                * boxes.
                 */
-               hier::BoxList<DIM> uncovered_region(supplied_region);
-               uncovered_region.removeIntersections(d_nearby_src_boxes);
                hier::BoxList<DIM> supplying_src_boxes(supplied_region);
-               supplying_src_boxes.removeIntersections(uncovered_region);
+               if (unfilled_boxes != NULL && !src_next_to_fill_box) {
+                  if (!unfilled_boxes->isEmpty()) {
+                     supplying_src_boxes.removeIntersections(*unfilled_boxes);
+                  }
+               } else {
+                  hier::BoxList<DIM> uncovered_region(supplied_region);
+                  src_level->getBoxTree()->removeIntersections(uncovered_region);
+                  if (!uncovered_region.isEmpty()) {
+                     supplying_src_boxes.removeIntersections(uncovered_region);
+                  }
+               }
                dst_pdf->getBoxGeometry(dst_box)->computeOwnedBorderData(
-                  d_owned_border_data[nc], supplying_src_boxes);
+                  d_owned_border_data[nc], supplying_src_boxes,
+                  supplying_src_boxes.getBoundingBox());
                d_found_owned_border_data[nc] = true;
             }
          }

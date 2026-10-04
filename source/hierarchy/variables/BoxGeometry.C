@@ -28,9 +28,11 @@ template<int DIM>  BoxGeometry<DIM>::~BoxGeometry()
 template<int DIM> void
 BoxGeometry<DIM>::computeOwnedBorderData(
    tbox::Array< BoxList<DIM> >& owned_border_data,
-   const BoxList<DIM>& level_boxes) const
+   const BoxList<DIM>& level_boxes,
+   const Box<DIM>& owner_box) const
 {
    NULL_USE(level_boxes);
+   NULL_USE(owner_box);
    owned_border_data.resizeArray(0);
 }
 
@@ -58,6 +60,7 @@ template<int DIM> void BoxGeometry<DIM>::computeOwnedBorderBoxes(
    tbox::Array< BoxList<DIM> >& owned_border_boxes,
    const int first,
    const BoxList<DIM>& level_boxes,
+   const Box<DIM>& owner_box,
    const IntVector<DIM>* offsets,
    const int num_offsets)
 {
@@ -76,6 +79,7 @@ template<int DIM> void BoxGeometry<DIM>::computeOwnedBorderBoxes(
    for (int k = 1; k < num_offsets; k++) {
       BoxList<DIM>& boxes = owned_border_boxes[first + k - 1];
       boxes = level_boxes;
+      boxes.intersectBoxes(owner_box);
       boxes.shift(offsets[k]);
       for (int j = 0; j < k && !boxes.isEmpty(); j++) {
          if (j == 0) {
@@ -99,11 +103,13 @@ template<int DIM> void BoxGeometry<DIM>::intersectOverlapBoxes(
    const int num_offsets)
 {
    for (typename BoxList<DIM>::Iterator b(overlap_boxes); b; b++) {
-      BoxList<DIM> boxes;
+      /*
+       * Usually only the data that have the index of a source cell are
+       * owned, and they form one box.  Otherwise collect the pieces and
+       * merge those that came from this overlap box.
+       */
       const Box<DIM> own_index_box(b() * src_box);
-      if (!own_index_box.empty()) {
-         boxes.appendItem(own_index_box);
-      }
+      BoxList<DIM> border_pieces;
       for (int k = 1; k < num_offsets; k++) {
          const BoxList<DIM>& border_boxes = owned_border_boxes[first + k - 1];
          if (border_boxes.isEmpty()) {
@@ -116,15 +122,22 @@ template<int DIM> void BoxGeometry<DIM>::intersectOverlapBoxes(
          for (typename BoxList<DIM>::Iterator o(border_boxes); o; o++) {
             const Box<DIM> owned_box(border_box * o());
             if (!owned_box.empty()) {
-               boxes.appendItem(owned_box);
+               border_pieces.appendItem(owned_box);
             }
          }
       }
-      if (boxes.getNumberOfBoxes() > 1) {
-         boxes.coalesceBoxes();
-      }
-      for (typename BoxList<DIM>::Iterator r(boxes); r; r++) {
-         result_boxes.appendItem(r());
+      if (border_pieces.isEmpty()) {
+         if (!own_index_box.empty()) {
+            result_boxes.appendItem(own_index_box);
+         }
+      } else {
+         if (!own_index_box.empty()) {
+            border_pieces.appendItem(own_index_box);
+            border_pieces.coalesceBoxes();
+         }
+         for (typename BoxList<DIM>::Iterator r(border_pieces); r; r++) {
+            result_boxes.appendItem(r());
+         }
       }
    }
 }

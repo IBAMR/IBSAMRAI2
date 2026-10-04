@@ -133,7 +133,9 @@ public:
     * border of the level boxes is owned by the highest cell below it.  The
     * level boxes are given in the destination index space.  They are
     * whatever cells the caller wants ownership to be decided among; they
-    * need not be all of the boxes of a level.
+    * need not be all of the boxes of a level.  Only the data owned by
+    * cells of the given owner box are kept, which must contain every
+    * source box that the result is used for.
     *
     * The result is meaningful only to the geometry that computed it.  The
     * default implementation returns an empty array.  Node, side, face, and
@@ -142,7 +144,8 @@ public:
     */
    virtual void
    computeOwnedBorderData(tbox::Array< BoxList<DIM> >& owned_border_data,
-                          const BoxList<DIM>& level_boxes) const;
+                          const BoxList<DIM>& level_boxes,
+                          const Box<DIM>& owner_box) const;
 
    /**
     * Return the part of the given overlap whose destination data are owned
@@ -175,8 +178,8 @@ protected:
     * For data located at the given offsets from the index of each cell
     * that touches them, compute the indices of the data whose highest
     * touching cell of the given level boxes is at each offset after the
-    * first, and store them in the given array starting at the given
-    * position.  The offsets must be sorted so that an earlier offset
+    * first and is in the given owner box, and store them in the given
+    * array starting at the given position.  The offsets must be sorted so that an earlier offset
     * corresponds to a cell with a larger index; the first is therefore
     * zero, and the others have entries of zero or one.
     */
@@ -184,6 +187,7 @@ protected:
       tbox::Array< BoxList<DIM> >& owned_border_boxes,
       const int first,
       const BoxList<DIM>& level_boxes,
+      const Box<DIM>& owner_box,
       const IntVector<DIM>* offsets,
       const int num_offsets);
 

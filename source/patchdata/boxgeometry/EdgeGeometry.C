@@ -201,7 +201,8 @@ tbox::Pointer< hier::BoxOverlap<DIM> > EdgeGeometry<DIM>::doOverlap(
 template<int DIM> void
 EdgeGeometry<DIM>::computeOwnedBorderData(
    tbox::Array< hier::BoxList<DIM> >& owned_border_data,
-   const hier::BoxList<DIM>& level_boxes) const
+   const hier::BoxList<DIM>& level_boxes,
+   const hier::Box<DIM>& owner_box) const
 {
    hier::BoxList<DIM> boxes(level_boxes);
    boxes.coalesceBoxes();
@@ -223,7 +224,7 @@ EdgeGeometry<DIM>::computeOwnedBorderData(
          n++;
       }
       hier::BoxGeometry<DIM>::computeOwnedBorderBoxes(
-         owned_border_data, d * (num_offsets - 1), boxes, offsets, num_offsets);
+         owned_border_data, d * (num_offsets - 1), boxes, owner_box, offsets, num_offsets);
    }
 }
 

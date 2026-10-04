@@ -187,7 +187,8 @@ void NodeGeometry<DIM>::computeDestinationBoxes(
 template<int DIM> void
 NodeGeometry<DIM>::computeOwnedBorderData(
    tbox::Array< hier::BoxList<DIM> >& owned_border_data,
-   const hier::BoxList<DIM>& level_boxes) const
+   const hier::BoxList<DIM>& level_boxes,
+   const hier::Box<DIM>& owner_box) const
 {
    hier::BoxList<DIM> boxes(level_boxes);
    boxes.coalesceBoxes();
@@ -204,7 +205,7 @@ NodeGeometry<DIM>::computeOwnedBorderData(
    }
    owned_border_data.resizeArray((1 << DIM) - 1);
    hier::BoxGeometry<DIM>::computeOwnedBorderBoxes(
-      owned_border_data, 0, boxes, offsets, 1 << DIM);
+      owned_border_data, 0, boxes, owner_box, offsets, 1 << DIM);
 }
 
 template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >

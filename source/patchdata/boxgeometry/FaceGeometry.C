@@ -194,7 +194,8 @@ tbox::Pointer< hier::BoxOverlap<DIM> > FaceGeometry<DIM>::doOverlap(
 template<int DIM> void
 FaceGeometry<DIM>::computeOwnedBorderData(
    tbox::Array< hier::BoxList<DIM> >& owned_border_data,
-   const hier::BoxList<DIM>& level_boxes) const
+   const hier::BoxList<DIM>& level_boxes,
+   const hier::Box<DIM>& owner_box) const
 {
    hier::BoxList<DIM> boxes(level_boxes);
    boxes.coalesceBoxes();
@@ -210,7 +211,7 @@ FaceGeometry<DIM>::computeOwnedBorderData(
       offsets[1] = hier::IntVector<DIM>(0);
       offsets[1](d) = 1;
       hier::BoxGeometry<DIM>::computeOwnedBorderBoxes(
-         owned_border_data, d, boxes, offsets, 2);
+         owned_border_data, d, boxes, owner_box, offsets, 2);
 
       hier::BoxList<DIM> face_boxes;
       for (typename hier::BoxList<DIM>::Iterator b(owned_border_data[d]); b; b++) {

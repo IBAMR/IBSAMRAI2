@@ -959,41 +959,6 @@ template<int DIM> tbox::Pointer< BoxTree<DIM> > PatchLevel<DIM>::getBoxTree()
    return d_box_tree;
 }
 
-template<int DIM> void PatchLevel<DIM>::findOverlapBoxes(
-   BoxList<DIM>& overlap_boxes,
-   const Box<DIM>& box)
-{
-   overlap_boxes.clearItems();
-
-   /*
-    * Periodic images are outside the bounding box of the domain.
-    */
-   Box<DIM> domain_box;
-   for (int i = 0; i < d_physical_domain.getNumberOfBoxes(); i++) {
-      domain_box += d_physical_domain[i];
-   }
-   const bool check_images = !domain_box.contains(box);
-
-   tbox::Array<int> indices;
-   getBoxTree()->findOverlapIndices(indices, box);
-   for (int i = 0; i < indices.getSize(); i++) {
-      const int p = indices[i];
-      if (!(d_boxes[p] * box).empty()) {
-         overlap_boxes.appendItem(d_boxes[p]);
-      }
-      if (!check_images) {
-         continue;
-      }
-      for (typename tbox::List< IntVector<DIM> >::Iterator
-              sh(d_shifts[p]); sh; sh++) {
-         const Box<DIM> shifted(Box<DIM>::shift(d_boxes[p], sh()));
-         if (!(shifted * box).empty()) {
-            overlap_boxes.appendItem(shifted);
-         }
-      }
-   }
-}
-
 /*
  * ************************************************************************
  *

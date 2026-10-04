@@ -289,13 +289,14 @@ private:
    static const hier::IntVector<DIM> s_constant_one_intvector;
 
    /*!
-    * For each source patch, the source level boxes next to it, and for
-    * each coarsen equivalence class and source patch the border data owned
-    * by those boxes (see hier::BoxGeometry<DIM>::computeOwnedBorderData()).
+    * For each source patch, the cells next to it that the source level
+    * does not cover, and for each coarsen equivalence class and source
+    * patch the border data owned by the source level cells in and next to
+    * the patch (see hier::BoxGeometry<DIM>::computeOwnedBorderData()).
     * Both are found when they are first needed to construct transactions.
     */
-   std::vector< hier::BoxList<DIM> > d_nearby_src_boxes;
-   std::vector<bool> d_found_nearby_src_boxes;
+   std::vector< hier::BoxList<DIM> > d_uncovered_near_src;
+   std::vector<bool> d_found_uncovered_near_src;
    std::vector< tbox::Array< hier::BoxList<DIM> > > d_owned_border_data;
    std::vector<bool> d_found_owned_border_data;
 

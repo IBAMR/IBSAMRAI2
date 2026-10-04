@@ -502,6 +502,7 @@ private:
       tbox::Pointer<tbox::Schedule> fine_priority_schedule,
       tbox::Pointer<tbox::Schedule> coarse_priority_schedule,
       const hier::BoxList<DIM>& fill_boxes,
+      const hier::BoxList<DIM>* unfilled_boxes,
       tbox::Pointer< hier::PatchLevel<DIM> > dst_level,
       int dst_patch_id,
       tbox::Pointer< hier::PatchLevel<DIM> > src_level,
@@ -732,14 +733,13 @@ private:
 
    /*!
     * For the destination patch for which constructScheduleTransactions()
-    * was last called: the number of that patch, the source level boxes
-    * near it, and for each refine equivalence class the border data owned
-    * by the source cells that can supply data to the patch (see
+    * was last called: the number of that patch, and for each refine
+    * equivalence class the border data owned by the source cells that can
+    * supply data to the patch (see
     * hier::BoxGeometry<DIM>::computeOwnedBorderData()), which are found
     * when they are first needed.
     */
-   int d_nearby_dst_patch_id;
-   hier::BoxList<DIM> d_nearby_src_boxes;
+   int d_owned_dst_patch_id;
    std::vector< tbox::Array< hier::BoxList<DIM> > > d_owned_border_data;
    std::vector<bool> d_found_owned_border_data;
 
