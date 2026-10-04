@@ -109,6 +109,17 @@ public:
    virtual void setTargetPatchLevelNumber(const int level_num);
 
    /*!
+    * Return whether the schedule should restrict the overlaps that this
+    * fill pattern computes for data that live on patch borders, so that
+    * a value shared by several source patches is taken only from the
+    * patch that owns it (see
+    * hier::BoxGeometry<DIM>::restrictOverlapToOwnedData()).  The default
+    * is false, for fill patterns that themselves select which source
+    * patches supply such values.
+    */
+   virtual bool restrictOverlapsToOwnedData() const;
+
+   /*!
     * Return the maximum ghost width of the boundary stencil.  The default
     * implementation throws an error.
     */

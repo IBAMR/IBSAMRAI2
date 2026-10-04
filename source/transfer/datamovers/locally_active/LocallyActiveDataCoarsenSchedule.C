@@ -779,19 +779,28 @@ void LocallyActiveDataCoarsenSchedule<DIM>::constructScheduleTransactions(
                          * destination data on the coarse-fine interface
                          * alone; these are the data touched by cells of
                          * the domain that those source patches do not
-                         * cover.
+                         * cover.  The neighbors of the source patch are
+                         * found where the patch is, and then shifted with
+                         * it.  None of this is done when data are
+                         * coarsened from ghost cells of the source level,
+                         * since those are not owned by any source patch.
                          */
                         tbox::Pointer< hier::BoxOverlap<DIM> > item_overlap =
                            overlap;
-                        if (dst_pdf->dataLivesOnPatchBorder()) {
+                        if ( dst_pdf->dataLivesOnPatchBorder() &&
+                             (rep_item.d_gcw_to_coarsen ==
+                              s_constant_zero_intvector) ) {
                            const hier::Box<DIM> src_region =
-                              hier::Box<DIM>::grow(shifted,
+                              hier::Box<DIM>::grow(src_box,
                                                    s_constant_one_intvector);
                            hier::BoxList<DIM> src_boxes_nearby;
                            src_level_mgr->findActiveOverlapBoxes(
                               src_boxes_nearby,
                               hier::PatchDataId(l().d_src),
                               src_region);
+                           hier::BoxList<DIM> uncovered_boxes(src_region);
+                           uncovered_boxes.removeIntersections(src_boxes_nearby);
+                           src_boxes_nearby.shift(shift);
                            tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
                               dst_pdf->getBoxGeometry(dst_box);
                            item_overlap = dst_geometry->restrictOverlapToOwnedData(
@@ -808,9 +817,8 @@ void LocallyActiveDataCoarsenSchedule<DIM>::constructScheduleTransactions(
                               }
                               domain.grow(periodic_growth);
 
-                              hier::BoxList<DIM> uncovered_boxes(src_region);
-                              uncovered_boxes.removeIntersections(src_boxes_nearby);
                               uncovered_boxes.intersectBoxes(domain);
+                              uncovered_boxes.shift(shift);
                               item_overlap = dst_geometry->removeOverlapOnBoxes(
                                  item_overlap, uncovered_boxes);
                            }

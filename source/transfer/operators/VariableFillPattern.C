@@ -61,6 +61,12 @@ VariableFillPattern<DIM>::calculateOverlapOnLevel(const hier::BoxGeometry<DIM>& 
 }
 
 template<int DIM>
+bool VariableFillPattern<DIM>::restrictOverlapsToOwnedData() const
+{
+   return false;
+}
+
+template<int DIM>
 void VariableFillPattern<DIM>::setTargetPatchLevelNumber(const int level_num)
 {
    NULL_USE(level_num);

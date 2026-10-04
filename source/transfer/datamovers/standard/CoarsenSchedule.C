@@ -712,15 +712,22 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
           * the fine level do not represent the variable, also leave the
           * destination data on the coarse-fine interface alone; these are
           * the data touched by cells of the domain that the source level
-          * does not cover.
+          * does not cover.  The neighbors of the source patch are found
+          * where the patch is, and then shifted with it.  None of this is
+          * done when data are coarsened from ghost cells of the source
+          * level, since those are not owned by any source patch.
           */
          tbox::Pointer< hier::BoxOverlap<DIM> > overlap_off_interface = overlap;
          if ( dst_pdf->dataLivesOnPatchBorder() &&
-              !overlap->isOverlapEmpty() ) {
+              !overlap->isOverlapEmpty() &&
+              (rep_item.d_gcw_to_coarsen == s_constant_zero_intvector) ) {
             const hier::Box<DIM> src_region =
-               hier::Box<DIM>::grow(shifted, s_constant_one_intvector);
+               hier::Box<DIM>::grow(src_box, s_constant_one_intvector);
             hier::BoxList<DIM> src_boxes_nearby;
             src_level->findOverlapBoxes(src_boxes_nearby, src_region);
+            hier::BoxList<DIM> uncovered_boxes(src_region);
+            uncovered_boxes.removeIntersections(src_boxes_nearby);
+            src_boxes_nearby.shift(shift);
             tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
                dst_pdf->getBoxGeometry(dst_box);
             overlap = dst_geometry->restrictOverlapToOwnedData(
@@ -742,9 +749,8 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
                }
                domain.grow(periodic_growth);
 
-               hier::BoxList<DIM> uncovered_boxes(src_region);
-               uncovered_boxes.removeIntersections(src_boxes_nearby);
                uncovered_boxes.intersectBoxes(domain);
+               uncovered_boxes.shift(shift);
                overlap_off_interface =
                   dst_geometry->removeOverlapOnBoxes(overlap, uncovered_boxes);
             }

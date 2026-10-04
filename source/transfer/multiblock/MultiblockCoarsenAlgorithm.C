@@ -77,9 +77,9 @@ void MultiblockCoarsenAlgorithm<DIM>::registerCoarsen(
    hier::VariableDatabase<DIM>* var_db = hier::VariableDatabase<DIM>::getDatabase();
 
    tbox::Pointer<hier::Variable<DIM> > var;
-   if (!var_db->mapIndexToVariable(dst, var)) {
+   if (!var_db->mapIndexToVariable(src, var)) {
       TBOX_ERROR("MultiblockCoarsenAlgorithm<DIM>::registerCoarsen error..."
-                 << "\nNo variable associated with dst patch data index." << std::endl);
+                 << "\nNo variable associated with src patch data index." << std::endl);
    }
 
    data.d_fine_bdry_reps_var = var->fineBoundaryRepresentsVariable();

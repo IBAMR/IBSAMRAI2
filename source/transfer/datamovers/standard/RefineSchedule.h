@@ -731,12 +731,16 @@ private:
    std::vector<FineBorderData> d_fine_border_data;
 
    /*!
-    * The source level boxes near the destination patch for which
-    * constructScheduleTransactions() was last called, and the number of
-    * that patch.
+    * For the destination patch for which constructScheduleTransactions()
+    * was last called: the number of that patch, the source level boxes
+    * near it, and for each refine equivalence class the parts of those
+    * boxes that can supply data to the patch, which are found when they
+    * are first needed.
     */
-   hier::BoxList<DIM> d_nearby_src_boxes;
    int d_nearby_dst_patch_id;
+   hier::BoxList<DIM> d_nearby_src_boxes;
+   std::vector< hier::BoxList<DIM> > d_supplying_src_boxes;
+   std::vector<bool> d_found_supplying_src_boxes;
 
    /*!
     * Arrays for overlaps and source mask boxes used in

@@ -78,6 +78,12 @@ public:
     */
    const std::string& getPatternName() const;
 
+   /*!
+    * Returns true: this pattern fills everything that the box geometries
+    * allow, so the schedule selects the source patch for shared values.
+    */
+   bool restrictOverlapsToOwnedData() const;
+
 private:
    BoxGeometryFillPattern(
       const BoxGeometryFillPattern<DIM>&);    // not implemented

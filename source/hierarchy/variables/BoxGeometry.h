@@ -132,10 +132,12 @@ public:
     * In particular, a box owns the data in its interior and on its lower
     * border.  The source box and the level boxes are given in the
     * destination index space, and the level boxes must cover the source
-    * box.
+    * box.  The level boxes are whatever cells the caller wants ownership
+    * to be decided among; they need not be all of the boxes of a level.
     *
-    * The default implementation returns the given overlap, which is
-    * appropriate for data that are not shared between boxes.
+    * The default implementation returns the given overlap.  Node, side,
+    * face, and edge geometries override it.  The outer data geometries do
+    * not, although their data are shared between boxes.
     */
    virtual tbox::Pointer< BoxOverlap<DIM> >
    restrictOverlapToOwnedData(const tbox::Pointer< BoxOverlap<DIM> >& overlap,
@@ -147,8 +149,8 @@ public:
     * touched by any cell of the given boxes, which are given in the
     * destination index space.
     *
-    * The default implementation returns the given overlap, which is
-    * appropriate for data that are not shared between boxes.
+    * The default implementation returns the given overlap.  Node, side,
+    * face, and edge geometries override it.
     */
    virtual tbox::Pointer< BoxOverlap<DIM> >
    removeOverlapOnBoxes(const tbox::Pointer< BoxOverlap<DIM> >& overlap,
