@@ -539,19 +539,25 @@ template<int DIM> void CartesianGridGeometry<DIM>::setGeometryDataOnPatch(
    }
 
    // Do all calculations relative to level 0 to guarantee patch boundaries are
-   // consistently computed.
+   // consistently computed. The patch box is in the index space of its own
+   // level, so the domain box has to be put in that index space before the
+   // two are compared.
+   hier::Box<DIM> index_box = d_domain_box;
+
    if ( coarsen ) {
+      index_box.coarsen(tmp_rat);
       for (int id3 = 0; id3 < DIM; id3++) {
          dx[id3]   = d_dx[id3] * tmp_rat(id3);
       }
    } else {
+      index_box.refine(tmp_rat);
       for (int id4 = 0; id4 < DIM; id4++) {
          dx[id4]   = d_dx[id4] / tmp_rat(id4);
       }
    }
 
    for (int id5 = 0; id5 < DIM; id5++) {
-      const int lo_offset = patch.getBox().lower(id5) - d_domain_box.lower(id5);
+      const int lo_offset = patch.getBox().lower(id5) - index_box.lower(id5);
       const int up_offset = lo_offset + patch.getBox().numberCells(id5);
       if (coarsen)
       {
