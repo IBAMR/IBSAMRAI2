@@ -216,7 +216,7 @@ void ParallelBuffer::copyToBuffer(const std::string &text, const int length)
       char *new_buffer = new char[new_size];
 
       if (d_buffer_ptr > 0) {
-         (void) strncpy(new_buffer, d_buffer, d_buffer_ptr);
+         (void) memcpy(new_buffer, d_buffer, d_buffer_ptr);
       }
       delete [] d_buffer;
 
@@ -232,7 +232,7 @@ void ParallelBuffer::copyToBuffer(const std::string &text, const int length)
    TBOX_ASSERT(d_buffer_ptr+length <= d_buffer_size);
 #endif
 
-   strncpy(d_buffer+d_buffer_ptr, text.c_str(), length);
+   memcpy(d_buffer+d_buffer_ptr, text.data(), length);
    d_buffer_ptr += length;
 }
 
@@ -292,7 +292,7 @@ int ParallelBuffer::sync()
 std::streamsize ParallelBuffer::xsputn(const char * text, std::streamsize n)
 {
    sync();
-   if (n > 0) outputString(text, n);
+   if (n > 0) outputString(std::string(text, n), n);
    return(n);
 }
 
