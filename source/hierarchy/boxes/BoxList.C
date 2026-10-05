@@ -221,17 +221,25 @@ template<int DIM> void BoxList<DIM>::burstBoxes(const Box<DIM>& bursty,
 
 template<int DIM> void BoxList<DIM>::removeIntersections(const Box<DIM>& takeaway)
 {
-   BoxList<DIM> fragments;
-   while (!this ->isEmpty()) {
-      Box<DIM> tryme = this ->getFirstItem();
-      this ->removeFirstItem();
-      if ((tryme * takeaway).empty()) {
-         fragments.appendItem(tryme);
+   /*
+    * Boxes that do not intersect takeaway are left where they are, and
+    * each of the others is replaced in place by its fragments.
+    */
+   typename BoxList<DIM>::Iterator tryme(*this);
+   while (tryme) {
+      if (tryme().intersects(takeaway)) {
+         BoxList<DIM> fragments;
+         fragments.burstBoxes(tryme(), takeaway, DIM);
+         for (typename BoxList<DIM>::Iterator f(fragments); f; f++) {
+            this ->addItemBefore(tryme, f());
+         }
+         typename BoxList<DIM>::Iterator byebye = tryme;
+         tryme++;
+         this ->removeItem(byebye);
       } else {
-         fragments.burstBoxes(tryme, takeaway, DIM);
+         tryme++;
       }
    }
-   this ->catenateItems(fragments);
 }
 
 template<int DIM> void BoxList<DIM>::removeIntersections(const Box<DIM>& box,
