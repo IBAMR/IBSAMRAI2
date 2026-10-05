@@ -1461,9 +1461,9 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
    std::vector<bool> found_owned_border_data(d_number_refine_items);
 
    /*
-    * Source cells next to the fill boxes on their upper sides supply the
-    * data on the upper rim of the fill boxes when data live on patch
-    * borders, so look one cell further for source patches.
+    * Source cells next to the fill boxes can own the data on the
+    * boundary of the fill boxes when data live on patch borders, so look
+    * one cell further for source patches.
     */
    int rim_width = 0;
    for (int nc = 0; nc < num_equiv_classes; nc++) {
@@ -1485,7 +1485,7 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
 
       hier::Box<DIM> dst_box_plus_ghosts = dst_box;
       dst_box_plus_ghosts.grow(dst_growth);
-      dst_box_plus_ghosts.upper() += hier::IntVector<DIM>(rim_width);
+      dst_box_plus_ghosts.grow(hier::IntVector<DIM>(rim_width));
 
       tbox::Array<int> src_nabor_indices;
       if (dst_mapping.isMappingLocal(dst_patch_id)) {
@@ -1503,11 +1503,10 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
        * A patch has periodic shifts only if it touches a periodic
        * boundary, and only those that move it across the sides it touches.
        * When a patch at a periodic boundary is only as wide as the ghost
-       * cell region, the source cells next to the fill boxes on their
-       * upper sides can be images of a patch that does not have the shift.
-       * Find the images that lie next to the fill boxes without
-       * intersecting them (see RefineSchedule<DIM>).  There are none
-       * inside the domain.
+       * cell region, the source cells next to the fill boxes can be images
+       * of a patch that does not have the shift.  Find the images that lie
+       * next to the fill boxes without intersecting them (see
+       * RefineSchedule<DIM>).  There are none inside the domain.
        */
       std::vector<int> unlisted_src_patch_ids;
       std::vector< tbox::List< hier::IntVector<DIM> > > unlisted_shifts;
@@ -1517,7 +1516,7 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
          const hier::Box<DIM> fill_box(
             fill_boxes.getBoxList().getBoundingBox());
          hier::Box<DIM> search_box(fill_box);
-         search_box.upper() += s_constant_one_intvector;
+         search_box.grow(s_constant_one_intvector);
          int num_shifts = domain_box.contains(search_box) ? 0 : 1;
          for (int i = 0; i < DIM; i++) {
             num_shifts *= (d_periodic_shift(i) != 0 ? 3 : 1);
@@ -1689,20 +1688,20 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                         }
                         /*
                          * When the fill box is the whole ghost box of the
-                         * data, source cells next to it on its upper sides
-                         * touch the data on its upper rim.
+                         * data, source cells next to it touch the data on
+                         * its boundary.
                          */
-                        const bool src_above_ghost_box =
+                        const bool src_next_to_ghost_box =
                            !src_next_to_fill_box &&
                            dst_pdf->dataLivesOnPatchBorder() &&
                            (dst_fill_box ==
                             hier::Box<DIM>::grow(dst_box, dst_gcw));
-                        if (src_above_ghost_box) {
-                           src_region.upper() += s_constant_one_intvector;
+                        if (src_next_to_ghost_box) {
+                           src_region.grow(s_constant_one_intvector);
                         }
                         hier::Box<DIM> test_mask(dst_fill_box*shifted);
                         if ( test_mask.empty() &&
-                             (src_next_to_fill_box || src_above_ghost_box) ) {
+                             (src_next_to_fill_box || src_next_to_ghost_box) ) {
                            test_mask = src_region * shifted;
                         }
                         hier::Box<DIM> src_mask( hier::Box<DIM>::shift( test_mask,-shift) );

@@ -513,9 +513,9 @@ private:
    /*!
     * @brief Function that constructs schedule transactions that move
     * data to destination patch from the periodic images of source patches
-    * that lie next to the upper sides of the fill boxes and are not among
-    * the shifts of those patches, and removes the cells of these images
-    * from the uncovered boxes.
+    * that lie next to the fill boxes and are not among the shifts of those
+    * patches, and removes the cells of these images from the uncovered
+    * boxes.
     */
    void constructUnlistedShiftTransactions(
       tbox::Pointer<tbox::Schedule> fine_priority_schedule,

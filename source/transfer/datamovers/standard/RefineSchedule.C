@@ -1495,7 +1495,7 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleNSquare
          for (typename hier::BoxList<DIM>::Iterator
                  b(fill_boxes[dp].getBoxList()); b; b++) {
             hier::Box<DIM> box(b());
-            box.upper() += s_constant_one_intvector;
+            box.grow(s_constant_one_intvector);
             uncovered_boxes.appendItem(box);
          }
          src_level->getBoxTree()->removeIntersections(uncovered_boxes);
@@ -1607,7 +1607,7 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxGrap
          for (typename hier::BoxList<DIM>::Iterator
                  b(fill_boxes[dp].getBoxList()); b; b++) {
             hier::Box<DIM> box(b());
-            box.upper() += s_constant_one_intvector;
+            box.grow(s_constant_one_intvector);
             uncovered_boxes.appendItem(box);
          }
          src_level->getBoxTree()->removeIntersections(uncovered_boxes);
@@ -1677,11 +1677,11 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
    tbox::Pointer< hier::BoxTree<DIM> > box_tree = src_level->getBoxTree();
 
    /*
-    * Source cells next to the fill boxes on their upper sides supply the
-    * data on the upper rim of the fill boxes when data on patch borders
-    * are taken from their owners.  Find the cells of the fill boxes and of
-    * that extra layer that the source level does not cover.  The part in
-    * the fill boxes is what remains to be filled; it is usually empty.
+    * Source cells next to the fill boxes can own the data on the
+    * boundary of the fill boxes when data on patch borders are taken from
+    * their owners.  Find the cells of the fill boxes and of that extra
+    * layer that the source level does not cover.  The part in the fill
+    * boxes is what remains to be filled; it is usually empty.
     */
    const int rim_width = ownedBorderDataAreTransferred() ? 1 : 0;
    std::vector< hier::BoxList<DIM> > uncovered_boxes(dst_npatches);
@@ -1690,7 +1690,7 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
          for (typename hier::BoxList<DIM>::Iterator
                  b(fill_boxes[dp].getBoxList()); b; b++) {
             hier::Box<DIM> box(b());
-            box.upper() += s_constant_one_intvector;
+            box.grow(s_constant_one_intvector);
             uncovered_boxes[dp].appendItem(box);
          }
          box_tree->removeIntersections(uncovered_boxes[dp]);
@@ -1714,6 +1714,14 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
       hier::Box<DIM> dst_box_plus_ghosts = dst_box;
       dst_box_plus_ghosts.grow(dst_growth);
       dst_box_plus_ghosts.upper() += hier::IntVector<DIM>(rim_width);
+
+      /*
+       * A source cell next to the fill boxes on a lower side owns data
+       * only where the source level does not cover the cells above it.
+       */
+      if (!uncovered_boxes[dp].isEmpty()) {
+         dst_box_plus_ghosts.lower() -= s_constant_one_intvector;
+      }
 
       tbox::Array<int> src_nabor_indices;
       if (dst_mapping.isMappingLocal(dp)) {
@@ -2125,21 +2133,21 @@ template<int DIM> void RefineSchedule<DIM>::constructUnlistedShiftTransactions(
     * and only those that move it across the sides it touches, so the box
     * tree of the source level holds no other periodic images.  When a
     * patch at a periodic boundary is only as wide as the ghost cell
-    * region, the source cells next to the fill boxes on their upper sides
-    * can be images of a patch that does not have the shift.  The patch at
-    * the boundary would then supply the data on the upper rim of the fill
-    * boxes, although its neighbor owns them and an in-place fill
-    * overwrites its copy.  Find the images that lie next to the fill
-    * boxes without intersecting them, and remove their cells from the
-    * uncovered boxes.  Images that intersect the fill boxes supply no
-    * data, as before.  There are no images inside the domain.
+    * region, the source cells next to the fill boxes can be images of a
+    * patch that does not have the shift.  The patch at the boundary would
+    * then supply the data on the boundary of the fill boxes, although its
+    * neighbor owns them and an in-place fill overwrites its copy.  Find
+    * the images that lie next to the fill boxes without intersecting
+    * them, and remove their cells from the uncovered boxes.  Images that
+    * intersect the fill boxes supply no data, as before.  There are no
+    * images inside the domain.
     */
    const hier::BoxArray<DIM>& src_boxes = src_level->getBoxes();
    const hier::Box<DIM> domain_box(
       src_level->getPhysicalDomain().getBoundingBox());
    const hier::Box<DIM> fill_box(fill_boxes.getBoundingBox());
    hier::Box<DIM> search_box(fill_box);
-   search_box.upper() += s_constant_one_intvector;
+   search_box.grow(s_constant_one_intvector);
    if (domain_box.contains(search_box)) {
       return;
    }
@@ -2341,10 +2349,10 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
           * of the transactions.  Ownership is determined among the source
           * cells that can supply data to this destination patch: those in
           * its fill boxes and, when a fill box is the whole ghost box of
-          * the data, those next to it on its upper sides, which touch the
-          * data on the upper rim of the ghost box.  For data without ghost
-          * cells, source cells next to the fill boxes on any side can
-          * supply data, as they always could.
+          * the data, those next to it on any side, which touch the data
+          * on the boundary of the ghost box and can be their owners.  For
+          * data without ghost cells, source cells next to the fill boxes
+          * can supply data, as they always could.
           */
          const bool data_on_border = dst_pdf->dataLivesOnPatchBorder();
          const bool src_next_to_fill_box = data_on_border &&
@@ -2366,10 +2374,8 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
                for (typename hier::BoxList<DIM>::Iterator b(fill_boxes); b; b++) {
                   hier::Box<DIM> box(ghost_box * b());
                   if (box.empty()) continue;
-                  if (src_next_to_fill_box) {
+                  if (src_next_to_fill_box || box == ghost_box) {
                      box.grow(s_constant_one_intvector);
-                  } else if (box == ghost_box) {
-                     box.upper() += s_constant_one_intvector;
                   }
                   supplied_region.appendItem(box);
                }
@@ -2378,7 +2384,7 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
                 * The supplying source cells are those of the supplied
                 * region that the source level covers.  The caller may
                 * already know which cells of the fill boxes and of the
-                * layer above them it does not cover.
+                * layer around them it does not cover.
                 */
                hier::BoxList<DIM> supplying_src_boxes(supplied_region);
                if (uncovered_boxes != NULL && !src_next_to_fill_box) {
@@ -2426,18 +2432,16 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
             hier::Box<DIM> dst_fill_box(hier::Box<DIM>::grow(dst_box, dst_gcw));
             dst_fill_box = dst_fill_box * fill_box;
 
-            const bool src_above_ghost_box = restrict_to_owned_data &&
+            const bool src_next_to_ghost_box = restrict_to_owned_data &&
                !src_next_to_fill_box &&
                (dst_fill_box == hier::Box<DIM>::grow(dst_box, dst_gcw));
             hier::Box<DIM> src_region(dst_fill_box);
-            if (src_next_to_fill_box) {
+            if (src_next_to_fill_box || src_next_to_ghost_box) {
                src_region.grow(s_constant_one_intvector);
-            } else if (src_above_ghost_box) {
-               src_region.upper() += s_constant_one_intvector;
             }
             hier::Box<DIM> test_mask(dst_fill_box*shifted);
             if ( test_mask.empty() &&
-                 (src_next_to_fill_box || src_above_ghost_box) ) {
+                 (src_next_to_fill_box || src_next_to_ghost_box) ) {
                test_mask = src_region * shifted;
             }
             hier::Box<DIM> src_mask( hier::Box<DIM>::shift( test_mask,-shift) );
