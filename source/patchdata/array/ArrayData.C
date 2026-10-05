@@ -22,6 +22,7 @@
 #include "SumOperation.h"
 
 #include <limits>
+#include <type_traits>
 
 #define PDAT_ARRAYDATA_VERSION 1
 
@@ -55,6 +56,14 @@ template<>
 inline int abstract_stream_sizeof<int>(const int n)
 {
    return SAMRAI::tbox::AbstractStream::sizeofInt(n);
+}
+
+template<class TYPE>
+inline bool abstract_stream_packs_array_data()
+{
+   return std::is_same<TYPE,double>::value ||
+          std::is_same<TYPE,float>::value ||
+          std::is_same<TYPE,int>::value;
 }
 
 template<int DIM, class TYPE>
@@ -560,7 +569,7 @@ void ArrayData<DIM,TYPE>::packStream(
    const hier::IntVector<DIM>& src_shift) const
 {
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
-   if (stream_ptr)
+   if (stream_ptr && tbox::abstract_stream_packs_array_data<TYPE>())
    {
       stream_ptr->packArrayData(*this, dest_box, src_shift);
       return;
@@ -585,7 +594,7 @@ void ArrayData<DIM,TYPE>::packStream(
    const hier::IntVector<DIM>& src_shift) const
 {
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
-   if (stream_ptr)
+   if (stream_ptr && tbox::abstract_stream_packs_array_data<TYPE>())
    {
       for (typename hier::BoxList<DIM>::Iterator b(dest_boxes); b; b++) {
          stream_ptr->packArrayData(*this, b(), src_shift);
@@ -630,7 +639,7 @@ void ArrayData<DIM,TYPE>::unpackStream(
    const hier::IntVector<DIM>& src_shift)
 {
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
-   if (stream_ptr)
+   if (stream_ptr && tbox::abstract_stream_packs_array_data<TYPE>())
    {
       stream_ptr->unpackArrayData(*this, dest_box, src_shift);
       return;
@@ -653,7 +662,7 @@ void ArrayData<DIM,TYPE>::unpackStream(
    const hier::IntVector<DIM>& src_shift)
 {
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
-   if (stream_ptr)
+   if (stream_ptr && tbox::abstract_stream_packs_array_data<TYPE>())
    {
       for (typename hier::BoxList<DIM>::Iterator b(dest_boxes); b; b++) {
          stream_ptr->unpackArrayData(*this, b(), src_shift);
@@ -698,7 +707,7 @@ void ArrayData<DIM,TYPE>::unpackStreamAndSum(
    const hier::IntVector<DIM>& src_shift)
 {
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
-   if (stream_ptr)
+   if (stream_ptr && tbox::abstract_stream_packs_array_data<TYPE>())
    {
       stream_ptr->unpackAndSumArrayData(*this, dest_box, src_shift);
       return;
@@ -721,7 +730,7 @@ void ArrayData<DIM,TYPE>::unpackStreamAndSum(
    const hier::IntVector<DIM>& src_shift)
 {
    tbox::MessageStream* stream_ptr = dynamic_cast<tbox::MessageStream*>(&stream);
-   if (stream_ptr)
+   if (stream_ptr && tbox::abstract_stream_packs_array_data<TYPE>())
    {
       for (typename hier::BoxList<DIM>::Iterator b(dest_boxes); b; b++) {
          stream_ptr->unpackAndSumArrayData(*this, b(), src_shift);
