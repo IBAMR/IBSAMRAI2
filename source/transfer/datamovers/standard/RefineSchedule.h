@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "tbox/Array.h"
+#include "BoxGeometry.h"
 #include "BoxList.h"
 #include "BoxOverlap.h"
 #include "ComponentSelector.h"
@@ -499,13 +500,13 @@ private:
     * on destination level on regions defined by list of fill boxes.
     */
    void constructScheduleTransactions(
-      tbox::Pointer<tbox::Schedule> fine_priority_schedule,
-      tbox::Pointer<tbox::Schedule> coarse_priority_schedule,
+      const tbox::Pointer<tbox::Schedule>& fine_priority_schedule,
+      const tbox::Pointer<tbox::Schedule>& coarse_priority_schedule,
       const hier::BoxList<DIM>& fill_boxes,
       const hier::BoxList<DIM>* uncovered_boxes,
-      tbox::Pointer< hier::PatchLevel<DIM> > dst_level,
+      const tbox::Pointer< hier::PatchLevel<DIM> >& dst_level,
       int dst_patch_id,
-      tbox::Pointer< hier::PatchLevel<DIM> > src_level,
+      const tbox::Pointer< hier::PatchLevel<DIM> >& src_level,
       int src_patch_id,
       const tbox::List< hier::IntVector<DIM> >* unlisted_shifts,
       bool use_time_interpolation);
@@ -518,13 +519,13 @@ private:
     * boxes.
     */
    void constructUnlistedShiftTransactions(
-      tbox::Pointer<tbox::Schedule> fine_priority_schedule,
-      tbox::Pointer<tbox::Schedule> coarse_priority_schedule,
+      const tbox::Pointer<tbox::Schedule>& fine_priority_schedule,
+      const tbox::Pointer<tbox::Schedule>& coarse_priority_schedule,
       const hier::BoxList<DIM>& fill_boxes,
       hier::BoxList<DIM>& uncovered_boxes,
-      tbox::Pointer< hier::PatchLevel<DIM> > dst_level,
+      const tbox::Pointer< hier::PatchLevel<DIM> >& dst_level,
       int dst_patch_id,
-      tbox::Pointer< hier::PatchLevel<DIM> > src_level,
+      const tbox::Pointer< hier::PatchLevel<DIM> >& src_level,
       bool use_time_interpolation);
 
    /*!
@@ -760,12 +761,16 @@ private:
     * was last called: the number of that patch, and for each refine
     * equivalence class the border data owned by the source cells that can
     * supply data to the patch (see
-    * hier::BoxGeometry<DIM>::computeOwnedBorderData()), which are found
-    * when they are first needed.
+    * hier::BoxGeometry<DIM>::computeOwnedBorderData()) and the box
+    * geometry of the patch, which are found when they are first needed.
+    * The box geometries of the source patches are kept in the same way
+    * for each equivalence class while the transactions are constructed.
     */
    int d_owned_dst_patch_id;
    std::vector< tbox::Array< hier::BoxList<DIM> > > d_owned_border_data;
    std::vector<bool> d_found_owned_border_data;
+   std::vector< tbox::Pointer< hier::BoxGeometry<DIM> > > d_dst_geometry;
+   std::vector< tbox::Pointer< hier::BoxGeometry<DIM> > > d_src_geometry;
 
    /*!
     * Arrays for overlaps and source mask boxes used in

@@ -1670,6 +1670,11 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                       * For each equivalence class, this loop is executed once.
                       */
 
+                     tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
+                        dst_pdf->getBoxGeometry(dst_box);
+                     tbox::Pointer< hier::BoxGeometry<DIM> > src_geometry =
+                        src_pdf->getBoxGeometry(src_box);
+
                      int box_num = 0;
                      for (typename hier::BoxList<DIM>::Iterator b(fill_boxes.getBoxList()); 
                              b; b++) {
@@ -1707,9 +1712,8 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                         hier::Box<DIM> src_mask( hier::Box<DIM>::shift( test_mask,-shift) );
    
                         tbox::Pointer< hier::BoxOverlap<DIM> > overlap =
-                           dst_pdf->getBoxGeometry(dst_box)
-                                  ->calculateOverlap(
-                                     *src_pdf->getBoxGeometry(src_box),
+                           dst_geometry->calculateOverlap(
+                                     *src_geometry,
                                      src_mask,
                                      true, shift);
 
@@ -1770,8 +1774,6 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                                  d_overlaps[i];
                               if ( dst_pdf->dataLivesOnPatchBorder() &&
                                    !overlap->isOverlapEmpty() ) {
-                                 tbox::Pointer< hier::BoxGeometry<DIM> >
-                                    dst_geometry = dst_pdf->getBoxGeometry(dst_box);
                                  if (!found_owned_border_data[ritem_count]) {
                                     hier::BoxList<DIM> supplied_region;
                                     for (int j = 0; j < num_fill_boxes; j++) {
@@ -1804,8 +1806,8 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                                        supplying_src_boxes.getBoundingBox());
                                     found_owned_border_data[ritem_count] = true;
                                  }
-                                 overlap = dst_geometry->restrictOverlapToOwnedData(
-                                    overlap,
+                                 overlap = dst_geometry->calculateOwnedOverlap(
+                                    *src_geometry, d_src_masks[i], true, shift,
                                     src_regions[i] * shifted,
                                     owned_border_data[ritem_count]);
                               }

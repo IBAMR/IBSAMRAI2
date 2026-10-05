@@ -109,12 +109,16 @@ public:
    virtual void setTargetPatchLevelNumber(const int level_num);
 
    /*!
-    * Return whether the schedule should restrict the overlaps that this
-    * fill pattern computes for data that live on patch borders, so that
-    * a value shared by several source patches is taken only from the
-    * patch that owns it (see
-    * hier::BoxGeometry<DIM>::restrictOverlapToOwnedData()).  The default
-    * is false, for fill patterns that themselves select which source
+    * Return whether the schedule should restrict the overlaps of this
+    * fill pattern for data that live on patch borders, so that a value
+    * shared by several source patches is taken only from the patch that
+    * owns it.  A fill pattern may return true only if its overlaps are
+    * those of the box geometries, that is, if calculateOverlapOnLevel()
+    * returns what calculateOverlap() of the destination geometry does:
+    * for such data the schedule then does not call this fill pattern,
+    * but calculates the restricted overlap from the box geometries (see
+    * hier::BoxGeometry<DIM>::calculateOwnedOverlap()).  The default is
+    * false, for fill patterns that themselves select which source
     * patches supply such values.
     */
    virtual bool restrictOverlapsToOwnedData() const;
