@@ -158,7 +158,8 @@ template<int DIM> void BoxTreeNode<DIM>::findOverlapIndices(
 {
    if (box.intersects(d_domain)) {
       if (d_tree) {
-         d_tree->findOverlapIndices(indices, box, find_local_boxes);
+         d_tree->findOverlapIndices(indices, box, find_local_boxes,
+                                    recurse_level+1);
       }
 
       /*
@@ -241,7 +242,7 @@ template<int DIM> void BoxTreeNode<DIM>::findOverlapIndices(
     */
 
    int size = indices.size();
-   if (size > 1) {
+   if (recurse_level == 0 && size > 1) {
       tbox::Array<int> sortme(size);
       int j = 0;
       for (tbox::List<int>::Iterator l(indices); l; l++) {
