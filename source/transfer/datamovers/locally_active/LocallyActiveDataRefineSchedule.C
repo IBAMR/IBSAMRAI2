@@ -23,6 +23,7 @@
 #include "PatchDescriptor.h"
 #include "ProcessorMapping.h"
 #include "tbox/ArenaManager.h"
+#include "tbox/MessageStream.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 #include "tbox/MathUtilities.h"
@@ -30,6 +31,9 @@
 #include "RefineCopyTransaction.h"
 
 #include "tbox/PIO.h"
+
+#include <utility>
+#include <vector>
 
 
 namespace SAMRAI {
@@ -798,6 +802,46 @@ void LocallyActiveDataRefineSchedule<DIM>::finishScheduleConstruction(
       }
 
       /*
+       * Interpolating into the fine fill boxes also sets the data on the
+       * borders of the destination patches that are shared with the fill
+       * boxes.  When the source and destination levels are the same, find
+       * those data for each refine item whose data live on patch borders,
+       * for which fine data take priority, and that has a refine operator,
+       * so that refineScratchData() can keep them when filling in place.
+       */
+
+      if (src_level == d_dst_level) {
+         for (typename hier::PatchLevel<DIM>::Iterator p(d_coarse_level); p; p++) {
+            const int fp = d_coarse_to_fine_mapping[p()];
+            const hier::Box<DIM>& fine_box = d_dst_level->getBoxes()[fp];
+            for (typename tbox::List< xfer::LocallyActiveDataFillBox<DIM> >::Iterator
+                    fbi(d_la_fine_fill_boxes[p()].getLocallyActiveDataBoxes()); fbi; fbi++) {
+               for (typename tbox::List<const typename xfer::RefineClasses<DIM>::Data*>::Iterator
+                       vi(fbi().getActiveRefineVarData()); vi; vi++) {
+                  tbox::Pointer< hier::PatchDataFactory<DIM> > factory =
+                     d_dst_level->getPatchDescriptor()->
+                        getPatchDataFactory(vi()->d_scratch);
+                  if (!vi()->d_fine_bdry_reps_var ||
+                      (vi()->d_oprefine).isNull() ||
+                      !factory->dataLivesOnPatchBorder()) continue;
+
+                  factory = factory->cloneFactory(s_constant_zero_intvector);
+                  FineBorderData border_data;
+                  border_data.d_dst_patch = fp;
+                  border_data.d_refine_item = vi()->d_tag;
+                  border_data.d_overlap =
+                     factory->getBoxGeometry(fine_box)->calculateOverlap(
+                        *factory->getBoxGeometry(fbi().getBox()),
+                        fbi().getBox(), true, s_constant_zero_intvector);
+                  if (!border_data.d_overlap->isOverlapEmpty()) {
+                     d_fine_border_data.push_back(border_data);
+                  }
+               }
+            }
+         }
+      }
+
+      /*
        * Recursively fill the coarse schedule using the private
        * refine schedule constructor.
        */
@@ -1140,6 +1184,36 @@ void LocallyActiveDataRefineSchedule<DIM>::refineScratchData() const
       d_dst_level->getRatio() / d_coarse_level->getRatio();
 
    /*
+    * When fine data take priority, the fine priority schedule normally
+    * resets the data on patch borders that are set below by copying the
+    * source data over them.  There is no such transaction when the source
+    * and scratch data are the same patch data object, so save those values
+    * here and restore them after refining.
+    */
+
+   std::vector< std::pair< hier::PatchData<DIM>*,
+                           const hier::BoxOverlap<DIM>* > > saved_data;
+   int saved_data_size = 0;
+   for (size_t i = 0; i < d_fine_border_data.size(); i++) {
+      const FineBorderData& border_data = d_fine_border_data[i];
+      const typename xfer::RefineClasses<DIM>::Data* const ref_item =
+         d_refine_items[border_data.d_refine_item];
+      if (ref_item->d_src == ref_item->d_scratch) {
+         hier::PatchData<DIM>* const data = d_dst_level->
+            getPatch(border_data.d_dst_patch)->
+            getPatchData(ref_item->d_scratch).getPointer();
+         saved_data.push_back(std::make_pair(
+            data, border_data.d_overlap.getPointer()));
+         saved_data_size += data->getDataStreamSize(*border_data.d_overlap);
+      }
+   }
+   tbox::MessageStream saved_data_stream(saved_data_size,
+                                         tbox::MessageStream::Write);
+   for (size_t i = 0; i < saved_data.size(); i++) {
+      saved_data[i].first->packStream(saved_data_stream, *saved_data[i].second);
+   }
+
+   /*
     * Loop over all the coarse patches and find the corresponding destination
     * patch and destination fill boxes.
     */
@@ -1201,6 +1275,11 @@ void LocallyActiveDataRefineSchedule<DIM>::refineScratchData() const
                                                          fill_boxes,
                                                          ratio);
       }
+   }
+
+   saved_data_stream.resetIndex();
+   for (size_t i = 0; i < saved_data.size(); i++) {
+      saved_data[i].first->unpackStream(saved_data_stream, *saved_data[i].second);
    }
 }
 
@@ -1368,12 +1447,45 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
 
    const bool same_level = (dst_level == src_level);
 
+   /*
+    * For data that live on patch borders, the region from which each fill
+    * box can be given data, and for each refine item the border data owned
+    * by the cells of the source patches on which its source data are
+    * active that can supply data to the destination patch (see
+    * hier::BoxGeometry<DIM>::computeOwnedBorderData()).  The latter are
+    * found when they are first needed.
+    */
+   std::vector< hier::Box<DIM> > src_regions(d_max_fill_boxes);
+   std::vector< tbox::Array< hier::BoxList<DIM> > >
+      owned_border_data(d_number_refine_items);
+   std::vector<bool> found_owned_border_data(d_number_refine_items);
+
+   /*
+    * Source cells next to the fill boxes can own the data on the
+    * boundary of the fill boxes when data live on patch borders, so look
+    * one cell further for source patches.
+    */
+   int rim_width = 0;
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      if (dst_patch_descriptor->getPatchDataFactory(
+             d_refine_classes->getClassRepresentative(nc).d_scratch)->
+                dataLivesOnPatchBorder()) {
+         rim_width = 1;
+      }
+   }
+   const hier::Box<DIM> domain_box(
+      src_level->getPhysicalDomain().getBoundingBox());
+   const hier::ProcessorMapping& src_mapping = src_level->getProcessorMapping();
+
    for (int dst_patch_id = 0; dst_patch_id < dst_npatches; dst_patch_id++) {
 
       const hier::Box<DIM>& dst_box = dst_boxes[dst_patch_id]; 
 
+      found_owned_border_data.assign(d_number_refine_items, false);
+
       hier::Box<DIM> dst_box_plus_ghosts = dst_box;
       dst_box_plus_ghosts.grow(dst_growth);
+      dst_box_plus_ghosts.grow(hier::IntVector<DIM>(rim_width));
 
       tbox::Array<int> src_nabor_indices;
       if (dst_mapping.isMappingLocal(dst_patch_id)) {
@@ -1387,10 +1499,84 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
       const xfer::LocallyActiveDataFillBoxSet<DIM>& fill_boxes = la_fill_boxes[dst_patch_id];
       const int num_fill_boxes = fill_boxes.getNumberOfBoxes();
 
-      int src_len = src_nabor_indices.getSize();
-      for (int spp = 0; spp < src_len; spp++) {
+      /*
+       * A patch has periodic shifts only if it touches a periodic
+       * boundary, and only those that move it across the sides it touches.
+       * When a patch at a periodic boundary is only as wide as the ghost
+       * cell region, the source cells next to the fill boxes can be images
+       * of a patch that does not have the shift.  Find the images that lie
+       * next to the fill boxes without intersecting them (see
+       * RefineSchedule<DIM>).  There are none inside the domain.
+       */
+      std::vector<int> unlisted_src_patch_ids;
+      std::vector< tbox::List< hier::IntVector<DIM> > > unlisted_shifts;
+      if (rim_width > 0 && d_num_periodic_directions > 0 &&
+          num_fill_boxes > 0) {
 
-         int src_patch_id = src_nabor_indices[spp];
+         const hier::Box<DIM> fill_box(
+            fill_boxes.getBoxList().getBoundingBox());
+         hier::Box<DIM> search_box(fill_box);
+         search_box.grow(s_constant_one_intvector);
+         int num_shifts = domain_box.contains(search_box) ? 0 : 1;
+         for (int i = 0; i < DIM; i++) {
+            num_shifts *= (d_periodic_shift(i) != 0 ? 3 : 1);
+         }
+         for (int k = 0; k < num_shifts; k++) {
+
+            /*
+             * The digits of k in base three select the shift in each
+             * periodic direction.
+             */
+            hier::IntVector<DIM> shift(0);
+            int digits = k;
+            for (int i = 0; i < DIM; i++) {
+               if (d_periodic_shift(i) != 0) {
+                  shift(i) = (digits % 3 - 1) * d_periodic_shift(i);
+                  digits /= 3;
+               }
+            }
+            const hier::Box<DIM> shifted_search_box(
+               hier::Box<DIM>::shift(search_box, -shift));
+            if (shift == s_constant_zero_intvector ||
+                !shifted_search_box.intersects(domain_box)) {
+               continue;
+            }
+
+            tbox::Array<int> src_indices;
+            src_box_tree->findOverlapIndices(src_indices, shifted_search_box);
+            for (int j = 0; j < src_indices.getSize(); j++) {
+               const hier::Box<DIM> image(
+                  hier::Box<DIM>::shift(src_boxes[src_indices[j]], shift));
+               bool listed = false;
+               for (typename tbox::List< hier::IntVector<DIM> >::Iterator
+                       sh(src_level->getShiftsForPatch(src_indices[j]));
+                    sh; sh++) {
+                  if (sh() == shift) listed = true;
+               }
+               if (!listed && image.intersects(search_box) &&
+                   !image.intersects(fill_box)) {
+                  unlisted_src_patch_ids.push_back(src_indices[j]);
+                  unlisted_shifts.push_back(
+                     tbox::List< hier::IntVector<DIM> >());
+                  unlisted_shifts.back().appendItem(shift);
+               }
+            }
+
+         }
+
+      }
+      const int num_unlisted = static_cast<int>(unlisted_src_patch_ids.size());
+
+      int src_len = src_nabor_indices.getSize();
+      for (int spp = 0; spp < src_len + num_unlisted; spp++) {
+
+         const bool unlisted = (spp >= src_len);
+         int src_patch_id = unlisted ?
+            unlisted_src_patch_ids[spp - src_len] : src_nabor_indices[spp];
+         if ( unlisted && !dst_mapping.isMappingLocal(dst_patch_id)
+                       && !src_mapping.isMappingLocal(src_patch_id) ) {
+            continue;
+         }
 
          /*
           * Determine which equivalence classes are active; i.e., which
@@ -1435,13 +1621,15 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
              * Test all potential intersections between source box and fill
              * boxes including boxes shifted via periodic boundary conditions.
              * If there are periodic shifts, the source is always shifted
-             * relative to the destination.
+             * relative to the destination.  For an image that is not
+             * among the shifts of the source patch, test only its shift.
              */
 
             typename tbox::List< hier::IntVector<DIM> >::Iterator 
-               sh(src_level->getShiftsForPatch(src_patch_id));
+               sh(unlisted ? unlisted_shifts[spp - src_len] :
+                  src_level->getShiftsForPatch(src_patch_id));
 
-            bool zero_shift = true;
+            bool zero_shift = !unlisted;
 
             while (sh || zero_shift) {
 
@@ -1482,6 +1670,11 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                       * For each equivalence class, this loop is executed once.
                       */
 
+                     tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
+                        dst_pdf->getBoxGeometry(dst_box);
+                     tbox::Pointer< hier::BoxGeometry<DIM> > src_geometry =
+                        src_pdf->getBoxGeometry(src_box);
+
                      int box_num = 0;
                      for (typename hier::BoxList<DIM>::Iterator b(fill_boxes.getBoxList()); 
                              b; b++) {
@@ -1491,21 +1684,36 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                         hier::Box<DIM> dst_fill_box(hier::Box<DIM>::grow(dst_box, dst_gcw));
                         dst_fill_box = dst_fill_box * fill_box;
    
+                        const bool src_next_to_fill_box =
+                           (dst_gcw == s_constant_zero_intvector) &&
+                           dst_pdf->dataLivesOnPatchBorder();
+                        hier::Box<DIM> src_region(dst_fill_box);
+                        if (src_next_to_fill_box) {
+                           src_region.grow(s_constant_one_intvector);
+                        }
+                        /*
+                         * When the fill box is the whole ghost box of the
+                         * data, source cells next to it touch the data on
+                         * its boundary.
+                         */
+                        const bool src_next_to_ghost_box =
+                           !src_next_to_fill_box &&
+                           dst_pdf->dataLivesOnPatchBorder() &&
+                           (dst_fill_box ==
+                            hier::Box<DIM>::grow(dst_box, dst_gcw));
+                        if (src_next_to_ghost_box) {
+                           src_region.grow(s_constant_one_intvector);
+                        }
                         hier::Box<DIM> test_mask(dst_fill_box*shifted);
                         if ( test_mask.empty() &&
-                             (dst_gcw == s_constant_zero_intvector) &&
-                             dst_pdf->dataLivesOnPatchBorder() ) {
-                           hier::Box<DIM> tmp_dst_fill_box(
-                                          hier::Box<DIM>::grow(dst_fill_box,
-                                                               s_constant_one_intvector));
-                           test_mask = tmp_dst_fill_box * shifted;
+                             (src_next_to_fill_box || src_next_to_ghost_box) ) {
+                           test_mask = src_region * shifted;
                         }
                         hier::Box<DIM> src_mask( hier::Box<DIM>::shift( test_mask,-shift) );
    
                         tbox::Pointer< hier::BoxOverlap<DIM> > overlap =
-                           dst_pdf->getBoxGeometry(dst_box)
-                                  ->calculateOverlap(
-                                     *src_pdf->getBoxGeometry(src_box),
+                           dst_geometry->calculateOverlap(
+                                     *src_geometry,
                                      src_mask,
                                      true, shift);
 
@@ -1520,6 +1728,7 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                         }
 #endif
 
+                        src_regions[box_num] = src_region;
                         d_src_masks[box_num] = src_mask;
                         d_overlaps[box_num] = overlap;
                         box_num++;
@@ -1549,7 +1758,61 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                             */
                            for (int i = 0; i < num_fill_boxes; i++) {
 
-                              if (!d_overlaps[i]->isOverlapEmpty()) {
+                              /*
+                               * Data on patch borders are shared by the
+                               * source patches that touch them.  Take each
+                               * such value only from the source patch that
+                               * owns it among those on which the source
+                               * data are active, so that every destination
+                               * value is set by exactly one source patch
+                               * and the result does not depend on the
+                               * order of the transactions.  Ownership is
+                               * determined among the source cells that
+                               * can supply data to this destination patch.
+                               */
+                              tbox::Pointer< hier::BoxOverlap<DIM> > overlap =
+                                 d_overlaps[i];
+                              if ( dst_pdf->dataLivesOnPatchBorder() &&
+                                   !overlap->isOverlapEmpty() ) {
+                                 if (!found_owned_border_data[ritem_count]) {
+                                    hier::BoxList<DIM> supplied_region;
+                                    for (int j = 0; j < num_fill_boxes; j++) {
+                                       if (!src_regions[j].empty()) {
+                                          supplied_region.appendItem(src_regions[j]);
+                                       }
+                                    }
+                                    hier::BoxList<DIM> supplying_src_boxes;
+                                    src_level_mgr->findActiveOverlapBoxes(
+                                       supplying_src_boxes,
+                                       hier::PatchDataId(src_id),
+                                       hier::Box<DIM>::grow(
+                                          dst_box,
+                                          hier::IntVector<DIM>(max_gcw + 1)));
+                                    for (int n = 0; n < num_unlisted; n++) {
+                                       if (src_level_mgr->getPatchDataActive(
+                                              hier::PatchDataId(src_id),
+                                              hier::PatchNumber(
+                                                 unlisted_src_patch_ids[n]))) {
+                                          supplying_src_boxes.appendItem(
+                                             hier::Box<DIM>::shift(
+                                                src_boxes[unlisted_src_patch_ids[n]],
+                                                unlisted_shifts[n].getFirstItem()));
+                                       }
+                                    }
+                                    supplying_src_boxes.intersectBoxes(supplied_region);
+                                    dst_geometry->computeOwnedBorderData(
+                                       owned_border_data[ritem_count],
+                                       supplying_src_boxes,
+                                       supplying_src_boxes.getBoundingBox());
+                                    found_owned_border_data[ritem_count] = true;
+                                 }
+                                 overlap = dst_geometry->calculateOwnedOverlap(
+                                    *src_geometry, d_src_masks[i], true, shift,
+                                    src_regions[i] * shifted,
+                                    owned_border_data[ritem_count]);
+                              }
+
+                              if (!overlap->isOverlapEmpty()) {
 
                                  bool do_time_interpolation = 
                                     (use_time_interpolation &&
@@ -1558,7 +1821,7 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                                  tbox::Pointer<tbox::Transaction> transaction =
                                     d_transaction_factory->allocate(dst_level,
                                                                     src_level,
-                                                                    d_overlaps[i],
+                                                                    overlap,
                                                                     dst_patch_id,
                                                                     src_patch_id,
                                                                     ritem_count,

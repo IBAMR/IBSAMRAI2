@@ -204,9 +204,14 @@ template<int DIM> void RefineTimeTransaction<DIM>::copyLocalData()
     * If there is no offset between the source and destination, then 
     * time interpolate directly to the destination patchdata.  Otherwise,
     * time interpolate into a temporary patchdata and copy the result
-    * to the destination patchdata.
+    * to the destination patchdata.  Also do the latter for data that live
+    * on patch borders, since the overlap may exclude values on the border
+    * of the box that the source patch does not own.
     */
-   if (d_overlap->getSourceOffset() == hier::IntVector<DIM>(0)) {
+   if (d_overlap->getSourceOffset() == hier::IntVector<DIM>(0) &&
+       !d_dst_level->getPatchDescriptor()->
+          getPatchDataFactory(s_refine_items[d_refine_item_id]->d_scratch)->
+             dataLivesOnPatchBorder()) {
 
       timeInterpolate(
          d_dst_level->getPatch(d_dst_patch)->

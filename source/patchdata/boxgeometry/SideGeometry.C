@@ -185,6 +185,165 @@ template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> > SideGeometry<DIM>::doOv
    return(tbox::Pointer< hier::BoxOverlap<DIM> >(overlap));
 }
 
+/*
+*************************************************************************
+*                                                                       *
+* Restrict an overlap to the data owned by the source box.  A side      *
+* with normal direction d is touched by the cell with the same index    *
+* and by the cell below it in direction d.                              *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> void
+SideGeometry<DIM>::computeOwnedBorderData(
+   tbox::Array< hier::BoxList<DIM> >& owned_border_data,
+   const hier::BoxList<DIM>& level_boxes,
+   const hier::Box<DIM>& owner_box) const
+{
+   hier::BoxList<DIM> boxes(level_boxes);
+   boxes.coalesceBoxes();
+
+   owned_border_data.resizeArray(DIM);
+   hier::IntVector<DIM> offsets[2];
+   for (int d = 0; d < DIM; d++) {
+      offsets[0] = hier::IntVector<DIM>(0);
+      offsets[1] = hier::IntVector<DIM>(0);
+      offsets[1](d) = 1;
+      hier::BoxGeometry<DIM>::computeOwnedBorderBoxes(
+         owned_border_data, d, boxes, owner_box, offsets, 2);
+   }
+}
+
+template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
+SideGeometry<DIM>::restrictOverlapToOwnedData(
+   const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
+   const hier::Box<DIM>& src_box,
+   const tbox::Array< hier::BoxList<DIM> >& owned_border_data) const
+{
+   const SideOverlap<DIM>* t_overlap =
+      dynamic_cast<const SideOverlap<DIM>*>(overlap.getPointer());
+   if (t_overlap == NULL || owned_border_data.getSize() != DIM) {
+      return(overlap);
+   }
+
+   hier::BoxList<DIM> dst_boxes[DIM];
+   hier::IntVector<DIM> offsets[2];
+   for (int d = 0; d < DIM; d++) {
+      if (d_directions(d)) {
+         offsets[0] = hier::IntVector<DIM>(0);
+         offsets[1] = hier::IntVector<DIM>(0);
+         offsets[1](d) = 1;
+         hier::BoxGeometry<DIM>::intersectOverlapBoxes(
+            dst_boxes[d], t_overlap->getDestinationBoxList(d), src_box,
+            owned_border_data, d, offsets, 2);
+      }
+   }
+
+   return(new SideOverlap<DIM>(dst_boxes, t_overlap->getSourceOffset()));
+}
+
+/*
+*************************************************************************
+*                                                                       *
+* Compute the overlap between two side centered boxes as doOverlap()    *
+* does, but keep only the data owned by the source box, as              *
+* restrictOverlapToOwnedData() does.                                    *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
+SideGeometry<DIM>::calculateOwnedOverlap(
+   const hier::BoxGeometry<DIM>& src_geometry,
+   const hier::Box<DIM>& src_mask,
+   const bool overwrite_interior,
+   const hier::IntVector<DIM>& src_offset,
+   const hier::Box<DIM>& src_box,
+   const tbox::Array< hier::BoxList<DIM> >& owned_border_data) const
+{
+   const SideGeometry<DIM> *t_src =
+      dynamic_cast<const SideGeometry<DIM> *>(&src_geometry);
+   if (t_src == NULL || owned_border_data.getSize() != DIM) {
+      return(hier::BoxGeometry<DIM>::calculateOwnedOverlap(
+                src_geometry, src_mask, overwrite_interior, src_offset,
+                src_box, owned_border_data));
+   }
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT(d_directions == t_src->d_directions);
+#endif
+
+   hier::BoxList<DIM> dst_boxes[DIM];
+
+   const hier::Box<DIM> src_ghost =
+      hier::Box<DIM>::grow(t_src->d_box, t_src->d_ghosts) * src_mask;
+   const hier::Box<DIM> src_shift =
+      hier::Box<DIM>::shift(src_ghost, src_offset);
+   const hier::Box<DIM> dst_ghost =
+      hier::Box<DIM>::grow(d_box, d_ghosts);
+
+   const hier::Box<DIM> quick_check =
+      hier::Box<DIM>::grow(src_shift, 1) * hier::Box<DIM>::grow(dst_ghost, 1);
+
+   if (!quick_check.empty()) {
+      hier::IntVector<DIM> offsets[2];
+      for (int d = 0; d < DIM; d++) {
+         if (d_directions(d)) {
+            offsets[0] = hier::IntVector<DIM>(0);
+            offsets[1] = hier::IntVector<DIM>(0);
+            offsets[1](d) = 1;
+            const hier::Box<DIM> together =
+               toSideBox(dst_ghost, d) * toSideBox(src_shift, d);
+            if (!together.empty()) {
+               if (!overwrite_interior) {
+                  hier::BoxList<DIM> boxes;
+                  boxes.removeIntersections(together, toSideBox(d_box, d));
+                  hier::BoxGeometry<DIM>::intersectOverlapBoxes(
+                     dst_boxes[d], boxes, src_box,
+                     owned_border_data, d, offsets, 2);
+               } else {
+                  hier::BoxGeometry<DIM>::intersectOverlapBox(
+                     dst_boxes[d], together, src_box,
+                     owned_border_data, d, offsets, 2);
+               }
+            }
+         }
+      }
+   }
+
+   return(new SideOverlap<DIM>(dst_boxes, src_offset));
+}
+
+/*
+*************************************************************************
+*                                                                       *
+* Remove from an overlap the data touched by the cells of some boxes.   *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> tbox::Pointer< hier::BoxOverlap<DIM> >
+SideGeometry<DIM>::removeOverlapOnBoxes(
+   const tbox::Pointer< hier::BoxOverlap<DIM> >& overlap,
+   const hier::BoxList<DIM>& boxes) const
+{
+   const SideOverlap<DIM>* t_overlap =
+      dynamic_cast<const SideOverlap<DIM>*>(overlap.getPointer());
+   if (t_overlap == NULL) {
+      return(overlap);
+   }
+
+   hier::BoxList<DIM> dst_boxes[DIM];
+   for (int d = 0; d < DIM; d++) {
+      dst_boxes[d] = t_overlap->getDestinationBoxList(d);
+      for (typename hier::BoxList<DIM>::Iterator b(boxes); b; b++) {
+         dst_boxes[d].removeIntersections(toSideBox(b(), d));
+      }
+   }
+
+   return(new SideOverlap<DIM>(dst_boxes, t_overlap->getSourceOffset()));
+}
+
 }
 }
 #endif

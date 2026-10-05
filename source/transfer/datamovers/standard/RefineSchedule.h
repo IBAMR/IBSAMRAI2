@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "tbox/Array.h"
+#include "BoxGeometry.h"
 #include "BoxList.h"
 #include "BoxOverlap.h"
 #include "ComponentSelector.h"
@@ -499,14 +500,39 @@ private:
     * on destination level on regions defined by list of fill boxes.
     */
    void constructScheduleTransactions(
-      tbox::Pointer<tbox::Schedule> fine_priority_schedule,
-      tbox::Pointer<tbox::Schedule> coarse_priority_schedule,
+      const tbox::Pointer<tbox::Schedule>& fine_priority_schedule,
+      const tbox::Pointer<tbox::Schedule>& coarse_priority_schedule,
       const hier::BoxList<DIM>& fill_boxes,
-      tbox::Pointer< hier::PatchLevel<DIM> > dst_level,
+      const hier::BoxList<DIM>* uncovered_boxes,
+      const tbox::Pointer< hier::PatchLevel<DIM> >& dst_level,
       int dst_patch_id,
-      tbox::Pointer< hier::PatchLevel<DIM> > src_level,
+      const tbox::Pointer< hier::PatchLevel<DIM> >& src_level,
       int src_patch_id,
+      const tbox::List< hier::IntVector<DIM> >* unlisted_shifts,
       bool use_time_interpolation);
+
+   /*!
+    * @brief Function that constructs schedule transactions that move
+    * data to destination patch from the periodic images of source patches
+    * that lie next to the fill boxes and are not among the shifts of those
+    * patches, and removes the cells of these images from the uncovered
+    * boxes.
+    */
+   void constructUnlistedShiftTransactions(
+      const tbox::Pointer<tbox::Schedule>& fine_priority_schedule,
+      const tbox::Pointer<tbox::Schedule>& coarse_priority_schedule,
+      const hier::BoxList<DIM>& fill_boxes,
+      hier::BoxList<DIM>& uncovered_boxes,
+      const tbox::Pointer< hier::PatchLevel<DIM> >& dst_level,
+      int dst_patch_id,
+      const tbox::Pointer< hier::PatchLevel<DIM> >& src_level,
+      bool use_time_interpolation);
+
+   /*!
+    * @brief Return whether some refine item moves data that live on patch
+    * borders and are taken only from the patches that own them.
+    */
+   bool ownedBorderDataAreTransferred() const;
 
    /*!
     * @brief This function is called from each constructor to cache local copies
@@ -729,6 +755,22 @@ private:
     * the same.
     */
    std::vector<FineBorderData> d_fine_border_data;
+
+   /*!
+    * For the destination patch for which constructScheduleTransactions()
+    * was last called: the number of that patch, and for each refine
+    * equivalence class the border data owned by the source cells that can
+    * supply data to the patch (see
+    * hier::BoxGeometry<DIM>::computeOwnedBorderData()) and the box
+    * geometry of the patch, which are found when they are first needed.
+    * The box geometries of the source patches are kept in the same way
+    * for each equivalence class while the transactions are constructed.
+    */
+   int d_owned_dst_patch_id;
+   std::vector< tbox::Array< hier::BoxList<DIM> > > d_owned_border_data;
+   std::vector<bool> d_found_owned_border_data;
+   std::vector< tbox::Pointer< hier::BoxGeometry<DIM> > > d_dst_geometry;
+   std::vector< tbox::Pointer< hier::BoxGeometry<DIM> > > d_src_geometry;
 
    /*!
     * Arrays for overlaps and source mask boxes used in

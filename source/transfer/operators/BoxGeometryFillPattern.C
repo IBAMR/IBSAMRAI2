@@ -83,6 +83,12 @@ const std::string& BoxGeometryFillPattern<DIM>::getPatternName() const
    return (s_name_id);
 }
 
+template<int DIM>
+bool BoxGeometryFillPattern<DIM>::restrictOverlapsToOwnedData() const
+{
+   return true;
+}
+
 /*
 *************************************************************************
 *                                                                       *

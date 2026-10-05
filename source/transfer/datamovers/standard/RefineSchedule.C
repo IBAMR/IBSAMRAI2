@@ -161,6 +161,7 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    d_coarse_level.setNull();
 
    d_max_fill_boxes = 0;
+   d_owned_dst_patch_id = -1;
 
    /*
     * Initialize destination level, ghost cell widths,
@@ -292,6 +293,7 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    d_coarse_level.setNull();
 
    d_max_fill_boxes = 0;
+   d_owned_dst_patch_id = -1;
 
    /*
     * Initialize destination level, ghost cell widths,
@@ -408,6 +410,7 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    d_coarse_level.setNull();
 
    d_max_fill_boxes = 0;
+   d_owned_dst_patch_id = -1;
 
    /*
     * Initialize destination level, ghost cell widths,
@@ -1402,6 +1405,9 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationSchedule(
    TBOX_ASSERT(unfilled_boxes.getSize() == dst_level->getNumberOfPatches());
 #endif
 
+   d_owned_dst_patch_id = -1;
+   d_src_geometry.clear();
+
    if (s_schedule_generation_method == "ORIG_NSQUARED") {
 
       generateCommunicationScheduleNSquared(coarse_priority_schedule,
@@ -1440,6 +1446,14 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationSchedule(
 		 << s_schedule_generation_method << std::endl);
 
    }
+
+   /*
+    * The box geometries are used only to construct the transactions, so
+    * release them.
+    */
+   d_owned_dst_patch_id = -1;
+   std::vector< tbox::Pointer< hier::BoxGeometry<DIM> > >().swap(d_dst_geometry);
+   std::vector< tbox::Pointer< hier::BoxGeometry<DIM> > >().swap(d_src_geometry);
 
 }
 
@@ -1481,7 +1495,27 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleNSquare
 			      dst_level,
 			      src_level);
 
+   const int rim_width = ownedBorderDataAreTransferred() ? 1 : 0;
+
    for (int dp = 0; dp < dst_npatches; dp++) {
+
+      hier::BoxList<DIM> uncovered_boxes;
+      if (rim_width > 0) {
+         for (typename hier::BoxList<DIM>::Iterator
+                 b(fill_boxes[dp].getBoxList()); b; b++) {
+            hier::Box<DIM> box(b());
+            box.grow(s_constant_one_intvector);
+            uncovered_boxes.appendItem(box);
+         }
+         src_level->getBoxTree()->removeIntersections(uncovered_boxes);
+         constructUnlistedShiftTransactions(fine_priority_schedule,
+                                            coarse_priority_schedule,
+                                            fill_boxes[dp].getBoxList(),
+                                            uncovered_boxes,
+                                            dst_level, dp,
+                                            src_level,
+                                            use_time_interpolation);
+      }
 
       for (int sp = 0; sp < src_npatches; sp++) {
 
@@ -1491,8 +1525,9 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleNSquare
 	    constructScheduleTransactions(fine_priority_schedule,
 					  coarse_priority_schedule,
 					  fill_boxes[dp].getBoxList(),
+					  rim_width > 0 ? &uncovered_boxes : NULL,
 					  dst_level, dp,
-					  src_level, sp,
+					  src_level, sp, NULL,
 					  use_time_interpolation);
 
 	 }  // if either source or destination patch is local
@@ -1547,7 +1582,8 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxGrap
 
    tbox::Pointer< hier::BoxGraph<DIM> > box_graph;
 
-   if (dst_level == src_level) {
+   const int rim_width = ownedBorderDataAreTransferred() ? 1 : 0;
+   if (dst_level == src_level && rim_width == 0) {
 
       box_graph = dst_level->getBoxGraph();
 
@@ -1556,7 +1592,7 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxGrap
       hier::IntVector<DIM> growth =
 	 hier::IntVector<DIM>::max(d_max_scratch_gcw, getMaxDestinationGhosts());
       int max_gcw = tbox::MathUtilities<int>::Max(growth.max(),1);
-      hier::IntVector<DIM> dst_growth(max_gcw);
+      hier::IntVector<DIM> dst_growth(max_gcw + rim_width);
 
       box_graph = new hier::BoxGraph<DIM>(src_boxes,
 				     src_level->getShiftsForLevel(),
@@ -1575,6 +1611,24 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxGrap
 	 src_nabor_indices = box_graph->getLocalSrcOverlapIndices(dp);
       }
 
+      hier::BoxList<DIM> uncovered_boxes;
+      if (rim_width > 0) {
+         for (typename hier::BoxList<DIM>::Iterator
+                 b(fill_boxes[dp].getBoxList()); b; b++) {
+            hier::Box<DIM> box(b());
+            box.grow(s_constant_one_intvector);
+            uncovered_boxes.appendItem(box);
+         }
+         src_level->getBoxTree()->removeIntersections(uncovered_boxes);
+         constructUnlistedShiftTransactions(fine_priority_schedule,
+                                            coarse_priority_schedule,
+                                            fill_boxes[dp].getBoxList(),
+                                            uncovered_boxes,
+                                            dst_level, dp,
+                                            src_level,
+                                            use_time_interpolation);
+      }
+
       int src_len = src_nabor_indices.getSize();
       for (int spp = 0; spp < src_len; spp++) {
 
@@ -1583,8 +1637,9 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxGrap
 	 constructScheduleTransactions(fine_priority_schedule,
 				       coarse_priority_schedule,
 				       fill_boxes[dp].getBoxList(),
+				       rim_width > 0 ? &uncovered_boxes : NULL,
 				       dst_level, dp,
-				       src_level, sp,
+				       src_level, sp, NULL,
 				       use_time_interpolation);
 
       } // loop over source patches
@@ -1630,9 +1685,31 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
 
    tbox::Pointer< hier::BoxTree<DIM> > box_tree = src_level->getBoxTree();
 
+   /*
+    * Source cells next to the fill boxes can own the data on the
+    * boundary of the fill boxes when data on patch borders are taken from
+    * their owners.  Find the cells of the fill boxes and of that extra
+    * layer that the source level does not cover.  The part in the fill
+    * boxes is what remains to be filled; it is usually empty.
+    */
+   const int rim_width = ownedBorderDataAreTransferred() ? 1 : 0;
+   std::vector< hier::BoxList<DIM> > uncovered_boxes(dst_npatches);
    for (int dp = 0; dp < dst_npatches; dp++) {
-      unfilled_boxes[dp] = fill_boxes[dp];
-      box_tree->removeIntersections(unfilled_boxes[dp].getBoxListToChange());
+      if (rim_width > 0) {
+         for (typename hier::BoxList<DIM>::Iterator
+                 b(fill_boxes[dp].getBoxList()); b; b++) {
+            hier::Box<DIM> box(b());
+            box.grow(s_constant_one_intvector);
+            uncovered_boxes[dp].appendItem(box);
+         }
+         box_tree->removeIntersections(uncovered_boxes[dp]);
+      }
+      if (rim_width > 0 && uncovered_boxes[dp].isEmpty()) {
+         unfilled_boxes[dp].resetFillBoxes(hier::BoxList<DIM>());
+      } else {
+         unfilled_boxes[dp] = fill_boxes[dp];
+         box_tree->removeIntersections(unfilled_boxes[dp].getBoxListToChange());
+      }
    }
 
    hier::IntVector<DIM> growth =
@@ -1645,6 +1722,15 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
       const hier::Box<DIM>& dst_box = dst_boxes[dp];
       hier::Box<DIM> dst_box_plus_ghosts = dst_box;
       dst_box_plus_ghosts.grow(dst_growth);
+      dst_box_plus_ghosts.upper() += hier::IntVector<DIM>(rim_width);
+
+      /*
+       * A source cell next to the fill boxes on a lower side owns data
+       * only where the source level does not cover the cells above it.
+       */
+      if (!uncovered_boxes[dp].isEmpty()) {
+         dst_box_plus_ghosts.lower() -= s_constant_one_intvector;
+      }
 
       tbox::Array<int> src_nabor_indices;
       if (dst_mapping.isMappingLocal(dp)) {
@@ -1655,6 +1741,16 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
 	    src_nabor_indices, dst_box_plus_ghosts);
       }
 
+      if (rim_width > 0) {
+         constructUnlistedShiftTransactions(fine_priority_schedule,
+                                            coarse_priority_schedule,
+                                            fill_boxes[dp].getBoxList(),
+                                            uncovered_boxes[dp],
+                                            dst_level, dp,
+                                            src_level,
+                                            use_time_interpolation);
+      }
+
       int src_len = src_nabor_indices.getSize();
       for (int spp = 0; spp < src_len; spp++) {
 
@@ -1663,8 +1759,9 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
 	 constructScheduleTransactions(fine_priority_schedule,
 				       coarse_priority_schedule,
 				       fill_boxes[dp].getBoxList(),
+				       rim_width > 0 ? &uncovered_boxes[dp] : NULL,
 				       dst_level, dp,
-				       src_level, sp,
+				       src_level, sp, NULL,
 				       use_time_interpolation);
 
       } // loop over source patches
@@ -2020,20 +2117,150 @@ template<int DIM> void RefineSchedule<DIM>::makeUnfilledBoxesNSquared(
 *************************************************************************
 *
 * Private utility function that constructs schedule transactions that
+* move data to destination patch from periodic images of source patches
+* that are not among the shifts of those patches.
+*
+*************************************************************************
+*/
+
+template<int DIM> void RefineSchedule<DIM>::constructUnlistedShiftTransactions(
+   const tbox::Pointer<tbox::Schedule>& fine_priority_schedule,
+   const tbox::Pointer<tbox::Schedule>& coarse_priority_schedule,
+   const hier::BoxList<DIM>& fill_boxes,
+   hier::BoxList<DIM>& uncovered_boxes,
+   const tbox::Pointer< hier::PatchLevel<DIM> >& dst_level,
+   int dst_patch_id,
+   const tbox::Pointer< hier::PatchLevel<DIM> >& src_level,
+   bool use_time_interpolation)
+{
+   if (d_num_periodic_directions == 0 || uncovered_boxes.isEmpty()) {
+      return;
+   }
+
+   /*
+    * A patch has periodic shifts only if it touches a periodic boundary,
+    * and only those that move it across the sides it touches, so the box
+    * tree of the source level holds no other periodic images.  When a
+    * patch at a periodic boundary is only as wide as the ghost cell
+    * region, the source cells next to the fill boxes can be images of a
+    * patch that does not have the shift.  The patch at the boundary would
+    * then supply the data on the boundary of the fill boxes, although its
+    * neighbor owns them and an in-place fill overwrites its copy.  Find
+    * the images that lie next to the fill boxes without intersecting
+    * them, and remove their cells from the uncovered boxes.  Images that
+    * intersect the fill boxes supply no data, as before.  There are no
+    * images inside the domain.
+    */
+   const hier::BoxArray<DIM>& src_boxes = src_level->getBoxes();
+   const hier::Box<DIM> domain_box(
+      src_level->getPhysicalDomain().getBoundingBox());
+   const hier::Box<DIM> fill_box(fill_boxes.getBoundingBox());
+   hier::Box<DIM> search_box(fill_box);
+   search_box.grow(s_constant_one_intvector);
+   if (domain_box.contains(search_box)) {
+      return;
+   }
+
+   std::vector<int> src_patch_ids;
+   std::vector< hier::IntVector<DIM> > shifts;
+   int num_shifts = 1;
+   for (int i = 0; i < DIM; i++) {
+      num_shifts *= (d_periodic_shift(i) != 0 ? 3 : 1);
+   }
+   for (int k = 0; k < num_shifts; k++) {
+
+      /*
+       * The digits of k in base three select the shift in each periodic
+       * direction.
+       */
+      hier::IntVector<DIM> shift(0);
+      int digits = k;
+      for (int i = 0; i < DIM; i++) {
+         if (d_periodic_shift(i) != 0) {
+            shift(i) = (digits % 3 - 1) * d_periodic_shift(i);
+            digits /= 3;
+         }
+      }
+      const hier::Box<DIM> shifted_search_box(
+         hier::Box<DIM>::shift(search_box, -shift));
+      if (shift == s_constant_zero_intvector ||
+          !shifted_search_box.intersects(domain_box)) {
+         continue;
+      }
+
+      tbox::Array<int> src_indices;
+      src_level->getBoxTree()->findOverlapIndices(
+         src_indices, shifted_search_box);
+      for (int j = 0; j < src_indices.getSize(); j++) {
+         const hier::Box<DIM> image(
+            hier::Box<DIM>::shift(src_boxes[src_indices[j]], shift));
+         hier::BoxList<DIM> image_cells(uncovered_boxes);
+         image_cells.intersectBoxes(image);
+         if (!image_cells.isEmpty() && !image.intersects(fill_box)) {
+            uncovered_boxes.removeIntersections(image);
+            src_patch_ids.push_back(src_indices[j]);
+            shifts.push_back(shift);
+         }
+      }
+
+   }
+
+   const hier::ProcessorMapping& dst_mapping = dst_level->getProcessorMapping();
+   const hier::ProcessorMapping& src_mapping = src_level->getProcessorMapping();
+
+   for (int n = 0; n < static_cast<int>(src_patch_ids.size()); n++) {
+      if (   dst_mapping.isMappingLocal(dst_patch_id)
+          || src_mapping.isMappingLocal(src_patch_ids[n]) ) {
+         tbox::List< hier::IntVector<DIM> > unlisted_shifts;
+         unlisted_shifts.appendItem(shifts[n]);
+         constructScheduleTransactions(fine_priority_schedule,
+                                       coarse_priority_schedule,
+                                       fill_boxes,
+                                       &uncovered_boxes,
+                                       dst_level, dst_patch_id,
+                                       src_level, src_patch_ids[n],
+                                       &unlisted_shifts,
+                                       use_time_interpolation);
+      }
+   }
+}
+
+/*
+*************************************************************************
+*
+* Private utility function that constructs schedule transactions that
 * move data from source patch on source level to destination patch
 * on destination level on regions defined by list of fil boxes.
 *
 *************************************************************************
 */
 
+template<int DIM> bool RefineSchedule<DIM>::ownedBorderDataAreTransferred() const
+{
+   tbox::Pointer< hier::PatchDescriptor<DIM> > descriptor =
+      d_dst_level->getPatchDescriptor();
+   for (int nc = 0; nc < d_refine_classes->getNumberOfEquivalenceClasses(); nc++) {
+      const typename xfer::RefineClasses<DIM>::Data& rep_item =
+         d_refine_classes->getClassRepresentative(nc);
+      if (rep_item.d_var_fill_pattern->restrictOverlapsToOwnedData() &&
+          descriptor->getPatchDataFactory(rep_item.d_scratch)->
+             dataLivesOnPatchBorder()) {
+         return(true);
+      }
+   }
+   return(false);
+}
+
 template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
-   tbox::Pointer<tbox::Schedule> fine_priority_schedule,
-   tbox::Pointer<tbox::Schedule> coarse_priority_schedule,
+   const tbox::Pointer<tbox::Schedule>& fine_priority_schedule,
+   const tbox::Pointer<tbox::Schedule>& coarse_priority_schedule,
    const hier::BoxList<DIM>& fill_boxes,
-   tbox::Pointer< hier::PatchLevel<DIM> > dst_level,
+   const hier::BoxList<DIM>* uncovered_boxes,
+   const tbox::Pointer< hier::PatchLevel<DIM> >& dst_level,
    int dst_patch_id,
-   tbox::Pointer< hier::PatchLevel<DIM> > src_level,
+   const tbox::Pointer< hier::PatchLevel<DIM> >& src_level,
    int src_patch_id,
+   const tbox::List< hier::IntVector<DIM> >* unlisted_shifts,
    bool use_time_interpolation)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2068,16 +2295,38 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
       d_refine_classes->getNumberOfEquivalenceClasses();
 
    /*
+    * Each patch takes part in many transactions, so keep the box
+    * geometries of the source patches, and what is found for the
+    * destination patch until transactions are constructed for another
+    * one.
+    */
+   const int num_src_patches = src_level->getNumberOfPatches();
+   if (static_cast<int>(d_src_geometry.size()) !=
+       num_src_patches * num_equiv_classes) {
+      d_src_geometry.assign(num_src_patches * num_equiv_classes,
+                            tbox::Pointer< hier::BoxGeometry<DIM> >(NULL));
+   }
+   if (d_owned_dst_patch_id != dst_patch_id) {
+      d_owned_dst_patch_id = dst_patch_id;
+      d_owned_border_data.resize(num_equiv_classes);
+      d_found_owned_border_data.assign(num_equiv_classes, false);
+      d_dst_geometry.assign(num_equiv_classes,
+                            tbox::Pointer< hier::BoxGeometry<DIM> >(NULL));
+   }
+
+   /*
     * Test all potential intersections between source box and fill
     * boxes including boxes shifted via periodic boundary conditions.
     * If there are periodic shifts, the source is always shifted
-    * relative to the destination.
+    * relative to the destination.  If shifts that are not among those
+    * of the source patch are given, test only them.
     */
 
    typename tbox::List< hier::IntVector<DIM> >::Iterator
-      sh(src_level->getShiftsForPatch(src_patch_id));
+      sh(unlisted_shifts != NULL ? *unlisted_shifts :
+         src_level->getShiftsForPatch(src_patch_id));
 
-   bool zero_shift = true;
+   bool zero_shift = (unlisted_shifts == NULL);
 
    while (sh || zero_shift) {
 
@@ -2108,6 +2357,90 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
 	 const hier::IntVector<DIM>& dst_gcw = dst_pdf->getGhostCellWidth();
 
          /*
+          * No transaction is needed when the source and destination
+          * patches, levels, and components are the same and there is no
+          * shift.
+          */
+	 const bool same_patch_no_shift = (same_patch && zero_shift);
+         bool transaction_needed = !same_patch_no_shift;
+	 for (typename tbox::List<typename xfer::RefineClasses<DIM>::Data>::Iterator
+                 l(d_refine_classes->getIterator(nc)); l; l++) {
+            if (l().d_scratch != l().d_src) transaction_needed = true;
+         }
+         if (!transaction_needed) continue;
+
+         tbox::Pointer< hier::BoxGeometry<DIM> >& src_geometry =
+            d_src_geometry[src_patch_id * num_equiv_classes + nc];
+         if (src_geometry.isNull()) {
+            src_geometry = src_pdf->getBoxGeometry(src_box);
+         }
+         tbox::Pointer< hier::BoxGeometry<DIM> >& dst_geometry =
+            d_dst_geometry[nc];
+         if (dst_geometry.isNull()) {
+            dst_geometry = dst_pdf->getBoxGeometry(dst_box);
+         }
+
+         /*
+          * Data on patch borders are shared by the source patches that
+          * touch them.  Unless the fill pattern selects the source of such
+          * values itself, take each of them only from the source patch
+          * that owns it, so that every destination value is set by exactly
+          * one source patch and the result does not depend on the order
+          * of the transactions.  Ownership is determined among the source
+          * cells that can supply data to this destination patch: those in
+          * its fill boxes and, when a fill box is the whole ghost box of
+          * the data, those next to it on any side, which touch the data
+          * on the boundary of the ghost box and can be their owners.  For
+          * data without ghost cells, source cells next to the fill boxes
+          * can supply data, as they always could.
+          */
+         const bool data_on_border = dst_pdf->dataLivesOnPatchBorder();
+         const bool src_next_to_fill_box = data_on_border &&
+            (dst_gcw == s_constant_zero_intvector);
+         const bool restricts_to_owned_or_default =
+            rep_item.d_var_fill_pattern->restrictOverlapsToOwnedData();
+         const bool restrict_to_owned_data =
+            data_on_border && restricts_to_owned_or_default;
+         if (restrict_to_owned_data) {
+            if (!d_found_owned_border_data[nc]) {
+               hier::BoxList<DIM> supplied_region;
+               const hier::Box<DIM> ghost_box(
+                  hier::Box<DIM>::grow(dst_box, dst_gcw));
+               for (typename hier::BoxList<DIM>::Iterator b(fill_boxes); b; b++) {
+                  hier::Box<DIM> box(ghost_box * b());
+                  if (box.empty()) continue;
+                  if (src_next_to_fill_box || box == ghost_box) {
+                     box.grow(s_constant_one_intvector);
+                  }
+                  supplied_region.appendItem(box);
+               }
+
+               /*
+                * The supplying source cells are those of the supplied
+                * region that the source level covers.  The caller may
+                * already know which cells of the fill boxes and of the
+                * layer around them it does not cover.
+                */
+               hier::BoxList<DIM> supplying_src_boxes(supplied_region);
+               if (uncovered_boxes != NULL && !src_next_to_fill_box) {
+                  if (!uncovered_boxes->isEmpty()) {
+                     supplying_src_boxes.removeIntersections(*uncovered_boxes);
+                  }
+               } else {
+                  hier::BoxList<DIM> uncovered_region(supplied_region);
+                  src_level->getBoxTree()->removeIntersections(uncovered_region);
+                  if (!uncovered_region.isEmpty()) {
+                     supplying_src_boxes.removeIntersections(uncovered_region);
+                  }
+               }
+               dst_geometry->computeOwnedBorderData(
+                  d_owned_border_data[nc], supplying_src_boxes,
+                  supplying_src_boxes.getBoundingBox());
+               d_found_owned_border_data[nc] = true;
+            }
+         }
+
+         /*
           * Iterate over boxes in fill box list for destination patch.
           * Then, calculate the src_mask and overlap for each fill box.
           * For each equivalence class, this loop is executed once.
@@ -2132,25 +2465,51 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
             hier::Box<DIM> dst_fill_box(hier::Box<DIM>::grow(dst_box, dst_gcw));
             dst_fill_box = dst_fill_box * fill_box;
 
+            const bool src_next_to_ghost_box = restrict_to_owned_data &&
+               !src_next_to_fill_box &&
+               (dst_fill_box == hier::Box<DIM>::grow(dst_box, dst_gcw));
+            hier::Box<DIM> src_region(dst_fill_box);
+            if (src_next_to_fill_box || src_next_to_ghost_box) {
+               src_region.grow(s_constant_one_intvector);
+            }
             hier::Box<DIM> test_mask(dst_fill_box*shifted);
             if ( test_mask.empty() &&
-                 (dst_gcw == s_constant_zero_intvector) &&
-                 dst_pdf->dataLivesOnPatchBorder() ) {
-               hier::Box<DIM> tmp_dst_fill_box(hier::Box<DIM>::grow(dst_fill_box,
-                                                          s_constant_one_intvector));
-               test_mask = tmp_dst_fill_box * shifted;
+                 (src_next_to_fill_box || src_next_to_ghost_box) ) {
+               test_mask = src_region * shifted;
             }
             hier::Box<DIM> src_mask( hier::Box<DIM>::shift( test_mask,-shift) );
 
-            tbox::Pointer< hier::BoxOverlap<DIM> > overlap =
-               rep_item.d_var_fill_pattern->calculateOverlapOnLevel(
-                  *dst_pdf->getBoxGeometry(dst_box),
-                  *src_pdf->getBoxGeometry(src_box),
+            /*
+             * Nothing can be transferred from an empty source region, so
+             * do not compute an overlap for it.
+             */
+            if (test_mask.empty() && restricts_to_owned_or_default) {
+               d_src_masks[box_num] = src_mask;
+               d_overlaps[box_num].setNull();
+               box_num++;
+               continue;
+            }
+
+            /*
+             * A fill pattern whose overlaps are restricted to owned data
+             * fills everything that the box geometries allow, so the
+             * restricted overlap is calculated from the box geometries.
+             */
+            tbox::Pointer< hier::BoxOverlap<DIM> > overlap;
+            if (restrict_to_owned_data) {
+               overlap = dst_geometry->calculateOwnedOverlap(
+                  *src_geometry, src_mask, true, shift,
+                  src_region * shifted, d_owned_border_data[nc]);
+            } else {
+               overlap = rep_item.d_var_fill_pattern->calculateOverlapOnLevel(
+                  *dst_geometry,
+                  *src_geometry,
                   dst_box,
                   src_mask,
                   true, shift,
                   dst_level->getLevelNumber(),
                   src_level->getLevelNumber());
+            }
 /*	    tbox::Pointer< hier::BoxOverlap<DIM> > overlap =
 	       dst_pdf->getBoxGeometry(dst_box)
 		      ->calculateOverlap(
@@ -2177,7 +2536,6 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
          /*
           * Iterate over components in refine description list
           */
-	 bool same_patch_no_shift = (same_patch && zero_shift);
 	 for (typename tbox::List<typename xfer::RefineClasses<DIM>::Data>::Iterator
                  l(d_refine_classes->getIterator(nc)); l; l++) {
 	    const int dst_id = l().d_scratch;
@@ -2208,7 +2566,8 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
                    * whether we use time interpolation.
                    */
 
-		  if (!d_overlaps[i]->isOverlapEmpty()) {
+		  if (!d_overlaps[i].isNull() &&
+                      !d_overlaps[i]->isOverlapEmpty()) {
 
 		     tbox::Pointer<tbox::Transaction> transaction;
 

@@ -131,6 +131,19 @@ public:
     * before a call to invoke the communication schedule.   Note that the 
     * source and destination components may be the same in any case.
     *
+    * Node, side, face, and edge data are also defined on the boundary
+    * between the source level and the rest of the destination level.
+    * When the destination component is one of these, its data there are
+    * overwritten only if the source component on the boundary of the fine
+    * level represents the variable (see
+    * hier::Variable<DIM>::fineBoundaryRepresentsVariable()); otherwise they
+    * are left unchanged.  To coarsen fine boundary values in that case,
+    * coarsen them from a copy held in outernode, outerside, outerface, or
+    * outeredge data, which always represent the variable.  A value shared
+    * by several source patches is taken from the patch on its upper side.
+    * Neither rule is applied to destination components that are outer
+    * data, or when gcw_to_coarsen is nonzero.
+    *
     * Some special circumstances require that data be coarsened from the 
     * ghost cell regions of a finer level and the resulting coarsened data 
     * should be copied to the destination patch level.  When this is the case, 

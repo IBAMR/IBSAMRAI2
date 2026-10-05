@@ -11,6 +11,7 @@
 #define included_hier_LocallyActiveDataPatchLevelManager_C
 
 #include "LocallyActiveDataPatchLevelManager.h"
+#include "BoxTree.h"
 
 
 #include "LocallyActiveVariableDatabase.h"
@@ -91,6 +92,42 @@ void LocallyActiveDataPatchLevelManager<DIM>::reset(
    d_active_patch_data.resizeArray(d_number_patches);
    for (int ip = 0; ip < d_number_patches; ip++) {
       d_active_patch_data[ip] = new hier::ComponentSelector();
+   }
+}
+
+/*
+*************************************************************************
+*                                                                       *
+* Find the boxes of the patches on which the given data is active,     *
+* including their periodic images, that intersect the given box.       *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM>
+void LocallyActiveDataPatchLevelManager<DIM>::findActiveOverlapBoxes(
+   hier::BoxList<DIM>& overlap_boxes,
+   const PatchDataId& patch_data_id,
+   const hier::Box<DIM>& box) const
+{
+   overlap_boxes.clearItems();
+
+   const hier::BoxArray<DIM>& boxes = d_patch_level->getBoxes();
+   tbox::Array<int> indices;
+   d_patch_level->getBoxTree()->findOverlapIndices(indices, box);
+   for (int i = 0; i < indices.getSize(); i++) {
+      const int p = indices[i];
+      if (!getPatchDataActive(patch_data_id, PatchNumber(p))) continue;
+      if (!(boxes[p] * box).empty()) {
+         overlap_boxes.appendItem(boxes[p]);
+      }
+      for (typename tbox::List< hier::IntVector<DIM> >::Iterator
+              sh(d_patch_level->getShiftsForPatch(p)); sh; sh++) {
+         const hier::Box<DIM> shifted(hier::Box<DIM>::shift(boxes[p], sh()));
+         if (!(shifted * box).empty()) {
+            overlap_boxes.appendItem(shifted);
+         }
+      }
    }
 }
 
