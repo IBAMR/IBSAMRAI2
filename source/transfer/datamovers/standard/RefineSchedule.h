@@ -507,6 +507,24 @@ private:
       int dst_patch_id,
       tbox::Pointer< hier::PatchLevel<DIM> > src_level,
       int src_patch_id,
+      const tbox::List< hier::IntVector<DIM> >* unlisted_shifts,
+      bool use_time_interpolation);
+
+   /*!
+    * @brief Function that constructs schedule transactions that move
+    * data to destination patch from the periodic images of source patches
+    * that lie next to the upper sides of the fill boxes and are not among
+    * the shifts of those patches, and removes the cells of these images
+    * from the uncovered boxes.
+    */
+   void constructUnlistedShiftTransactions(
+      tbox::Pointer<tbox::Schedule> fine_priority_schedule,
+      tbox::Pointer<tbox::Schedule> coarse_priority_schedule,
+      const hier::BoxList<DIM>& fill_boxes,
+      hier::BoxList<DIM>& uncovered_boxes,
+      tbox::Pointer< hier::PatchLevel<DIM> > dst_level,
+      int dst_patch_id,
+      tbox::Pointer< hier::PatchLevel<DIM> > src_level,
       bool use_time_interpolation);
 
    /*!
