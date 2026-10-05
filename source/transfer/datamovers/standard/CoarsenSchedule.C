@@ -131,6 +131,8 @@ template<int DIM>  CoarsenSchedule<DIM>::CoarsenSchedule(
    d_number_coarsen_items = 0;
    d_coarsen_items = (const typename xfer::CoarsenClasses<DIM>::Data**)NULL;
 
+   d_dst_geometry_patch_id = -1;
+
    /*
     * Compute ratio between fine and coarse levels and then check for
     * correctness.
@@ -420,6 +422,19 @@ template<int DIM> void CoarsenSchedule<DIM>::generateSchedule()
 
    }
 
+   /*
+    * The box geometries and the data found for the source patches are
+    * used only to construct the transactions, so release them.
+    */
+   std::vector< tbox::Pointer< hier::BoxGeometry<DIM> > >().swap(d_src_geometry);
+   std::vector< tbox::Pointer< hier::BoxGeometry<DIM> > >().swap(d_dst_geometry);
+   d_dst_geometry_patch_id = -1;
+   std::vector< hier::BoxList<DIM> >().swap(d_uncovered_near_src);
+   std::vector<bool>().swap(d_found_uncovered_near_src);
+   std::vector< tbox::Array< hier::BoxList<DIM> > >().swap(d_owned_border_data);
+   std::vector<bool>().swap(d_found_owned_border_data);
+   d_shifted_border_data.clear();
+
 }
 
 /*
@@ -631,6 +646,23 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
       d_coarsen_classes->getNumberOfEquivalenceClasses();
 
    /*
+    * Each patch takes part in many transactions, so keep the box
+    * geometries of the source patches, and those of the destination
+    * patch until transactions are constructed for another one.
+    */
+   const int num_src_patches = src_level->getNumberOfPatches();
+   if (static_cast<int>(d_src_geometry.size()) !=
+       num_src_patches * num_equiv_classes) {
+      d_src_geometry.assign(num_src_patches * num_equiv_classes,
+                            tbox::Pointer< hier::BoxGeometry<DIM> >(NULL));
+   }
+   if (d_dst_geometry_patch_id != dst_patch_id) {
+      d_dst_geometry.assign(num_equiv_classes,
+                            tbox::Pointer< hier::BoxGeometry<DIM> >(NULL));
+      d_dst_geometry_patch_id = dst_patch_id;
+   }
+
+   /*
     * Test all potential intersections between source box and fill
     * boxes including boxes shifted via periodic boundary conditions.
     * If there are periodic shifts, the source is always shifted
@@ -641,6 +673,7 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
       sh(src_level->getShiftsForPatch(src_patch_id));
 
    bool zero_shift = true;
+   int shift_number = 0;
 
    while (sh || zero_shift) {
 
@@ -701,10 +734,21 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
 
          src_mask += test_mask;
 
+         const int cache_id = src_patch_id * num_equiv_classes + nc;
+         tbox::Pointer< hier::BoxGeometry<DIM> >& src_geometry =
+            d_src_geometry[cache_id];
+         if (src_geometry.isNull()) {
+            src_geometry = src_pdf->getBoxGeometry(src_box);
+         }
+         tbox::Pointer< hier::BoxGeometry<DIM> >& dst_geometry =
+            d_dst_geometry[nc];
+         if (dst_geometry.isNull()) {
+            dst_geometry = dst_pdf->getBoxGeometry(dst_box);
+         }
+
          tbox::Pointer< hier::BoxOverlap<DIM> > overlap = 
-            dst_pdf->getBoxGeometry(dst_box)
-                        ->calculateOverlap(
-                          *src_pdf->getBoxGeometry(src_box),
+            dst_geometry->calculateOverlap(
+                          *src_geometry,
                           src_mask,
                           true, shift);
 
@@ -734,7 +778,6 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
               (rep_item.d_gcw_to_coarsen == s_constant_zero_intvector) ) {
             const hier::Box<DIM> src_region =
                hier::Box<DIM>::grow(src_box, s_constant_one_intvector);
-            const int num_src_patches = src_level->getNumberOfPatches();
             if (static_cast<int>(d_uncovered_near_src.size()) != num_src_patches) {
                d_uncovered_near_src.assign(num_src_patches, hier::BoxList<DIM>());
                d_found_uncovered_near_src.assign(num_src_patches, false);
@@ -743,6 +786,7 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
                   tbox::Array< hier::BoxList<DIM> >());
                d_found_owned_border_data.assign(
                   num_src_patches * num_equiv_classes, false);
+               d_shifted_border_data.clear();
             }
             if (!d_found_uncovered_near_src[src_patch_id]) {
                d_uncovered_near_src[src_patch_id].appendItem(src_region);
@@ -750,10 +794,7 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
                   d_uncovered_near_src[src_patch_id]);
                d_found_uncovered_near_src[src_patch_id] = true;
             }
-            tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
-               dst_pdf->getBoxGeometry(dst_box);
             if (shift == s_constant_zero_intvector) {
-               const int cache_id = src_patch_id * num_equiv_classes + nc;
                if (!d_found_owned_border_data[cache_id]) {
                   hier::BoxList<DIM> src_boxes_nearby(src_region);
                   if (!d_uncovered_near_src[src_patch_id].isEmpty()) {
@@ -770,17 +811,23 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
                /*
                 * The owned border data are meaningful only to the geometry
                 * that computed them and cannot be shifted here, so compute
-                * them where the shifted patch is.
+                * them where the shifted patch is, once for each shift.
                 */
-               hier::BoxList<DIM> src_boxes_nearby(src_region);
-               if (!d_uncovered_near_src[src_patch_id].isEmpty()) {
-                  src_boxes_nearby.removeIntersections(
-                     d_uncovered_near_src[src_patch_id]);
+               const std::pair<int,int> shifted_id(cache_id, shift_number);
+               const bool found_shifted_border_data =
+                  d_shifted_border_data.count(shifted_id) > 0;
+               tbox::Array< hier::BoxList<DIM> >& shifted_border_data =
+                  d_shifted_border_data[shifted_id];
+               if (!found_shifted_border_data) {
+                  hier::BoxList<DIM> src_boxes_nearby(src_region);
+                  if (!d_uncovered_near_src[src_patch_id].isEmpty()) {
+                     src_boxes_nearby.removeIntersections(
+                        d_uncovered_near_src[src_patch_id]);
+                  }
+                  src_boxes_nearby.shift(shift);
+                  dst_geometry->computeOwnedBorderData(
+                     shifted_border_data, src_boxes_nearby, shifted);
                }
-               src_boxes_nearby.shift(shift);
-               tbox::Array< hier::BoxList<DIM> > shifted_border_data;
-               dst_geometry->computeOwnedBorderData(
-                  shifted_border_data, src_boxes_nearby, shifted);
                overlap = dst_geometry->restrictOverlapToOwnedData(
                   overlap, shifted, shifted_border_data);
             }
@@ -837,6 +884,7 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
       } else {
          zero_shift = false;
       }
+      shift_number++;
 
    }  // iterate over valid shifts of source patch
 

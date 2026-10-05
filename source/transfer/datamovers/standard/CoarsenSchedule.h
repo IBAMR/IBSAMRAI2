@@ -16,8 +16,11 @@
 #include <iostream>
 #endif
 
+#include <map>
+#include <utility>
 #include <vector>
 
+#include "BoxGeometry.h"
 #include "BoxList.h"
 #include "IntVector.h"
 #include "ComponentSelector.h"
@@ -294,11 +297,24 @@ private:
     * patch the border data owned by the source level cells in and next to
     * the patch (see hier::BoxGeometry<DIM>::computeOwnedBorderData()).
     * Both are found when they are first needed to construct transactions.
+    * The border data owned where a periodic image of a source patch is are
+    * kept for each image, numbered in the order of the shifts of the patch.
     */
    std::vector< hier::BoxList<DIM> > d_uncovered_near_src;
    std::vector<bool> d_found_uncovered_near_src;
    std::vector< tbox::Array< hier::BoxList<DIM> > > d_owned_border_data;
    std::vector<bool> d_found_owned_border_data;
+   std::map< std::pair<int,int>,
+             tbox::Array< hier::BoxList<DIM> > > d_shifted_border_data;
+
+   /*!
+    * For each coarsen equivalence class, the box geometries of the source
+    * patches and of the destination patch for which transactions were
+    * last constructed.
+    */
+   std::vector< tbox::Pointer< hier::BoxGeometry<DIM> > > d_src_geometry;
+   std::vector< tbox::Pointer< hier::BoxGeometry<DIM> > > d_dst_geometry;
+   int d_dst_geometry_patch_id;
 
    /*!
     * Selects algorithm used to generate communication schedule.
