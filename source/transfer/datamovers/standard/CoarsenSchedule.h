@@ -247,10 +247,11 @@ private:
     * move data from source patch on source level to destination patch
     * on destination level.
     */
-   void constructScheduleTransactions(tbox::Pointer< hier::PatchLevel<DIM> > dst_level,
-                                      int dst_patch_id,
-                                      tbox::Pointer< hier::PatchLevel<DIM> > src_level,
-                                      int src_patch_id);
+   void constructScheduleTransactions(
+      const tbox::Pointer< hier::PatchLevel<DIM> >& dst_level,
+      int dst_patch_id,
+      const tbox::Pointer< hier::PatchLevel<DIM> >& src_level,
+      int src_patch_id);
 
    /*!
     * @brief Utility function to set up local copies of patch data source, 

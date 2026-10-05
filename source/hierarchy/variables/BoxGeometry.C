@@ -48,6 +48,23 @@ BoxGeometry<DIM>::restrictOverlapToOwnedData(
 }
 
 template<int DIM> tbox::Pointer< BoxOverlap<DIM> >
+BoxGeometry<DIM>::calculateOwnedOverlap(
+   const BoxGeometry<DIM>& src_geometry,
+   const Box<DIM>& src_mask,
+   const bool overwrite_interior,
+   const IntVector<DIM>& src_offset,
+   const Box<DIM>& src_box,
+   const tbox::Array< BoxList<DIM> >& owned_border_data) const
+{
+   tbox::Pointer< BoxOverlap<DIM> > overlap =
+      calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
+   if (!overlap.isNull() && !overlap->isOverlapEmpty()) {
+      overlap = restrictOverlapToOwnedData(overlap, src_box, owned_border_data);
+   }
+   return(overlap);
+}
+
+template<int DIM> tbox::Pointer< BoxOverlap<DIM> >
 BoxGeometry<DIM>::removeOverlapOnBoxes(
    const tbox::Pointer< BoxOverlap<DIM> >& overlap,
    const BoxList<DIM>& boxes) const
@@ -103,42 +120,53 @@ template<int DIM> void BoxGeometry<DIM>::intersectOverlapBoxes(
    const int num_offsets)
 {
    for (typename BoxList<DIM>::Iterator b(overlap_boxes); b; b++) {
-      /*
-       * Usually only the data that have the index of a source cell are
-       * owned, and they form one box.  Otherwise collect the pieces and
-       * merge those that came from this overlap box.
-       */
-      const Box<DIM> own_index_box(b() * src_box);
-      BoxList<DIM> border_pieces;
-      for (int k = 1; k < num_offsets; k++) {
-         const BoxList<DIM>& border_boxes = owned_border_boxes[first + k - 1];
-         if (border_boxes.isEmpty()) {
-            continue;
-         }
-         const Box<DIM> border_box(b() * Box<DIM>::shift(src_box, offsets[k]));
-         if (border_box.empty()) {
-            continue;
-         }
-         for (typename BoxList<DIM>::Iterator o(border_boxes); o; o++) {
-            const Box<DIM> owned_box(border_box * o());
-            if (!owned_box.empty()) {
-               border_pieces.appendItem(owned_box);
-            }
+      intersectOverlapBox(result_boxes, b(), src_box,
+                          owned_border_boxes, first, offsets, num_offsets);
+   }
+}
+
+template<int DIM> void BoxGeometry<DIM>::intersectOverlapBox(
+   BoxList<DIM>& result_boxes,
+   const Box<DIM>& overlap_box,
+   const Box<DIM>& src_box,
+   const tbox::Array< BoxList<DIM> >& owned_border_boxes,
+   const int first,
+   const IntVector<DIM>* offsets,
+   const int num_offsets)
+{
+   /*
+    * Usually only the data that have the index of a source cell are
+    * owned, and they form one box.  Otherwise collect the pieces and
+    * merge those that came from this overlap box.
+    */
+   const Box<DIM> own_index_box(overlap_box * src_box);
+   BoxList<DIM> border_pieces;
+   for (int k = 1; k < num_offsets; k++) {
+      const BoxList<DIM>& border_boxes = owned_border_boxes[first + k - 1];
+      if (border_boxes.isEmpty()) {
+         continue;
+      }
+      const Box<DIM> border_box(overlap_box * Box<DIM>::shift(src_box, offsets[k]));
+      if (border_box.empty()) {
+         continue;
+      }
+      for (typename BoxList<DIM>::Iterator o(border_boxes); o; o++) {
+         const Box<DIM> owned_box(border_box * o());
+         if (!owned_box.empty()) {
+            border_pieces.appendItem(owned_box);
          }
       }
-      if (border_pieces.isEmpty()) {
-         if (!own_index_box.empty()) {
-            result_boxes.appendItem(own_index_box);
-         }
-      } else {
-         if (!own_index_box.empty()) {
-            border_pieces.appendItem(own_index_box);
-            border_pieces.coalesceBoxes();
-         }
-         for (typename BoxList<DIM>::Iterator r(border_pieces); r; r++) {
-            result_boxes.appendItem(r());
-         }
+   }
+   if (border_pieces.isEmpty()) {
+      if (!own_index_box.empty()) {
+         result_boxes.appendItem(own_index_box);
       }
+   } else {
+      if (!own_index_box.empty()) {
+         border_pieces.appendItem(own_index_box);
+         border_pieces.coalesceBoxes();
+      }
+      result_boxes.catenateItems(border_pieces);
    }
 }
 

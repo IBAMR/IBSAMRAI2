@@ -742,10 +742,14 @@ void LocallyActiveDataCoarsenSchedule<DIM>::constructScheduleTransactions(
 
                src_mask += test_mask;
 
+               tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
+                  dst_pdf->getBoxGeometry(dst_box);
+               tbox::Pointer< hier::BoxGeometry<DIM> > src_geometry =
+                  src_pdf->getBoxGeometry(src_box);
+
                tbox::Pointer< hier::BoxOverlap<DIM> > overlap =
-                  dst_pdf->getBoxGeometry(dst_box)
-                              ->calculateOverlap(
-                                *src_pdf->getBoxGeometry(src_box),
+                  dst_geometry->calculateOverlap(
+                                *src_geometry,
                                 src_mask,
                                 true, shift);
 
@@ -805,15 +809,14 @@ void LocallyActiveDataCoarsenSchedule<DIM>::constructScheduleTransactions(
                               uncovered_boxes.removeIntersections(src_boxes_nearby);
                            }
                            src_boxes_nearby.shift(shift);
-                           tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
-                              dst_pdf->getBoxGeometry(dst_box);
                            tbox::Array< hier::BoxList<DIM> > owned_border_data;
                            dst_geometry->computeOwnedBorderData(
                               owned_border_data, src_boxes_nearby, shifted);
-                           item_overlap = dst_geometry->restrictOverlapToOwnedData(
-                              overlap, shifted, owned_border_data);
+                           item_overlap = dst_geometry->calculateOwnedOverlap(
+                              *src_geometry, src_mask, true, shift,
+                              shifted, owned_border_data);
 
-                           if (!l().d_fine_bdry_reps_var) {
+                           if (!uncovered_boxes.isEmpty()) {
                               hier::BoxList<DIM> domain(dst_level->getPhysicalDomain());
                               const hier::IntVector<DIM> periodic_shift =
                                  dst_level->getGridGeometry()->
@@ -825,9 +828,11 @@ void LocallyActiveDataCoarsenSchedule<DIM>::constructScheduleTransactions(
                               domain.grow(periodic_growth);
 
                               uncovered_boxes.intersectBoxes(domain);
-                              uncovered_boxes.shift(shift);
-                              item_overlap = dst_geometry->removeOverlapOnBoxes(
-                                 item_overlap, uncovered_boxes);
+                              if (!uncovered_boxes.isEmpty()) {
+                                 uncovered_boxes.shift(shift);
+                                 item_overlap = dst_geometry->removeOverlapOnBoxes(
+                                    item_overlap, uncovered_boxes);
+                              }
                            }
                         }
 

@@ -624,9 +624,9 @@ template<int DIM> hier::IntVector<DIM> CoarsenSchedule<DIM>::getMaxGhostsToGrow(
 */
 
 template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
-   tbox::Pointer< hier::PatchLevel<DIM> > dst_level,
+   const tbox::Pointer< hier::PatchLevel<DIM> >& dst_level,
    int dst_patch_id,
-   tbox::Pointer< hier::PatchLevel<DIM> > src_level,
+   const tbox::Pointer< hier::PatchLevel<DIM> >& src_level,
    int src_patch_id)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -746,20 +746,6 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
             dst_geometry = dst_pdf->getBoxGeometry(dst_box);
          }
 
-         tbox::Pointer< hier::BoxOverlap<DIM> > overlap = 
-            dst_geometry->calculateOverlap(
-                          *src_geometry,
-                          src_mask,
-                          true, shift);
-
-         if (overlap.isNull()) {
-	    TBOX_ERROR("Internal CoarsenSchedule<DIM> error..."
-                       << "\n Overlap is NULL for "
-                       << "\n src box = " << src_box
-                       << "\n dst box = " << dst_box
-                       << "\n src mask = " << src_mask << std::endl);
-         }
-
          /*
           * Data on patch borders are shared by the source patches that
           * touch them, so take each such value only from the source patch
@@ -772,10 +758,11 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
           * done when data are coarsened from ghost cells of the source
           * level, since those are not owned by any source patch.
           */
-         tbox::Pointer< hier::BoxOverlap<DIM> > overlap_off_interface = overlap;
-         if ( dst_pdf->dataLivesOnPatchBorder() &&
-              !overlap->isOverlapEmpty() &&
-              (rep_item.d_gcw_to_coarsen == s_constant_zero_intvector) ) {
+         const bool restrict_to_owned_data =
+            dst_pdf->dataLivesOnPatchBorder() &&
+            (rep_item.d_gcw_to_coarsen == s_constant_zero_intvector);
+         tbox::Pointer< hier::BoxOverlap<DIM> > overlap;
+         if (restrict_to_owned_data) {
             const hier::Box<DIM> src_region =
                hier::Box<DIM>::grow(src_box, s_constant_one_intvector);
             if (static_cast<int>(d_uncovered_near_src.size()) != num_src_patches) {
@@ -805,8 +792,9 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
                      d_owned_border_data[cache_id], src_boxes_nearby, src_box);
                   d_found_owned_border_data[cache_id] = true;
                }
-               overlap = dst_geometry->restrictOverlapToOwnedData(
-                  overlap, shifted, d_owned_border_data[cache_id]);
+               overlap = dst_geometry->calculateOwnedOverlap(
+                  *src_geometry, src_mask, true, shift,
+                  shifted, d_owned_border_data[cache_id]);
             } else {
                /*
                 * The owned border data are meaningful only to the geometry
@@ -828,11 +816,32 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
                   dst_geometry->computeOwnedBorderData(
                      shifted_border_data, src_boxes_nearby, shifted);
                }
-               overlap = dst_geometry->restrictOverlapToOwnedData(
-                  overlap, shifted, shifted_border_data);
+               overlap = dst_geometry->calculateOwnedOverlap(
+                  *src_geometry, src_mask, true, shift,
+                  shifted, shifted_border_data);
             }
-            overlap_off_interface = overlap;
+         } else {
+            overlap = dst_geometry->calculateOverlap(
+                          *src_geometry,
+                          src_mask,
+                          true, shift);
+         }
 
+         if (overlap.isNull()) {
+	    TBOX_ERROR("Internal CoarsenSchedule<DIM> error..."
+                       << "\n Overlap is NULL for "
+                       << "\n src box = " << src_box
+                       << "\n dst box = " << dst_box
+                       << "\n src mask = " << src_mask << std::endl);
+         }
+
+         /*
+          * Only a source patch with cells next to it that the source
+          * level does not cover has data on the coarse-fine interface.
+          */
+         tbox::Pointer< hier::BoxOverlap<DIM> > overlap_off_interface;
+         if ( restrict_to_owned_data && !overlap->isOverlapEmpty() &&
+              !d_uncovered_near_src[src_patch_id].isEmpty() ) {
             bool fine_bdry_reps_var = true;
             for (typename tbox::List<typename xfer::CoarsenClasses<DIM>::Data>::Iterator
                     l(d_coarsen_classes->getIterator(nc)); l; l++) {
@@ -851,9 +860,11 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
                hier::BoxList<DIM> uncovered_boxes(
                   d_uncovered_near_src[src_patch_id]);
                uncovered_boxes.intersectBoxes(domain);
-               uncovered_boxes.shift(shift);
-               overlap_off_interface =
-                  dst_geometry->removeOverlapOnBoxes(overlap, uncovered_boxes);
+               if (!uncovered_boxes.isEmpty()) {
+                  uncovered_boxes.shift(shift);
+                  overlap_off_interface =
+                     dst_geometry->removeOverlapOnBoxes(overlap, uncovered_boxes);
+               }
             }
          }
 
@@ -861,7 +872,8 @@ template<int DIM> void CoarsenSchedule<DIM>::constructScheduleTransactions(
                  l(d_coarsen_classes->getIterator(nc)); l; l++) {
 
             const tbox::Pointer< hier::BoxOverlap<DIM> >& item_overlap =
-               l().d_fine_bdry_reps_var ? overlap : overlap_off_interface;
+               (l().d_fine_bdry_reps_var || overlap_off_interface.isNull()) ?
+               overlap : overlap_off_interface;
 
             if (!item_overlap->isOverlapEmpty()) {
 

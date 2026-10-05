@@ -98,6 +98,19 @@ public:
       const tbox::Array< hier::BoxList<DIM> >& owned_border_data) const;
 
    /*!
+    * @brief Compute the part of the overlap between the source box
+    * geometry and this destination box geometry whose destination data
+    * are owned by cells of the given source box.
+    */
+   virtual tbox::Pointer< hier::BoxOverlap<DIM> > calculateOwnedOverlap(
+      const hier::BoxGeometry<DIM>& src_geometry,
+      const hier::Box<DIM>& src_mask,
+      const bool overwrite_interior,
+      const hier::IntVector<DIM>& src_offset,
+      const hier::Box<DIM>& src_box,
+      const tbox::Array< hier::BoxList<DIM> >& owned_border_data) const;
+
+   /*!
     * @brief Return the part of the given overlap whose destination data
     * are not touched by any cell of the given boxes.
     */

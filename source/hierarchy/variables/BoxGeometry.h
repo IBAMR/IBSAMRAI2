@@ -162,6 +162,27 @@ public:
       const tbox::Array< BoxList<DIM> >& owned_border_data) const;
 
    /**
+    * Calculate the part of the overlap between this destination geometry
+    * and the given source geometry whose destination data are owned by
+    * cells of the given source box.  The result is that of
+    * calculateOverlap() followed, unless the overlap is empty, by
+    * restrictOverlapToOwnedData(); the arguments are those of these two
+    * functions.
+    *
+    * The default implementation calls these two functions.  Node, side,
+    * face, and edge geometries override it to build the result without
+    * creating the overlap that is not restricted.
+    */
+   virtual tbox::Pointer< BoxOverlap<DIM> >
+   calculateOwnedOverlap(
+      const BoxGeometry<DIM>& src_geometry,
+      const Box<DIM>& src_mask,
+      const bool overwrite_interior,
+      const IntVector<DIM>& src_offset,
+      const Box<DIM>& src_box,
+      const tbox::Array< BoxList<DIM> >& owned_border_data) const;
+
+   /**
     * Return the part of the given overlap whose destination data are not
     * touched by any cell of the given boxes, which are given in the
     * destination index space.
@@ -203,6 +224,18 @@ protected:
    static void intersectOverlapBoxes(
       BoxList<DIM>& result_boxes,
       const BoxList<DIM>& overlap_boxes,
+      const Box<DIM>& src_box,
+      const tbox::Array< BoxList<DIM> >& owned_border_boxes,
+      const int first,
+      const IntVector<DIM>* offsets,
+      const int num_offsets);
+
+   /**
+    * Do what intersectOverlapBoxes() does for one overlap box.
+    */
+   static void intersectOverlapBox(
+      BoxList<DIM>& result_boxes,
+      const Box<DIM>& overlap_box,
       const Box<DIM>& src_box,
       const tbox::Array< BoxList<DIM> >& owned_border_boxes,
       const int first,
