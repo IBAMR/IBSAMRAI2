@@ -1460,6 +1460,23 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
       owned_border_data(d_number_refine_items);
    std::vector<bool> found_owned_border_data(d_number_refine_items);
 
+   /*
+    * Source cells next to the fill boxes on their upper sides supply the
+    * data on the upper rim of the fill boxes when data live on patch
+    * borders, so look one cell further for source patches.
+    */
+   int rim_width = 0;
+   for (int nc = 0; nc < num_equiv_classes; nc++) {
+      if (dst_patch_descriptor->getPatchDataFactory(
+             d_refine_classes->getClassRepresentative(nc).d_scratch)->
+                dataLivesOnPatchBorder()) {
+         rim_width = 1;
+      }
+   }
+   const hier::Box<DIM> domain_box(
+      src_level->getPhysicalDomain().getBoundingBox());
+   const hier::ProcessorMapping& src_mapping = src_level->getProcessorMapping();
+
    for (int dst_patch_id = 0; dst_patch_id < dst_npatches; dst_patch_id++) {
 
       const hier::Box<DIM>& dst_box = dst_boxes[dst_patch_id]; 
@@ -1468,6 +1485,7 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
 
       hier::Box<DIM> dst_box_plus_ghosts = dst_box;
       dst_box_plus_ghosts.grow(dst_growth);
+      dst_box_plus_ghosts.upper() += hier::IntVector<DIM>(rim_width);
 
       tbox::Array<int> src_nabor_indices;
       if (dst_mapping.isMappingLocal(dst_patch_id)) {
@@ -1481,10 +1499,85 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
       const xfer::LocallyActiveDataFillBoxSet<DIM>& fill_boxes = la_fill_boxes[dst_patch_id];
       const int num_fill_boxes = fill_boxes.getNumberOfBoxes();
 
-      int src_len = src_nabor_indices.getSize();
-      for (int spp = 0; spp < src_len; spp++) {
+      /*
+       * A patch has periodic shifts only if it touches a periodic
+       * boundary, and only those that move it across the sides it touches.
+       * When a patch at a periodic boundary is only as wide as the ghost
+       * cell region, the source cells next to the fill boxes on their
+       * upper sides can be images of a patch that does not have the shift.
+       * Find the images that lie next to the fill boxes without
+       * intersecting them (see RefineSchedule<DIM>).  There are none
+       * inside the domain.
+       */
+      std::vector<int> unlisted_src_patch_ids;
+      std::vector< tbox::List< hier::IntVector<DIM> > > unlisted_shifts;
+      if (rim_width > 0 && d_num_periodic_directions > 0 &&
+          num_fill_boxes > 0) {
 
-         int src_patch_id = src_nabor_indices[spp];
+         const hier::Box<DIM> fill_box(
+            fill_boxes.getBoxList().getBoundingBox());
+         hier::Box<DIM> search_box(fill_box);
+         search_box.upper() += s_constant_one_intvector;
+         int num_shifts = domain_box.contains(search_box) ? 0 : 1;
+         for (int i = 0; i < DIM; i++) {
+            num_shifts *= (d_periodic_shift(i) != 0 ? 3 : 1);
+         }
+         for (int k = 0; k < num_shifts; k++) {
+
+            /*
+             * The digits of k in base three select the shift in each
+             * periodic direction.
+             */
+            hier::IntVector<DIM> shift(0);
+            int digits = k;
+            for (int i = 0; i < DIM; i++) {
+               if (d_periodic_shift(i) != 0) {
+                  shift(i) = (digits % 3 - 1) * d_periodic_shift(i);
+                  digits /= 3;
+               }
+            }
+            const hier::Box<DIM> shifted_search_box(
+               hier::Box<DIM>::shift(search_box, -shift));
+            if (shift == s_constant_zero_intvector ||
+                !shifted_search_box.intersects(domain_box)) {
+               continue;
+            }
+
+            tbox::Array<int> src_indices;
+            src_box_tree->findOverlapIndices(src_indices, shifted_search_box);
+            for (int j = 0; j < src_indices.getSize(); j++) {
+               const hier::Box<DIM> image(
+                  hier::Box<DIM>::shift(src_boxes[src_indices[j]], shift));
+               bool listed = false;
+               for (typename tbox::List< hier::IntVector<DIM> >::Iterator
+                       sh(src_level->getShiftsForPatch(src_indices[j]));
+                    sh; sh++) {
+                  if (sh() == shift) listed = true;
+               }
+               if (!listed && image.intersects(search_box) &&
+                   !image.intersects(fill_box)) {
+                  unlisted_src_patch_ids.push_back(src_indices[j]);
+                  unlisted_shifts.push_back(
+                     tbox::List< hier::IntVector<DIM> >());
+                  unlisted_shifts.back().appendItem(shift);
+               }
+            }
+
+         }
+
+      }
+      const int num_unlisted = static_cast<int>(unlisted_src_patch_ids.size());
+
+      int src_len = src_nabor_indices.getSize();
+      for (int spp = 0; spp < src_len + num_unlisted; spp++) {
+
+         const bool unlisted = (spp >= src_len);
+         int src_patch_id = unlisted ?
+            unlisted_src_patch_ids[spp - src_len] : src_nabor_indices[spp];
+         if ( unlisted && !dst_mapping.isMappingLocal(dst_patch_id)
+                       && !src_mapping.isMappingLocal(src_patch_id) ) {
+            continue;
+         }
 
          /*
           * Determine which equivalence classes are active; i.e., which
@@ -1529,13 +1622,15 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
              * Test all potential intersections between source box and fill
              * boxes including boxes shifted via periodic boundary conditions.
              * If there are periodic shifts, the source is always shifted
-             * relative to the destination.
+             * relative to the destination.  For an image that is not
+             * among the shifts of the source patch, test only its shift.
              */
 
             typename tbox::List< hier::IntVector<DIM> >::Iterator 
-               sh(src_level->getShiftsForPatch(src_patch_id));
+               sh(unlisted ? unlisted_shifts[spp - src_len] :
+                  src_level->getShiftsForPatch(src_patch_id));
 
-            bool zero_shift = true;
+            bool zero_shift = !unlisted;
 
             while (sh || zero_shift) {
 
@@ -1692,6 +1787,17 @@ void LocallyActiveDataRefineSchedule<DIM>::generateCommunicationSchedule(
                                        hier::Box<DIM>::grow(
                                           dst_box,
                                           hier::IntVector<DIM>(max_gcw + 1)));
+                                    for (int n = 0; n < num_unlisted; n++) {
+                                       if (src_level_mgr->getPatchDataActive(
+                                              hier::PatchDataId(src_id),
+                                              hier::PatchNumber(
+                                                 unlisted_src_patch_ids[n]))) {
+                                          supplying_src_boxes.appendItem(
+                                             hier::Box<DIM>::shift(
+                                                src_boxes[unlisted_src_patch_ids[n]],
+                                                unlisted_shifts[n].getFirstItem()));
+                                       }
+                                    }
                                     supplying_src_boxes.intersectBoxes(supplied_region);
                                     dst_geometry->computeOwnedBorderData(
                                        owned_border_data[ritem_count],
