@@ -6,6 +6,7 @@
 #include "tbox/Utilities.h"
 
 #include <cstdlib>
+#include <new>
 #include <utility>
 #include <type_traits>
 
@@ -20,6 +21,9 @@ namespace tbox {
      static Allocator &getAllocator();
 
   private:
+     /**
+      * Constructor. As there is only one Allocator at a time this is private.
+      */
      Allocator();
 
      Allocator(const Allocator &) = delete;
@@ -35,10 +39,24 @@ namespace tbox {
       return s_count;
     }
 
+    /**
+     * Internal allocation function.
+     *
+     * @return A pair whose first value indicates whether or not the memory was
+     * allocated (i.e., `true` for a new allocation, `false` for reusing an
+     * existing allocation), and whose second value is a pointer to at least @p
+     * n_bytes of storage.
+     */
     static
     std::pair<bool, void *>
     internal_allocate(std::size_t n_bytes);
 
+    /**
+     * Internal deallocation function.
+     *
+     * The second size must be the same as the value provided to
+     * internal_allocate().
+     */
     static
     void
     internal_deallocate(void *buffer, std::size_t n_bytes);
