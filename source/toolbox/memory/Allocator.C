@@ -1,4 +1,5 @@
 #include "tbox/Allocator.h"
+#include "tbox/Utilities.h"
 
 #include <cmath>
 #include <deque>
