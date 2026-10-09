@@ -129,7 +129,7 @@ void ParallelBuffer::setOutputStream2(std::ostream *stream)
 
 void ParallelBuffer::outputString(const std::string &text)
 {
-   outputString(text, text.length());
+   outputString(text.data(), text.length());
 }
 
 /*
@@ -143,6 +143,11 @@ void ParallelBuffer::outputString(const std::string &text)
 */
 
 void ParallelBuffer::outputString(const std::string &text, const int length)
+{
+   outputString(text.data(), length);
+}
+
+void ParallelBuffer::outputString(const char *text, const int length)
 {
    if ((length > 0) && d_active) {
 
@@ -161,7 +166,7 @@ void ParallelBuffer::outputString(const std::string &text, const int length)
        */
 
       if ((d_buffer_ptr == 0) && !d_prefix.empty()) {
-         copyToBuffer(d_prefix, d_prefix.length());
+         copyToBuffer(d_prefix.data(), d_prefix.length());
       }
 
       /*
@@ -188,7 +193,7 @@ void ParallelBuffer::outputString(const std::string &text, const int length)
          copyToBuffer(text, ncopy);
          outputBuffer();
          if (ncopy < length) {
-            outputString(text.substr(ncopy), length-ncopy);
+            outputString(text+ncopy, length-ncopy);
          }
       }
    }
@@ -204,7 +209,7 @@ void ParallelBuffer::outputString(const std::string &text, const int length)
 *************************************************************************
 */
 
-void ParallelBuffer::copyToBuffer(const std::string &text, const int length)
+void ParallelBuffer::copyToBuffer(const char *text, const int length)
 {
    /*
     * First check whether we need to increase the size of the buffer
@@ -232,7 +237,7 @@ void ParallelBuffer::copyToBuffer(const std::string &text, const int length)
    TBOX_ASSERT(d_buffer_ptr+length <= d_buffer_size);
 #endif
 
-   memcpy(d_buffer+d_buffer_ptr, text.data(), length);
+   memcpy(d_buffer+d_buffer_ptr, text, length);
    d_buffer_ptr += length;
 }
 
@@ -292,7 +297,7 @@ int ParallelBuffer::sync()
 std::streamsize ParallelBuffer::xsputn(const char * text, std::streamsize n)
 {
    sync();
-   if (n > 0) outputString(std::string(text, n), n);
+   if (n > 0) outputString(text, n);
    return(n);
 }
 
