@@ -20,14 +20,19 @@
 #include "ComponentSelector.h"
 #include "Patch.h"
 #include "PatchData.h"
+#include "PatchDataFactory.h"
 #include "PatchGeometry.h"
 #include "tbox/ArenaManager.h"
 #include "tbox/InputManager.h"
+#include "tbox/MessageStream.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 #include "tbox/MathUtilities.h"
 #include "RefinePatchStrategy.h"
+
+#include <utility>
+#include <vector>
 
 
 namespace SAMRAI {
@@ -822,6 +827,56 @@ template<int DIM> void RefineSchedule<DIM>::finishScheduleConstruction(
       }
 
       /*
+       * Interpolating into the fine fill boxes also sets the data on the
+       * borders of the destination patches that are shared with the fill
+       * boxes.  When the source and destination levels are the same, find
+       * those data for each refine item whose data live on patch borders,
+       * for which fine data take priority, and that has a refine operator,
+       * so that refineScratchData() can keep them when filling in place.
+       */
+
+      if (src_level == d_dst_level) {
+         for (int nc = 0; nc < d_refine_classes->getNumberOfEquivalenceClasses(); nc++) {
+            const typename xfer::RefineClasses<DIM>::Data& rep_item =
+               d_refine_classes->getClassRepresentative(nc);
+            tbox::Pointer< hier::PatchDataFactory<DIM> > factory =
+               d_dst_level->getPatchDescriptor()->
+                  getPatchDataFactory(rep_item.d_scratch);
+            bool keep_border_data = false;
+            for (typename tbox::List<typename xfer::RefineClasses<DIM>::Data>::Iterator
+                    l(d_refine_classes->getIterator(nc)); l; l++) {
+               if (l().d_fine_bdry_reps_var && !l().d_oprefine.isNull()) {
+                  keep_border_data = true;
+               }
+            }
+            if (!keep_border_data || !factory->dataLivesOnPatchBorder()) continue;
+
+            factory = factory->cloneFactory(s_constant_zero_intvector);
+            for (typename hier::PatchLevel<DIM>::Iterator p(d_coarse_level); p; p++) {
+               const int fp = d_coarse_to_fine_mapping[p()];
+               tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
+                  factory->getBoxGeometry(d_dst_level->getBoxes()[fp]);
+               for (typename hier::BoxList<DIM>::Iterator
+                       b(d_fine_fill_boxes[p()].getBoxList()); b; b++) {
+                  FineBorderData border_data;
+                  border_data.d_dst_patch = fp;
+                  border_data.d_overlap = dst_geometry->calculateOverlap(
+                     *factory->getBoxGeometry(b()), b(), true,
+                     s_constant_zero_intvector);
+                  if (border_data.d_overlap->isOverlapEmpty()) continue;
+                  for (typename tbox::List<typename xfer::RefineClasses<DIM>::Data>::Iterator
+                          l(d_refine_classes->getIterator(nc)); l; l++) {
+                     if (l().d_fine_bdry_reps_var && !l().d_oprefine.isNull()) {
+                        border_data.d_refine_item = l().d_tag;
+                        d_fine_border_data.push_back(border_data);
+                     }
+                  }
+               }
+            }
+         }
+      }
+
+      /*
        * Recursively fill the coarse schedule using the private
        * refine schedule constructor.
        */
@@ -1218,6 +1273,36 @@ template<int DIM> void RefineSchedule<DIM>::refineScratchData() const
       d_dst_level->getRatio() / d_coarse_level->getRatio();
 
    /*
+    * When fine data take priority, the fine priority schedule normally
+    * resets the data on patch borders that are set below by copying the
+    * source data over them.  There is no such transaction when the source
+    * and scratch data are the same patch data object, so save those values
+    * here and restore them after refining.
+    */
+
+   std::vector< std::pair< hier::PatchData<DIM>*,
+                           const hier::BoxOverlap<DIM>* > > saved_data;
+   int saved_data_size = 0;
+   for (size_t i = 0; i < d_fine_border_data.size(); i++) {
+      const FineBorderData& border_data = d_fine_border_data[i];
+      const typename xfer::RefineClasses<DIM>::Data* const ref_item =
+         d_refine_items[border_data.d_refine_item];
+      if (ref_item->d_src == ref_item->d_scratch) {
+         hier::PatchData<DIM>* const data = d_dst_level->
+            getPatch(border_data.d_dst_patch)->
+            getPatchData(ref_item->d_scratch).getPointer();
+         saved_data.push_back(std::make_pair(
+            data, border_data.d_overlap.getPointer()));
+         saved_data_size += data->getDataStreamSize(*border_data.d_overlap);
+      }
+   }
+   tbox::MessageStream saved_data_stream(saved_data_size,
+                                         tbox::MessageStream::Write);
+   for (size_t i = 0; i < saved_data.size(); i++) {
+      saved_data[i].first->packStream(saved_data_stream, *saved_data[i].second);
+   }
+
+   /*
     * Loop over all the coarse patches and find the corresponding destination
     * patch and destination fill boxes.
     */
@@ -1266,6 +1351,11 @@ template<int DIM> void RefineSchedule<DIM>::refineScratchData() const
 							 fill_boxes,
 							 ratio);
       }
+   }
+
+   saved_data_stream.resetIndex();
+   for (size_t i = 0; i < saved_data.size(); i++) {
+      saved_data[i].first->unpackStream(saved_data_stream, *saved_data[i].second);
    }
 
    t_refine_scratch_data->stop();
