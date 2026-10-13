@@ -87,6 +87,12 @@ public:
    void outputString(const std::string &text, const int length);
 
    /**
+    * Write the specified number of characters, which need not be followed
+    * by a null character.
+    */
+   void outputString(const char *text, const int length);
+
+   /**
     * Synchronize the parallel buffer (called from streambuf).
     */
    virtual int sync();
@@ -114,7 +120,7 @@ public:
 #endif
 
 private:
-   void copyToBuffer(const std::string &text, const int length);
+   void copyToBuffer(const char *text, const int length);
    void outputBuffer();		// output internal buffer data to streams
 
    bool          d_active;       // whether this output stream is active
