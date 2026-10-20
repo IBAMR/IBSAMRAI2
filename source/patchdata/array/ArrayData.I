@@ -103,10 +103,18 @@ int ArrayData<DIM,TYPE>::getDataStreamSize(
 
    const int nelements = boxes.getTotalSizeOfBoxes();
 
+   // MessageStream rounds the bytes of each box up to a multiple of four.
+   int bytes = 0;
    if (typeid(TYPE) == typeid(bool)) {
-      return(tbox::AbstractStream::sizeofBool(d_depth * nelements));
+      for (typename hier::BoxList<DIM>::Iterator b(boxes); b; b++) {
+         bytes += tbox::AbstractStream::sizeofBool(d_depth * b().size());
+      }
+      return(bytes);
    } else if (typeid(TYPE) == typeid(char)) {
-      return(tbox::AbstractStream::sizeofChar(d_depth * nelements));
+      for (typename hier::BoxList<DIM>::Iterator b(boxes); b; b++) {
+         bytes += tbox::AbstractStream::sizeofChar(d_depth * b().size());
+      }
+      return(bytes);
    } else if (typeid(TYPE) == typeid(dcomplex)) {
       return(tbox::AbstractStream::sizeofDoubleComplex(d_depth * nelements));
    } else if (typeid(TYPE) == typeid(double)) {
