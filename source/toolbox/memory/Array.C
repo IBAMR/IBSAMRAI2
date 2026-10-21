@@ -25,17 +25,19 @@ namespace SAMRAI {
 template <class TYPE>
 Array<TYPE>::Array(const int n)
 {
-   d_objects  = Allocator::getAllocator().allocate<TYPE>(n);
+   const int size = (n > 0 ? n : 0);
+   d_objects  = Allocator::getAllocator().allocate<TYPE>(size);
    d_counter  = nullptr;
-   d_elements = n;
+   d_elements = size;
 }
 
 template <class TYPE>
 Array<TYPE>::Array(const int n, const Pointer<Arena>& /*pool*/)
 {
-   d_objects  = Allocator::getAllocator().allocate<TYPE>(n);
+   const int size = (n > 0 ? n : 0);
+   d_objects  = Allocator::getAllocator().allocate<TYPE>(size);
    d_counter  = nullptr;
-   d_elements = n;
+   d_elements = size;
 }
 
 template <class TYPE>
