@@ -473,14 +473,18 @@ template<int DIM> int RefineClasses<DIM>::getEquivalenceClassIndex(
 
    int dst_id = data.d_dst;
    int src_id = data.d_src;
+   int scratch_id = data.d_scratch;
 
    tbox::Pointer< hier::PatchDataFactory<DIM> > dst_pdf =
       pd->getPatchDataFactory(dst_id);
    tbox::Pointer< hier::PatchDataFactory<DIM> > src_pdf =
       pd->getPatchDataFactory(src_id);
+   tbox::Pointer< hier::PatchDataFactory<DIM> > scratch_pdf =
+      pd->getPatchDataFactory(scratch_id);
 
    hier::IntVector<DIM> dst_ghosts = dst_pdf->getGhostCellWidth();
    hier::IntVector<DIM> src_ghosts = src_pdf->getGhostCellWidth();
+   hier::IntVector<DIM> scratch_ghosts = scratch_pdf->getGhostCellWidth();
 
    int num_equiv_classes = d_refine_equivalence_classes.getSize();
    bool equiv_found = false;
@@ -489,6 +493,7 @@ template<int DIM> int RefineClasses<DIM>::getEquivalenceClassIndex(
 
       bool dst_equiv = false;
       bool src_equiv = false;
+      bool scratch_equiv = false;
 
       const typename RefineClasses<DIM>::Data& class_rep = getClassRepresentative(nl);
 
@@ -523,10 +528,26 @@ template<int DIM> int RefineClasses<DIM>::getEquivalenceClassIndex(
       }
 
       /*
-       * If destinations and sources are both equivalent, exit loop
-       * and set return value to identify current equivalence class id.
+       * If sources were equivalent, check if scratch data are equivalent
+       * to those of the class representative.
        */
-      if (dst_equiv && src_equiv) {
+      if (src_equiv) {
+         int rep_scratch_id = class_rep.d_scratch;
+         tbox::Pointer< hier::PatchDataFactory<DIM> > rep_scratch_pdf =
+            pd->getPatchDataFactory(rep_scratch_id);
+         hier::IntVector<DIM> rep_scratch_ghosts =
+            rep_scratch_pdf->getGhostCellWidth();
+         if ((scratch_ghosts == rep_scratch_ghosts) &&
+             (typeid(*scratch_pdf) == typeid(*rep_scratch_pdf))) {
+            scratch_equiv = true;
+         }
+      }
+
+      /*
+       * If destinations, sources and scratch data are all equivalent, exit
+       * loop and set return value to identify current equivalence class id.
+       */
+      if (dst_equiv && src_equiv && scratch_equiv) {
          eq_index = nl;
          equiv_found = true;
       }
