@@ -941,7 +941,8 @@ template<int DIM> void RefineSchedule<DIM>::fillData(
     * space.
     */
 
-   copyScratchToDestination(d_dst_level);
+   copyScratchToDestination(d_dst_level,
+                            do_physical_boundary_fill || d_force_boundary_fill);
 
    /*
     * Deallocate any allocated scratch space on the destination level.
@@ -1192,19 +1193,22 @@ template<int DIM> void RefineSchedule<DIM>::allocateDestinationSpace(
 *                                                                        *
 * Copy data from the scratch space of the specified level into the       *
 * destination space.  If the two spaces are the same, then no copy       *
-* is performed.                                                          *
+* is performed.  Only the data that the schedule fills are copied.       *
 *                                                                        *
 **************************************************************************
 */
 
 template<int DIM> void RefineSchedule<DIM>::copyScratchToDestination(
-   tbox::Pointer< hier::PatchLevel<DIM> > level) const
+   tbox::Pointer< hier::PatchLevel<DIM> > level,
+   bool physical_boundary_filled) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!level.isNull());
 #endif
 
-   for (typename hier::PatchLevel<DIM>::Iterator p(level); p; p++) {
+   int local_patch = 0;
+   for (typename hier::PatchLevel<DIM>::Iterator p(level); p;
+        p++, local_patch++) {
       tbox::Pointer< hier::Patch<DIM> > patch = level->getPatch(p());
 
       for (int iri = 0; iri < d_number_refine_items; iri++) {
@@ -1216,7 +1220,46 @@ template<int DIM> void RefineSchedule<DIM>::copyScratchToDestination(
 	    const double src_time = patch->getPatchData(src_id)->getTime();
 	    TBOX_ASSERT(tbox::MathUtilities<double>::equalEps(dst_time, src_time));
 #endif
-	    patch->getPatchData(dst_id)->copy(*patch->getPatchData(src_id));
+            if (d_dst_fill_boxes.empty()) {
+               patch->getPatchData(dst_id)->copy(*patch->getPatchData(src_id));
+            } else {
+
+               /*
+                * The fill boxes need not cover the destination data, so
+                * copy only the data on the fill boxes of the patch and on
+                * the boxes that the physical boundary routine was given
+                * to fill.
+                */
+               hier::BoxList<DIM> filled_boxes(d_dst_fill_boxes[local_patch]);
+               tbox::Pointer< hier::PatchGeometry<DIM> > patch_geom =
+                  patch->getPatchGeometry();
+               if (physical_boundary_filled && d_refine_patch_strategy &&
+                   patch_geom->intersectsPhysicalBoundary()) {
+                  for (int codim = 1; codim <= DIM; codim++) {
+                     const tbox::Array< hier::BoundaryBox<DIM> >& bdry_boxes =
+                        patch_geom->getCodimensionBoundaries(codim);
+                     for (int i = 0; i < bdry_boxes.getSize(); i++) {
+                        filled_boxes.appendItem(patch_geom->getBoundaryFillBox(
+                           bdry_boxes[i], patch->getBox(),
+                           d_boundary_fill_ghost_width));
+                     }
+                  }
+               }
+
+               tbox::Pointer< hier::PatchDataFactory<DIM> > factory =
+                  level->getPatchDescriptor()->getPatchDataFactory(dst_id);
+               tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
+                  factory->getBoxGeometry(patch->getBox());
+               for (typename hier::BoxList<DIM>::Iterator
+                       b(filled_boxes); b; b++) {
+                  if (b().empty()) continue;
+                  patch->getPatchData(dst_id)->copy(
+                     *patch->getPatchData(src_id),
+                     *dst_geometry->calculateOverlap(
+                        *factory->getBoxGeometry(b()), b(), true,
+                        s_constant_zero_intvector));
+               }
+            }
 	 }
       }
 
@@ -1937,6 +1980,18 @@ template<int DIM> void RefineSchedule<DIM>::allocateFillBoxes(
                  << "'FILL_PATCH_BORDERS_ONLY', 'FILL_PATCH_INTERIORS_AND_BORDERS_STAR'\n"
                  << "'FILL_PATCH_BORDERS_ONLY_STAR'\n"
                  << std::endl);
+   }
+
+   /*
+    * Unless the fill boxes are the whole ghost boxes, keep those of the
+    * local patches for copying the scratch space into the destination
+    * space.
+    */
+   d_dst_fill_boxes.clear();
+   if (fill_pattern != "DEFAULT_FILL") {
+      for (typename hier::PatchLevel<DIM>::Iterator p(level); p; p++) {
+         d_dst_fill_boxes.push_back(fill_boxes[p()].getBoxList());
+      }
    }
 
    return;

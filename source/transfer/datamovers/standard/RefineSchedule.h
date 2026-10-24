@@ -363,9 +363,13 @@ private:
     * @brief Copy the scratch space into the destination space.
     *
     * If the scratch and destination spaces are the same,
-    * then no copying is performed.
+    * then no copying is performed.  Only the data that the schedule
+    * fills are copied: the data on the fill boxes and, when
+    * physical_boundary_filled is true, on the boxes that the physical
+    * boundary routine is given to fill.
     */
-   void copyScratchToDestination(tbox::Pointer< hier::PatchLevel<DIM> > level) const;
+   void copyScratchToDestination(tbox::Pointer< hier::PatchLevel<DIM> > level,
+                                 bool physical_boundary_filled) const;
 
    /*!
     * @brief Refine scratch data between coarse and fine patch levels.
@@ -744,6 +748,16 @@ private:
     * This array has one entry for each local patch on the coarse patch level.
     */
    tbox::Array< xfer::FillBoxSet<DIM> > d_fine_fill_boxes;
+
+   /*!
+    * The fill boxes of the local patches of the destination level, in the
+    * order of the patch level iterator, when the schedule was created with
+    * a fill pattern string other than "DEFAULT_FILL", for which they may
+    * not cover the destination data; otherwise, this is empty.  They are
+    * set in allocateFillBoxes() and used when copying the scratch space
+    * into the destination space.
+    */
+   std::vector< hier::BoxList<DIM> > d_dst_fill_boxes;
 
    /*!
     * Data on the border of a destination patch that refining into the fine

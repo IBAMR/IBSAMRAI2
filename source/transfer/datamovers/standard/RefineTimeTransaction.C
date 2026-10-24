@@ -204,11 +204,16 @@ template<int DIM> void RefineTimeTransaction<DIM>::copyLocalData()
     * If there is no offset between the source and destination, then 
     * time interpolate directly to the destination patchdata.  Otherwise,
     * time interpolate into a temporary patchdata and copy the result
-    * to the destination patchdata.  Also do the latter for data that live
-    * on patch borders, since the overlap may exclude values on the border
-    * of the box that the source patch does not own.
+    * to the destination patchdata.  Also do the latter when the overlap
+    * may be only part of the box: for data that live on patch borders and
+    * for a variable fill pattern whose overlaps are not those of the box
+    * geometries.
     */
+   const tbox::Pointer< VariableFillPattern<DIM> >& fill_pattern =
+      s_refine_items[d_refine_item_id]->d_var_fill_pattern;
    if (d_overlap->getSourceOffset() == hier::IntVector<DIM>(0) &&
+       (fill_pattern.isNull() ||
+        fill_pattern->restrictOverlapsToOwnedData()) &&
        !d_dst_level->getPatchDescriptor()->
           getPatchDataFactory(s_refine_items[d_refine_item_id]->d_scratch)->
              dataLivesOnPatchBorder()) {
