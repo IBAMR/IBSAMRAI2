@@ -484,6 +484,7 @@ template<int DIM> void RefineSchedule<DIM>::reset(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!refine_classes.isNull());
+   TBOX_ASSERT(d_refine_classes->checkConsistency(refine_classes));
 #endif
    setRefineItems(refine_classes);
    if (!d_coarse_schedule.isNull()) {

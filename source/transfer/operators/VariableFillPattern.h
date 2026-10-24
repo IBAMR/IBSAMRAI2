@@ -129,6 +129,17 @@ public:
    virtual bool restrictOverlapsToOwnedData() const;
 
    /*!
+    * Return whether this fill pattern computes the same overlaps as the
+    * given one.  Refine items whose fill patterns do can share an
+    * equivalence class.  The result must not depend on which of the two
+    * patterns is asked.  The default compares the types of the patterns;
+    * a fill pattern whose parameters change its overlaps should compare
+    * them too.
+    */
+   virtual bool computesSameOverlapsAs(
+      const VariableFillPattern<DIM>& other) const;
+
+   /*!
     * Return the maximum ghost width of the boundary stencil.  The default
     * implementation throws an error.
     */

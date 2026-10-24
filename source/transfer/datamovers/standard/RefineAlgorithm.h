@@ -569,6 +569,10 @@ public:
     * is performed when this routine is called to prevent potential errors or
     * unexpected behavior. 
     *
+    * The variable fill pattern of each operation must compute the same
+    * overlaps as the one that the schedule was created with (see
+    * VariableFillPattern::computesSameOverlapsAs()).
+    *
     * @param schedule  tbox::Pointer to refine schedule, which cannot be null.
     */
    void resetSchedule(tbox::Pointer< xfer::RefineSchedule<DIM> > schedule) const;

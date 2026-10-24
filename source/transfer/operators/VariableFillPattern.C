@@ -12,6 +12,8 @@
 
 #include "VariableFillPattern.h"
 
+#include <typeinfo>
+
 namespace SAMRAI {
     namespace xfer {
 
@@ -64,6 +66,13 @@ template<int DIM>
 bool VariableFillPattern<DIM>::restrictOverlapsToOwnedData() const
 {
    return false;
+}
+
+template<int DIM>
+bool VariableFillPattern<DIM>::computesSameOverlapsAs(
+   const VariableFillPattern<DIM>& other) const
+{
+   return(typeid(*this) == typeid(other));
 }
 
 template<int DIM>
