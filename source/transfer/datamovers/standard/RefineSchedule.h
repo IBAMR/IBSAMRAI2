@@ -655,6 +655,12 @@ private:
    bool d_force_boundary_fill;
 
    /*!
+    * Whether this schedule fills a temporary coarse level, which ignores
+    * the variable fill patterns.
+    */
+   bool d_recursive_schedule;
+
+   /*!
     * Boolean flag indicating whether physical domain
     * is comprised as a single box region.
     */

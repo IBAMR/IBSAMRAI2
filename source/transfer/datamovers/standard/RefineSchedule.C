@@ -421,18 +421,6 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    initializeDomainAndGhostInformation(recursive_schedule);
 
    /*
-    * Reset the destination level number for the variable fill pattern
-    * objects.
-    */
-   const int num_equiv_classes =
-      d_refine_classes->getNumberOfEquivalenceClasses();
-   for (int nc = 0; nc < num_equiv_classes; nc++) {
-      const typename xfer::RefineClasses<DIM>::Data& rep_item =
-         d_refine_classes->getClassRepresentative(nc);
-      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(-1);
-   }
-
-   /*
     * Finish construction of the communication schedule using the remaining
     * fill boxes.
     */
@@ -930,19 +918,6 @@ template<int DIM> void RefineSchedule<DIM>::fillData(
    d_transaction_factory->setRefineItems(d_refine_items, d_number_refine_items);
 
    /*
-    * Set the destination level number for the variable fill pattern
-    * objects.
-    */
-   const int num_equiv_classes =
-      d_refine_classes->getNumberOfEquivalenceClasses();
-   for (int nc = 0; nc < num_equiv_classes; nc++) {
-      const typename xfer::RefineClasses<DIM>::Data& rep_item =
-         d_refine_classes->getClassRepresentative(nc);
-      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(
-         d_dst_level->getLevelNumber());
-   }
-
-   /*
     * Check whether scratch data needs to be allocated on the destination
     * level.  Keep track of those allocated components so that they may be
     * deallocated later.
@@ -972,16 +947,6 @@ template<int DIM> void RefineSchedule<DIM>::fillData(
     */
 
    d_dst_level->deallocatePatchData(allocate_vector);
-
-   /*
-    * Reset the destination level number for the variable fill pattern
-    * objects.
-    */
-   for (int nc = 0; nc < num_equiv_classes; nc++) {
-      const typename xfer::RefineClasses<DIM>::Data& rep_item =
-         d_refine_classes->getClassRepresentative(nc);
-      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(-1);
-   }
 
    /*
     * Unset the refine items for all transactions.  These items are
@@ -2242,7 +2207,8 @@ template<int DIM> bool RefineSchedule<DIM>::ownedBorderDataAreTransferred() cons
    for (int nc = 0; nc < d_refine_classes->getNumberOfEquivalenceClasses(); nc++) {
       const typename xfer::RefineClasses<DIM>::Data& rep_item =
          d_refine_classes->getClassRepresentative(nc);
-      if (rep_item.d_var_fill_pattern->restrictOverlapsToOwnedData() &&
+      if ((d_recursive_schedule ||
+           rep_item.d_var_fill_pattern->restrictOverlapsToOwnedData()) &&
           descriptor->getPatchDataFactory(rep_item.d_scratch)->
              dataLivesOnPatchBorder()) {
          return(true);
@@ -2397,7 +2363,7 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
          const bool data_on_border = dst_pdf->dataLivesOnPatchBorder();
          const bool src_next_to_fill_box = data_on_border &&
             (dst_gcw == s_constant_zero_intvector);
-         const bool restricts_to_owned_or_default =
+         const bool restricts_to_owned_or_default = d_recursive_schedule ||
             rep_item.d_var_fill_pattern->restrictOverlapsToOwnedData();
          const bool restrict_to_owned_data =
             data_on_border && restricts_to_owned_or_default;
@@ -2494,12 +2460,17 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
              * A fill pattern whose overlaps are restricted to owned data
              * fills everything that the box geometries allow, so the
              * restricted overlap is calculated from the box geometries.
+             * A temporary coarse level ignores the fill patterns and also
+             * uses the box geometries.
              */
             tbox::Pointer< hier::BoxOverlap<DIM> > overlap;
             if (restrict_to_owned_data) {
                overlap = dst_geometry->calculateOwnedOverlap(
                   *src_geometry, src_mask, true, shift,
                   src_region * shifted, d_owned_border_data[nc]);
+            } else if (d_recursive_schedule) {
+               overlap = dst_geometry->calculateOverlap(
+                  *src_geometry, src_mask, true, shift);
             } else {
                overlap = rep_item.d_var_fill_pattern->calculateOverlapOnLevel(
                   *dst_geometry,
@@ -2634,6 +2605,7 @@ RefineSchedule<DIM>::initializeDomainAndGhostInformation(
    d_max_scratch_gcw = getMaxScratchGhosts();
    d_max_stencil_gcw = getMaxStencilGhosts();
 
+   d_recursive_schedule = recursive_schedule;
    if (recursive_schedule) {
       d_boundary_fill_ghost_width = d_max_stencil_gcw;
       d_force_boundary_fill = (d_boundary_fill_ghost_width.max() > 0);
