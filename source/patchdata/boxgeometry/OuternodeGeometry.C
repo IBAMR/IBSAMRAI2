@@ -137,9 +137,18 @@ OuternodeGeometry<DIM>::doOverlap(
       const hier::Box<DIM> msk_node_box = 
          NodeGeometry<DIM>::toNodeBox( hier::Box<DIM>::shift(src_mask, src_offset) );
 
+      /*
+       * The source data live on the outer nodes of the source box, not on
+       * those of its intersection with the mask.
+       */
+      const hier::Box<DIM> src_outer_node_box = NodeGeometry<DIM>::toNodeBox(
+         hier::Box<DIM>::shift(
+            hier::Box<DIM>::grow(src_geometry.d_box, src_geometry.d_ghosts),
+            src_offset));
+
       for (int d = 0; d < DIM; d++) {
 
-	 hier::Box<DIM> trimmed_src_node_box = src_node_box;
+	 hier::Box<DIM> trimmed_src_node_box = src_outer_node_box;
 	 for ( int dh=d+1; dh< DIM; ++dh ) {
 	    /*
 	      For dimensions higher than d, narrow the box down to avoid
@@ -296,6 +305,15 @@ OuternodeGeometry<DIM>::doOverlap(
       const hier::Box<DIM> msk_node_box =
          NodeGeometry<DIM>::toNodeBox( hier::Box<DIM>::shift(src_mask, src_offset) );
 
+      /*
+       * The source data live on the outer nodes of the source box, not on
+       * those of its intersection with the mask.
+       */
+      const hier::Box<DIM> src_outer_node_box = NodeGeometry<DIM>::toNodeBox(
+         hier::Box<DIM>::shift(
+            hier::Box<DIM>::grow(src_geometry.d_box, src_geometry.d_ghosts),
+            src_offset));
+
       int dst_d, src_d;
 
       for ( dst_d=0; dst_d<DIM; ++dst_d ) {
@@ -315,7 +333,7 @@ OuternodeGeometry<DIM>::doOverlap(
 
 	 for (src_d = 0; src_d < DIM; ++src_d) {
 
-	    hier::Box<DIM> trimmed_src_node_box = src_node_box;
+	    hier::Box<DIM> trimmed_src_node_box = src_outer_node_box;
 	    for ( int dh=src_d+1; dh<DIM; ++dh ) {
 	       ++trimmed_src_node_box.lower(dh);
 	       --trimmed_src_node_box.upper(dh);

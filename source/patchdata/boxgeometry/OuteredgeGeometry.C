@@ -132,12 +132,23 @@ OuteredgeGeometry<DIM>::doOverlap(
                                                    hier::Box<DIM>::grow(dst_box, 1) );
    if (quick_boxes_intersect) {
 
+      /*
+       * The source data live on the outer edges of the source box, not on
+       * those of its intersection with the mask.
+       */
+      const hier::Box<DIM> src_outer_shift = hier::Box<DIM>::shift(
+         hier::Box<DIM>::grow(src_geometry.d_box, src_geometry.d_ghosts),
+         src_offset);
+      const hier::Box<DIM> mask_shift = hier::Box<DIM>::shift(src_mask, src_offset);
+
       for (int axis = 0; axis < DIM; ++axis) {
 
          const hier::Box<DIM> dst_edge_box = 
             pdat::EdgeGeometry<DIM>::toEdgeBox(dst_box, axis);
          const hier::Box<DIM> src_edge_box = 
             pdat::EdgeGeometry<DIM>::toEdgeBox(src_box_shifted, axis);
+         const hier::Box<DIM> msk_edge_box =
+            pdat::EdgeGeometry<DIM>::toEdgeBox(mask_shift, axis);
 
          bool boxes_intersect = dst_edge_box.intersects(src_edge_box);
 
@@ -148,11 +159,12 @@ OuteredgeGeometry<DIM>::doOverlap(
                if ( face_normal != axis ) {
  
                   for (int side = 0; side < 2; ++side) {
-                     hier::Box<DIM> outeredge_src_box = toOuteredgeBox(src_box_shifted, 
+                     hier::Box<DIM> outeredge_src_box = toOuteredgeBox(src_outer_shift,
                                                                        axis, 
                                                                        face_normal,
                                                                        side);
-                     dst_boxes[axis].unionBoxes(outeredge_src_box * dst_edge_box);
+                     dst_boxes[axis].unionBoxes(
+                        outeredge_src_box * msk_edge_box * dst_edge_box);
                   }
 
                }  // data is not defined when face_normal == axis
@@ -215,12 +227,23 @@ OuteredgeGeometry<DIM>::doOverlap(
                                                    hier::Box<DIM>::grow(dst_box, 1) );
    if (quick_boxes_intersect) {
 
+      /*
+       * The source data live on the outer edges of the source box, not on
+       * those of its intersection with the mask.
+       */
+      const hier::Box<DIM> src_outer_shift = hier::Box<DIM>::shift(
+         hier::Box<DIM>::grow(src_geometry.d_box, src_geometry.d_ghosts),
+         src_offset);
+      const hier::Box<DIM> mask_shift = hier::Box<DIM>::shift(src_mask, src_offset);
+
       for (int axis = 0; axis < DIM; ++axis) {
 
          const hier::Box<DIM> dst_edge_box = 
             pdat::EdgeGeometry<DIM>::toEdgeBox(dst_box, axis);
          const hier::Box<DIM> src_edge_box = 
             pdat::EdgeGeometry<DIM>::toEdgeBox(src_box_shifted, axis);
+         const hier::Box<DIM> msk_edge_box =
+            pdat::EdgeGeometry<DIM>::toEdgeBox(mask_shift, axis);
 
          bool boxes_intersect = dst_edge_box.intersects(src_edge_box);
 
@@ -230,14 +253,12 @@ OuteredgeGeometry<DIM>::doOverlap(
 
                if ( src_face_normal != axis ) {
 
-                  hier::Box<DIM> outeredge_src_box_lo = toOuteredgeBox(src_box_shifted,
-                                                                       axis,
-                                                                       src_face_normal,
-                                                                       0);
-                  hier::Box<DIM> outeredge_src_box_up = toOuteredgeBox(src_box_shifted,
-                                                                       axis,
-                                                                       src_face_normal,
-                                                                       1);
+                  const hier::Box<DIM> outeredge_src_box_lo =
+                     toOuteredgeBox(src_outer_shift, axis, src_face_normal, 0) *
+                     msk_edge_box;
+                  const hier::Box<DIM> outeredge_src_box_up =
+                     toOuteredgeBox(src_outer_shift, axis, src_face_normal, 1) *
+                     msk_edge_box;
 
                   for (int dst_face_normal = 0; dst_face_normal < DIM; ++dst_face_normal) {
 
