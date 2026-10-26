@@ -33,7 +33,7 @@ namespace SAMRAI {
  * that describe interpatch communication of patch data on an AMR hierarchy.  
  * Specifically, this class organizes these items into equivalence clases.
  * Two items are equivalent if their source data, their destination data and
- * their scratch data have the same data types and ghost cell widths.
+ * their scratch data have the same box geometries and ghost cell widths.
  */
 
 template<int DIM> class RefineClasses : public tbox::DescribedClass
@@ -171,7 +171,7 @@ private:
     * Function to compare the destination, source and scratch data in a data
     * item with those of previously registered items, to determine if they
     * are equivalent to an operation already registered with this algorithm.
-    * Equivalence is defined as having the same data types and ghost cell
+    * Equivalence is defined as having the same box geometries and ghost cell
     * widths.
     * If the operation is equivalence to an equivalence class that has
     * been previously found, an integer identifier for that equivalence

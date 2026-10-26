@@ -347,7 +347,7 @@ template<int DIM> bool CoarsenClasses<DIM>::checkPatchDataItemConsistency(
       tbox::Pointer< hier::PatchDataFactory<DIM> > pdf2 =
          pd->getPatchDataFactory(item_id2);
 
-      items_match = ( typeid(*pdf1) == typeid(*pdf2) );
+      items_match = pdf1->hasSameBoxGeometries(*pdf2);
 
       if (items_match) {
          items_match = ( pdf1->getGhostCellWidth() ==
@@ -413,7 +413,7 @@ template<int DIM> int CoarsenClasses<DIM>::getEquivalenceClassIndex(
        * Check if destinations are equivalent
        */
       if ((dst_ghosts == rep_dst_ghosts) &&
-          (typeid(*dst_pdf) == typeid(*rep_dst_pdf))) {
+          dst_pdf->hasSameBoxGeometries(*rep_dst_pdf)) {
          dst_equiv = true;
       }
 
@@ -428,7 +428,7 @@ template<int DIM> int CoarsenClasses<DIM>::getEquivalenceClassIndex(
          hier::IntVector<DIM> rep_src_ghosts =
             rep_src_pdf->getGhostCellWidth();
          if ((src_ghosts == rep_src_ghosts) &&
-             (typeid(*src_pdf) == typeid(*rep_src_pdf))) {
+             src_pdf->hasSameBoxGeometries(*rep_src_pdf)) {
             src_equiv = true;
          }
       }
