@@ -35,7 +35,8 @@ namespace SAMRAI {
  * that describe coarsening of patch data between two levels in an AMR hierarchy.  
  * Specifically, this class organizes these items into equivalence clases.
  * Two items are equivalent if their source data and their destination data
- * have the same box geometries and ghost cell widths.
+ * have the same box geometries and ghost cell widths, and the items coarsen
+ * the same ghost cell width.
  */
 
 template<int DIM> class CoarsenClasses : public tbox::DescribedClass
@@ -180,7 +181,8 @@ private:
     * Function to compare destination and source pair in data item to previously
     * registered pairs, to determine if they are equivalent to an operation
     * already registered with this algorithm.  Equivalence is defined as
-    * having the same box geometries and ghost cell widths.
+    * having the same box geometries and ghost cell widths and coarsening the
+    * same ghost cell width.
     * If the operation is equivalence to an equivalence class that has
     * been previously found, an integer identifier for that equivalence
     * class is returned.  If not it returns -1, an invalid equivalence index.

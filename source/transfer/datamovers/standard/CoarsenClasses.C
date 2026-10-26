@@ -434,10 +434,12 @@ template<int DIM> int CoarsenClasses<DIM>::getEquivalenceClassIndex(
       }
 
       /*
-       * If destinations and sources are both equivalent, exit loop
-       * and set return value to identify current equivalence class id.
+       * If destinations and sources are both equivalent and the items
+       * coarsen the same ghost cell width, exit loop and set return value
+       * to identify current equivalence class id.
        */
-      if (dst_equiv && src_equiv) {
+      if (dst_equiv && src_equiv &&
+          (data.d_gcw_to_coarsen == class_rep.d_gcw_to_coarsen)) {
          eq_index = nl;
          equiv_found = true;
       }
