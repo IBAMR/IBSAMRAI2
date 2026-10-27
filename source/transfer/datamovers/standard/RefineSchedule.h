@@ -206,6 +206,10 @@ public:
     * In general, this function is 
     * called by a RefineAlgorithm<DIM> object.
     *
+    * A refine item whose source and scratch data are the same on a schedule
+    * whose source level is its destination level must keep them the same;
+    * create a new schedule to change that.
+    *
     * @param refine_classes  Pointer to structure containing patch data and
     *                        operator information.  In general, this is
     *                        constructed by the calling RefineAlgorithm<DIM>
@@ -577,6 +581,12 @@ private:
    tbox::Pointer< xfer::RefineClasses<DIM> > d_refine_classes;
    int d_number_refine_items;
    const typename xfer::RefineClasses<DIM>::Data** d_refine_items;
+
+   /*!
+    * For each refine item, whether the schedule leaves out its copies from
+    * each patch to itself.
+    */
+   tbox::Array<bool> d_omits_copies_within_patches;
 
    /*!
     * Cached pointer to the destination patch level.

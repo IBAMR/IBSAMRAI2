@@ -12,6 +12,8 @@
 
 #include "PatchDataFactory.h"
 
+#include <typeinfo>
+
 #ifdef DEBUG_NO_INLINE
 #include "PatchDataFactory.I"
 #endif
@@ -37,6 +39,13 @@ MultiblockDataTranslator<DIM>*
 PatchDataFactory<DIM>::getMultiblockDataTranslator()
 {
    return (MultiblockDataTranslator<DIM>*) NULL;
+}
+
+template<int DIM>
+bool PatchDataFactory<DIM>::hasSameBoxGeometries(
+   const PatchDataFactory<DIM>& other) const
+{
+   return(typeid(*this) == typeid(other));
 }
 
 

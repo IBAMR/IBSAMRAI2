@@ -347,7 +347,7 @@ template<int DIM> bool CoarsenClasses<DIM>::checkPatchDataItemConsistency(
       tbox::Pointer< hier::PatchDataFactory<DIM> > pdf2 =
          pd->getPatchDataFactory(item_id2);
 
-      items_match = ( typeid(*pdf1) == typeid(*pdf2) );
+      items_match = pdf1->hasSameBoxGeometries(*pdf2);
 
       if (items_match) {
          items_match = ( pdf1->getGhostCellWidth() ==
@@ -413,34 +413,33 @@ template<int DIM> int CoarsenClasses<DIM>::getEquivalenceClassIndex(
        * Check if destinations are equivalent
        */
       if ((dst_ghosts == rep_dst_ghosts) &&
-          (typeid(*dst_pdf) == typeid(*rep_dst_pdf))) {
+          dst_pdf->hasSameBoxGeometries(*rep_dst_pdf)) {
          dst_equiv = true;
       }
 
       /*
-       * If src_id and dst_id are the same, there is nothing more to check.
-       * Otherwise, if destinations were equivalent, check if sources
-       * are equivalent.
+       * If destinations were equivalent, check if sources are equivalent
+       * to that of the class representative.
        */
-      if (dst_id == src_id) {
-         src_equiv = dst_equiv;
-      } else if (dst_equiv) {
+      if (dst_equiv) {
          int rep_src_id = class_rep.d_src;
          tbox::Pointer< hier::PatchDataFactory<DIM> > rep_src_pdf =
             pd->getPatchDataFactory(rep_src_id);
          hier::IntVector<DIM> rep_src_ghosts =
             rep_src_pdf->getGhostCellWidth();
          if ((src_ghosts == rep_src_ghosts) &&
-             (typeid(*src_pdf) == typeid(*rep_src_pdf))) {
+             src_pdf->hasSameBoxGeometries(*rep_src_pdf)) {
             src_equiv = true;
          }
       }
 
       /*
-       * If destinations and sources are both equivalent, exit loop
-       * and set return value to identify current equivalence class id.
+       * If destinations and sources are both equivalent and the items
+       * coarsen the same ghost cell width, exit loop and set return value
+       * to identify current equivalence class id.
        */
-      if (dst_equiv && src_equiv) {
+      if (dst_equiv && src_equiv &&
+          (data.d_gcw_to_coarsen == class_rep.d_gcw_to_coarsen)) {
          eq_index = nl;
          equiv_found = true;
       }

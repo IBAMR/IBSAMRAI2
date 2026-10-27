@@ -187,6 +187,16 @@ bool SideDataFactory<DIM,TYPE>::validCopyTo(
    return(valid_copy);
 }
 
+template<int DIM, class TYPE>
+bool SideDataFactory<DIM,TYPE>::hasSameBoxGeometries(
+   const hier::PatchDataFactory<DIM>& other) const
+{
+   const SideDataFactory<DIM,TYPE>* other_sdf =
+      dynamic_cast<const SideDataFactory<DIM,TYPE>*>(&other);
+   return(hier::PatchDataFactory<DIM>::hasSameBoxGeometries(other) &&
+          other_sdf->getDirectionVector() == d_directions);
+}
+
 }
 }
 #endif
