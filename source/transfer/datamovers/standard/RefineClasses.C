@@ -395,6 +395,11 @@ template<int DIM> bool RefineClasses<DIM>::checkConsistency(
                   }
                }
 
+               if (items_match) {
+                  items_match = fillPatternsMatch(myli().d_var_fill_pattern,
+                                                  testli().d_var_fill_pattern);
+               }
+
                myli++;
                testli++;
 
@@ -523,10 +528,12 @@ template<int DIM> int RefineClasses<DIM>::getEquivalenceClassIndex(
       }
 
       /*
-       * If destinations and sources are both equivalent, exit loop
-       * and set return value to identify current equivalence class id.
+       * If destinations, sources and fill patterns are all equivalent, exit
+       * loop and set return value to identify current equivalence class id.
        */
-      if (dst_equiv && src_equiv) {
+      if (dst_equiv && src_equiv &&
+          fillPatternsMatch(data.d_var_fill_pattern,
+                            class_rep.d_var_fill_pattern)) {
          eq_index = nl;
          equiv_found = true;
       }
@@ -537,6 +544,26 @@ template<int DIM> int RefineClasses<DIM>::getEquivalenceClassIndex(
 
    return (eq_index);
 
+}
+
+/*
+*************************************************************************
+*                                                                       *
+* Private member function to determine whether two variable fill        *
+* patterns compute the same overlaps.  A null fill pattern matches only *
+* another null one.                                                     *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> bool RefineClasses<DIM>::fillPatternsMatch(
+   const tbox::Pointer< VariableFillPattern<DIM> >& pattern1,
+   const tbox::Pointer< VariableFillPattern<DIM> >& pattern2) const
+{
+   if (pattern1.isNull() || pattern2.isNull()) {
+      return(pattern1.isNull() && pattern2.isNull());
+   }
+   return(pattern1->computesSameOverlapsAs(*pattern2));
 }
 
 /*

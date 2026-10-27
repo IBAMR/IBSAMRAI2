@@ -27,6 +27,11 @@ namespace SAMRAI {
  * Class VariableFillPattern is an abstract base class that provides an 
  * interface to create objects that can calculate overlaps which correspond
  * to a specific stencil.
+ *
+ * A refine schedule uses the fill pattern of a refine item only for the
+ * transfers of that item into the destination level of the fill.  It does
+ * not use it for the data that it gathers on temporary coarser levels to
+ * interpolate from.
  */
 template<int DIM>
 class VariableFillPattern : public tbox::DescribedClass
@@ -122,6 +127,17 @@ public:
     * patches supply such values.
     */
    virtual bool restrictOverlapsToOwnedData() const;
+
+   /*!
+    * Return whether this fill pattern computes the same overlaps as the
+    * given one.  Refine items whose fill patterns do can share an
+    * equivalence class.  The result must not depend on which of the two
+    * patterns is asked.  The default compares the types of the patterns;
+    * a fill pattern whose parameters change its overlaps should compare
+    * them too.
+    */
+   virtual bool computesSameOverlapsAs(
+      const VariableFillPattern<DIM>& other) const;
 
    /*!
     * Return the maximum ghost width of the boundary stencil.  The default

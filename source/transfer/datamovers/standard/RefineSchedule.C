@@ -421,18 +421,6 @@ template<int DIM>  RefineSchedule<DIM>::RefineSchedule(
    initializeDomainAndGhostInformation(recursive_schedule);
 
    /*
-    * Reset the destination level number for the variable fill pattern
-    * objects.
-    */
-   const int num_equiv_classes =
-      d_refine_classes->getNumberOfEquivalenceClasses();
-   for (int nc = 0; nc < num_equiv_classes; nc++) {
-      const typename xfer::RefineClasses<DIM>::Data& rep_item =
-         d_refine_classes->getClassRepresentative(nc);
-      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(-1);
-   }
-
-   /*
     * Finish construction of the communication schedule using the remaining
     * fill boxes.
     */
@@ -496,6 +484,7 @@ template<int DIM> void RefineSchedule<DIM>::reset(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!refine_classes.isNull());
+   TBOX_ASSERT(d_refine_classes->checkConsistency(refine_classes));
 #endif
    setRefineItems(refine_classes);
    if (!d_coarse_schedule.isNull()) {
@@ -930,19 +919,6 @@ template<int DIM> void RefineSchedule<DIM>::fillData(
    d_transaction_factory->setRefineItems(d_refine_items, d_number_refine_items);
 
    /*
-    * Set the destination level number for the variable fill pattern
-    * objects.
-    */
-   const int num_equiv_classes =
-      d_refine_classes->getNumberOfEquivalenceClasses();
-   for (int nc = 0; nc < num_equiv_classes; nc++) {
-      const typename xfer::RefineClasses<DIM>::Data& rep_item =
-         d_refine_classes->getClassRepresentative(nc);
-      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(
-         d_dst_level->getLevelNumber());
-   }
-
-   /*
     * Check whether scratch data needs to be allocated on the destination
     * level.  Keep track of those allocated components so that they may be
     * deallocated later.
@@ -965,23 +941,14 @@ template<int DIM> void RefineSchedule<DIM>::fillData(
     * space.
     */
 
-   copyScratchToDestination(d_dst_level);
+   copyScratchToDestination(d_dst_level,
+                            do_physical_boundary_fill || d_force_boundary_fill);
 
    /*
     * Deallocate any allocated scratch space on the destination level.
     */
 
    d_dst_level->deallocatePatchData(allocate_vector);
-
-   /*
-    * Reset the destination level number for the variable fill pattern
-    * objects.
-    */
-   for (int nc = 0; nc < num_equiv_classes; nc++) {
-      const typename xfer::RefineClasses<DIM>::Data& rep_item =
-         d_refine_classes->getClassRepresentative(nc);
-      rep_item.d_var_fill_pattern->setTargetPatchLevelNumber(-1);
-   }
 
    /*
     * Unset the refine items for all transactions.  These items are
@@ -1226,19 +1193,22 @@ template<int DIM> void RefineSchedule<DIM>::allocateDestinationSpace(
 *                                                                        *
 * Copy data from the scratch space of the specified level into the       *
 * destination space.  If the two spaces are the same, then no copy       *
-* is performed.                                                          *
+* is performed.  Only the data that the schedule fills are copied.       *
 *                                                                        *
 **************************************************************************
 */
 
 template<int DIM> void RefineSchedule<DIM>::copyScratchToDestination(
-   tbox::Pointer< hier::PatchLevel<DIM> > level) const
+   tbox::Pointer< hier::PatchLevel<DIM> > level,
+   bool physical_boundary_filled) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!level.isNull());
 #endif
 
-   for (typename hier::PatchLevel<DIM>::Iterator p(level); p; p++) {
+   int local_patch = 0;
+   for (typename hier::PatchLevel<DIM>::Iterator p(level); p;
+        p++, local_patch++) {
       tbox::Pointer< hier::Patch<DIM> > patch = level->getPatch(p());
 
       for (int iri = 0; iri < d_number_refine_items; iri++) {
@@ -1250,7 +1220,46 @@ template<int DIM> void RefineSchedule<DIM>::copyScratchToDestination(
 	    const double src_time = patch->getPatchData(src_id)->getTime();
 	    TBOX_ASSERT(tbox::MathUtilities<double>::equalEps(dst_time, src_time));
 #endif
-	    patch->getPatchData(dst_id)->copy(*patch->getPatchData(src_id));
+            if (d_dst_fill_boxes.empty()) {
+               patch->getPatchData(dst_id)->copy(*patch->getPatchData(src_id));
+            } else {
+
+               /*
+                * The fill boxes need not cover the destination data, so
+                * copy only the data on the fill boxes of the patch and on
+                * the boxes that the physical boundary routine was given
+                * to fill.
+                */
+               hier::BoxList<DIM> filled_boxes(d_dst_fill_boxes[local_patch]);
+               tbox::Pointer< hier::PatchGeometry<DIM> > patch_geom =
+                  patch->getPatchGeometry();
+               if (physical_boundary_filled && d_refine_patch_strategy &&
+                   patch_geom->intersectsPhysicalBoundary()) {
+                  for (int codim = 1; codim <= DIM; codim++) {
+                     const tbox::Array< hier::BoundaryBox<DIM> >& bdry_boxes =
+                        patch_geom->getCodimensionBoundaries(codim);
+                     for (int i = 0; i < bdry_boxes.getSize(); i++) {
+                        filled_boxes.appendItem(patch_geom->getBoundaryFillBox(
+                           bdry_boxes[i], patch->getBox(),
+                           d_boundary_fill_ghost_width));
+                     }
+                  }
+               }
+
+               tbox::Pointer< hier::PatchDataFactory<DIM> > factory =
+                  level->getPatchDescriptor()->getPatchDataFactory(dst_id);
+               tbox::Pointer< hier::BoxGeometry<DIM> > dst_geometry =
+                  factory->getBoxGeometry(patch->getBox());
+               for (typename hier::BoxList<DIM>::Iterator
+                       b(filled_boxes); b; b++) {
+                  if (b().empty()) continue;
+                  patch->getPatchData(dst_id)->copy(
+                     *patch->getPatchData(src_id),
+                     *dst_geometry->calculateOverlap(
+                        *factory->getBoxGeometry(b()), b(), true,
+                        s_constant_zero_intvector));
+               }
+            }
 	 }
       }
 
@@ -1973,6 +1982,18 @@ template<int DIM> void RefineSchedule<DIM>::allocateFillBoxes(
                  << std::endl);
    }
 
+   /*
+    * Unless the fill boxes are the whole ghost boxes, keep those of the
+    * local patches for copying the scratch space into the destination
+    * space.
+    */
+   d_dst_fill_boxes.clear();
+   if (fill_pattern != "DEFAULT_FILL") {
+      for (typename hier::PatchLevel<DIM>::Iterator p(level); p; p++) {
+         d_dst_fill_boxes.push_back(fill_boxes[p()].getBoxList());
+      }
+   }
+
    return;
 }
 
@@ -2242,7 +2263,8 @@ template<int DIM> bool RefineSchedule<DIM>::ownedBorderDataAreTransferred() cons
    for (int nc = 0; nc < d_refine_classes->getNumberOfEquivalenceClasses(); nc++) {
       const typename xfer::RefineClasses<DIM>::Data& rep_item =
          d_refine_classes->getClassRepresentative(nc);
-      if (rep_item.d_var_fill_pattern->restrictOverlapsToOwnedData() &&
+      if ((d_recursive_schedule ||
+           rep_item.d_var_fill_pattern->restrictOverlapsToOwnedData()) &&
           descriptor->getPatchDataFactory(rep_item.d_scratch)->
              dataLivesOnPatchBorder()) {
          return(true);
@@ -2397,7 +2419,7 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
          const bool data_on_border = dst_pdf->dataLivesOnPatchBorder();
          const bool src_next_to_fill_box = data_on_border &&
             (dst_gcw == s_constant_zero_intvector);
-         const bool restricts_to_owned_or_default =
+         const bool restricts_to_owned_or_default = d_recursive_schedule ||
             rep_item.d_var_fill_pattern->restrictOverlapsToOwnedData();
          const bool restrict_to_owned_data =
             data_on_border && restricts_to_owned_or_default;
@@ -2494,12 +2516,17 @@ template<int DIM> void RefineSchedule<DIM>::constructScheduleTransactions(
              * A fill pattern whose overlaps are restricted to owned data
              * fills everything that the box geometries allow, so the
              * restricted overlap is calculated from the box geometries.
+             * A temporary coarse level ignores the fill patterns and also
+             * uses the box geometries.
              */
             tbox::Pointer< hier::BoxOverlap<DIM> > overlap;
             if (restrict_to_owned_data) {
                overlap = dst_geometry->calculateOwnedOverlap(
                   *src_geometry, src_mask, true, shift,
                   src_region * shifted, d_owned_border_data[nc]);
+            } else if (d_recursive_schedule) {
+               overlap = dst_geometry->calculateOverlap(
+                  *src_geometry, src_mask, true, shift);
             } else {
                overlap = rep_item.d_var_fill_pattern->calculateOverlapOnLevel(
                   *dst_geometry,
@@ -2634,6 +2661,7 @@ RefineSchedule<DIM>::initializeDomainAndGhostInformation(
    d_max_scratch_gcw = getMaxScratchGhosts();
    d_max_stencil_gcw = getMaxStencilGhosts();
 
+   d_recursive_schedule = recursive_schedule;
    if (recursive_schedule) {
       d_boundary_fill_ghost_width = d_max_stencil_gcw;
       d_force_boundary_fill = (d_boundary_fill_ghost_width.max() > 0);

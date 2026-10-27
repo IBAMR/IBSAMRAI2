@@ -33,7 +33,8 @@ namespace SAMRAI {
  * that describe interpatch communication of patch data on an AMR hierarchy.  
  * Specifically, this class organizes these items into equivalence clases.
  * Two items are equivalent if their source and destination data represent 
- * the same data types and have the same ghost cell widths, respectively.
+ * the same data types and have the same ghost cell widths, respectively,
+ * and their variable fill patterns compute the same overlaps.
  */
 
 template<int DIM> class RefineClasses : public tbox::DescribedClass
@@ -171,7 +172,8 @@ private:
     * Function to compare destination and source pair in data item to previously
     * registered pairs, to determine if they are equivalent to an operation
     * already registered with this algorithm.  Equivalence is defined as
-    * representing the same data type and having the same ghost cell widths.
+    * representing the same data type and having the same ghost cell widths,
+    * with fill patterns that compute the same overlaps.
     * If the operation is equivalence to an equivalence class that has
     * been previously found, an integer identifier for that equivalence
     * class is returned.  If not it returns -1, an invalid equivalence index.
@@ -180,6 +182,14 @@ private:
       const typename RefineClasses<DIM>::Data& data,
       tbox::Pointer< hier::PatchDescriptor<DIM> > descriptor =
                    (hier::PatchDescriptor<DIM>*)NULL) const;
+
+   /*
+    * Function to determine whether two variable fill patterns compute the
+    * same overlaps.  A null fill pattern matches only another null one.
+    */
+   bool fillPatternsMatch(
+      const tbox::Pointer< VariableFillPattern<DIM> >& pattern1,
+      const tbox::Pointer< VariableFillPattern<DIM> >& pattern2) const;
 
 #ifdef LACKS_NAMESPACE_IN_DECLARE
    tbox::Array< tbox::List<Data> > d_refine_equivalence_classes;
