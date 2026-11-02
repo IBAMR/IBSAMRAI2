@@ -132,6 +132,14 @@ tbox::Pointer< hier::BoxOverlap<DIM> > OutersideGeometry<DIM>::doOverlap(
 
       const hier::Box<DIM> mask_shift = hier::Box<DIM>::shift(src_mask, src_offset);
 
+      /*
+       * The source data live on the outer sides of the source box, not on
+       * those of its intersection with the mask.
+       */
+      const hier::Box<DIM> src_outer_shift = hier::Box<DIM>::shift(
+         hier::Box<DIM>::grow(src_geometry.d_box, src_geometry.d_ghosts),
+         src_offset);
+
       for (int d = 0; d < DIM; d++) {
 
          const hier::Box<DIM> msk_side =
@@ -146,12 +154,14 @@ tbox::Pointer< hier::BoxOverlap<DIM> > OutersideGeometry<DIM>::doOverlap(
          if (!together.empty()) {
 
             // Add lower side intersection (if any) to the box list
-            hier::Box<DIM> low_side = src_side;
+            const hier::Box<DIM> src_outer_side =
+               SideGeometry<DIM>::toSideBox(src_outer_shift, d);
+            hier::Box<DIM> low_side = src_outer_side;
             low_side.upper(d) = low_side.lower(d); //+ghosts;
             dst_boxes[d].unionBoxes(low_side * msk_side * dst_side);
 
             // Add upper side intersection (if any) to the box list
-            hier::Box<DIM> hig_side = src_side;
+            hier::Box<DIM> hig_side = src_outer_side;
             hig_side.lower(d) = hig_side.upper(d); //-ghosts;
             dst_boxes[d].unionBoxes(hig_side * msk_side * dst_side);
 
