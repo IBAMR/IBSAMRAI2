@@ -1115,7 +1115,11 @@ template<int DIM> void GriddingAlgorithm<DIM>::regridFinerLevel(
                getProperNestingBuffer(fine_level_number));
             second_fine_boxes.coarsen(getRatioToCoarserLevel(fine_level_number+1)*
                                         getRatioToCoarserLevel(fine_level_number));
-            setTagsOnLevel(d_true_tag, patch_level, d_tag_indx, second_fine_boxes);
+            hier::BoxList<DIM> second_fine_tag_boxes(second_fine_boxes);
+            addPeriodicImages(second_fine_tag_boxes,
+               hierarchy->getGridGeometry()->getPeriodicShift(patch_level->getRatio()));
+            setTagsOnLevel(d_true_tag, patch_level, d_tag_indx,
+                           hier::BoxArray<DIM>(second_fine_tag_boxes));
 	 }
 
          if ( d_extend_tags_to_bdry ) {
@@ -1541,6 +1545,8 @@ template<int DIM> void GriddingAlgorithm<DIM>::findProperNestingData(
        */
 
       complement.grow(getProperNestingBuffer(ln));
+      addPeriodicImages(complement,
+         hierarchy->getGridGeometry()->getPeriodicShift(level->getRatio()));
       t_intersect_boxes_find_proper->start();
       complement.intersectBoxes( level->getPhysicalDomain() );
       t_intersect_boxes_find_proper->stop();
@@ -1800,6 +1806,16 @@ template<int DIM> void GriddingAlgorithm<DIM>::extendTagsToBoundary(
    }
 
    /*
+    * A periodic boundary is not a physical boundary: do not extend tags
+    * to it.
+    */
+   const hier::IntVector<DIM> periodic_shift(
+      hierarchy->getGridGeometry()->getPeriodicShift());
+   for (int i = 0; i < DIM; i++) {
+     if (periodic_shift(i) != 0) extend_ghosts(i) = 0;
+   }
+
+   /*
     * If any tags are set that are within "extend_ghosts" cells from the
     * boundary, fill them to the boundary using the following procedure:
     *
@@ -2009,6 +2025,16 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
             extend++;
          }
          extend_ghosts(i) = extend;
+      }
+
+      /*
+       * A periodic boundary is not a physical boundary.  Extending boxes
+       * to it could take them out of the proper nesting boxes.
+       */
+      const hier::IntVector<DIM> periodic_shift(
+         hierarchy->getGridGeometry()->getPeriodicShift());
+      for (int i = 0; i < DIM; i++) {
+         if (periodic_shift(i) != 0) extend_ghosts(i) = 0;
       }
 
       (void) hier::BoxUtilities<DIM>::extendBoxesToDomainBoundary(
@@ -2772,6 +2798,38 @@ template<int DIM> int GriddingAlgorithm<DIM>::qsortBoxCompare(const void *v, con
       if ( lowv[i] < loww[i] ) return -1;
    }
    return (0);
+}
+
+/*
+ * ************************************************************************
+ *
+ *  Add the periodic images of a list of boxes to the list.
+ *
+ * ************************************************************************
+ */
+template<int DIM> void GriddingAlgorithm<DIM>::addPeriodicImages(
+   hier::BoxList<DIM>& boxes,
+   const hier::IntVector<DIM>& periodic_shift)
+{
+   hier::IntVector<DIM> lower(0);
+   hier::IntVector<DIM> upper(0);
+   bool periodic = false;
+   for ( int i=0; i<DIM; ++i ) {
+      if ( periodic_shift(i) != 0 ) {
+         lower(i) = -1;
+         upper(i) = 1;
+         periodic = true;
+      }
+   }
+   if ( !periodic ) return;
+
+   const hier::BoxList<DIM> originals(boxes);
+   for ( typename hier::Box<DIM>::Iterator s(hier::Box<DIM>(lower,upper)); s; s++ ) {
+      if ( s() == hier::IntVector<DIM>(0) ) continue;
+      hier::BoxList<DIM> images(originals);
+      images.shift(s() * periodic_shift);
+      boxes.unionBoxes(images);
+   }
 }
 
 

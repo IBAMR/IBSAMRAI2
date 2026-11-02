@@ -728,6 +728,14 @@ private:
    static int qsortBoxCompare(const void *v, const void *w);
 
    /*
+    * Add to the list the images of its boxes under the periodic shifts
+    * (components of zero mark nonperiodic directions).
+    */
+   static void addPeriodicImages(
+      hier::BoxList<DIM>& boxes,
+      const hier::IntVector<DIM>& periodic_shift);
+
+   /*
     * Static members for managing shared tag data among multiple
     * GriddingAlgorithm objects.
     */
