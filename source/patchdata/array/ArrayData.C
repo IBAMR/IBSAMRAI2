@@ -57,6 +57,24 @@ inline int abstract_stream_sizeof<int>(const int n)
    return SAMRAI::tbox::AbstractStream::sizeofInt(n);
 }
 
+template<>
+inline int abstract_stream_sizeof<bool>(const int n)
+{
+   return SAMRAI::tbox::AbstractStream::sizeofBool(n);
+}
+
+template<>
+inline int abstract_stream_sizeof<char>(const int n)
+{
+   return SAMRAI::tbox::AbstractStream::sizeofChar(n);
+}
+
+template<>
+inline int abstract_stream_sizeof<dcomplex>(const int n)
+{
+   return SAMRAI::tbox::AbstractStream::sizeofDoubleComplex(n);
+}
+
 template<int DIM, class TYPE>
 void MessageStream::packArrayData(const pdat::ArrayData<DIM,TYPE>& arraydata,
                                   const hier::Box<DIM>& dest_box,
