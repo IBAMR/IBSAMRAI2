@@ -178,6 +178,16 @@ public:
    virtual bool validCopyTo(
       const tbox::Pointer<PatchDataFactory<DIM> >& dst_pdf) const = 0;
 
+   /**
+    * @brief Return whether the box geometries that this factory creates
+    * compute the same overlaps as those that the given factory creates for
+    * the same box and ghost cell width.
+    *
+    * The default returns whether the factories have the same type.
+    */
+   virtual bool hasSameBoxGeometries(
+      const PatchDataFactory<DIM>& other) const;
+
    virtual MultiblockDataTranslator<DIM>* getMultiblockDataTranslator();
 
 protected:

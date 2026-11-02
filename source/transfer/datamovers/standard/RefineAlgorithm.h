@@ -565,9 +565,11 @@ public:
     * operators for each operation must have identical characteristics (i.e.,
     * data centering, ghost cell widths, stencil requirements, etc.).  However,
     * However, the specific source, destination, scratch patch data ids and
-    * operators can be different.  Detailed and fairly complete error checking
-    * is performed when this routine is called to prevent potential errors or
-    * unexpected behavior. 
+    * operators can be different, except that an operation whose source and
+    * scratch data were the same on a schedule whose source level is its
+    * destination level must keep them the same.  Detailed and fairly
+    * complete error checking is performed when this routine is called to
+    * prevent potential errors or unexpected behavior.
     *
     * @param schedule  tbox::Pointer to refine schedule, which cannot be null.
     */

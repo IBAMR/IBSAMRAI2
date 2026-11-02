@@ -489,6 +489,22 @@ template<int DIM> void RefineSchedule<DIM>::reset(
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!refine_classes.isNull());
 #endif
+   int iri = 0;
+   for (int nc = 0; nc < refine_classes->getNumberOfEquivalenceClasses(); nc++) {
+      for (typename tbox::List<typename xfer::RefineClasses<DIM>::Data>::Iterator
+              l(refine_classes->getIterator(nc)); l; l++, iri++) {
+         if ((iri < d_omits_copies_within_patches.getSize()) &&
+             d_omits_copies_within_patches[iri] &&
+             (l().d_src != l().d_scratch)) {
+            TBOX_ERROR("RefineSchedule<DIM>::reset\n"
+                       << "The schedule does not copy data from a patch to"
+                       << " itself for an item whose\n"
+                       << "source and scratch data are the same, so they"
+                       << " must stay the same.\n"
+                       << "Create a new schedule instead." << std::endl);
+         }
+      }
+   }
    setRefineItems(refine_classes);
    if (!d_coarse_schedule.isNull()) {
       d_coarse_schedule->reset(refine_classes);
@@ -1311,6 +1327,16 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationSchedule(
    TBOX_ASSERT(fill_boxes.getSize() == dst_level->getNumberOfPatches());
    TBOX_ASSERT(unfilled_boxes.getSize() == dst_level->getNumberOfPatches());
 #endif
+
+   /*
+    * Record the refine items whose copies from each patch to itself are
+    * left out (see constructScheduleTransactions()).
+    */
+   d_omits_copies_within_patches.resizeArray(d_number_refine_items);
+   for (int iri = 0; iri < d_number_refine_items; iri++) {
+      d_omits_copies_within_patches[iri] = (dst_level == src_level) &&
+         (d_refine_items[iri]->d_src == d_refine_items[iri]->d_scratch);
+   }
 
    if (s_schedule_generation_method == "ORIG_NSQUARED") {
 

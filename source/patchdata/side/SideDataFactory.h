@@ -157,6 +157,14 @@ public:
       const tbox::Pointer< hier::PatchDataFactory<DIM> >& dst_pdf) const;   
 
    /**
+    * Return whether the given factory is a SideDataFactory with the same
+    * direction vector, so that the box geometries of both compute the same
+    * overlaps for the same box and ghost cell width.
+    */
+   bool hasSameBoxGeometries(
+      const hier::PatchDataFactory<DIM>& other) const;
+
+   /**
     * Return pointer to a multiblock data translator
     */
    hier::MultiblockDataTranslator<DIM>* getMultiblockDataTranslator();
