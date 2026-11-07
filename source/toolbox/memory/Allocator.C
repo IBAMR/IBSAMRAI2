@@ -100,7 +100,9 @@ Allocator::internal_allocate(std::size_t n_bytes) {
      // In unusual circumstances (such as code running after main() finishes) we
      // may allocate memory after ~Allocator() is called: in that case, just
      // completely ignore the pool infrastructure
-     return std::make_pair(true, std::malloc(n_bytes));
+     auto *block = std::malloc(n_bytes);
+     TBOX_ASSERT(block != nullptr);
+     return std::make_pair(true, block);
   }
 
   const auto block_id = get_block_id(n_bytes);
@@ -135,6 +137,7 @@ Allocator::internal_allocate(std::size_t n_bytes) {
 
     if (it == large_blocks.end()) {
         auto *block = std::malloc(n_bytes);
+        TBOX_ASSERT(block != nullptr);
         return std::make_pair(true, block);
     } else {
         auto *block = it->first;

@@ -14,6 +14,7 @@
 #include "tbox/Arena.h"
 #include "tbox/Allocator.h"
 #include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
 
 #ifdef DEBUG_NO_INLINE
 #include "tbox/Array.I"
@@ -25,6 +26,12 @@ namespace SAMRAI {
 template <class TYPE>
 Array<TYPE>::Array(const int n)
 {
+   if (n < 0) {
+      TBOX_ERROR("tbox::Array: the size " << n << " is negative.\n"
+                 << "If this array holds a patch's data, the number of "
+                 << "values overflows an int.\n"
+                 << "Use smaller patches." << std::endl);
+   }
    d_objects  = Allocator::getAllocator().allocate<TYPE>(n);
    d_counter  = nullptr;
    d_elements = n;
@@ -33,6 +40,12 @@ Array<TYPE>::Array(const int n)
 template <class TYPE>
 Array<TYPE>::Array(const int n, const Pointer<Arena>& /*pool*/)
 {
+   if (n < 0) {
+      TBOX_ERROR("tbox::Array: the size " << n << " is negative.\n"
+                 << "If this array holds a patch's data, the number of "
+                 << "values overflows an int.\n"
+                 << "Use smaller patches." << std::endl);
+   }
    d_objects  = Allocator::getAllocator().allocate<TYPE>(n);
    d_counter  = nullptr;
    d_elements = n;

@@ -120,7 +120,7 @@ void MessageStream::printClassData(std::ostream& os) const
 
 void *MessageStream::getPointerAndAdvanceCursor(const int bytes)
 {
-   void *ptr = d_buffer.getPointer(d_buffer_index);
+   void *ptr = static_cast<char *>(getBufferStart()) + d_buffer_index;
    d_buffer_index += bytes;
    if (d_buffer_index > d_current_size) {
       d_current_size = d_buffer_index;

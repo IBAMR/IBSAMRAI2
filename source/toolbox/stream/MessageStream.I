@@ -31,7 +31,7 @@ void MessageStream::useXDR(const bool flag)
 inline
 void *MessageStream::getBufferStart()
 {
-   return(d_buffer.getPointer());
+   return(d_buffer.size() > 0 ? d_buffer.getPointer() : NULL);
 }
 
 inline
