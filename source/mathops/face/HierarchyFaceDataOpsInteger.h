@@ -263,10 +263,18 @@ private:
    tbox::Pointer< hier::PatchHierarchy<DIM> > d_hierarchy;
    int  d_coarsest_level;
    int  d_finest_level; 
-   tbox::Array< tbox::Array< hier::BoxList<DIM> > > d_nonoverlapping_face_boxes[DIM];
+   mutable tbox::Array< tbox::Array< hier::BoxList<DIM> > > d_nonoverlapping_face_boxes[DIM];
 
    PatchFaceDataOpsInteger<DIM> d_patch_ops;
 
+   /*!
+    * Build d_nonoverlapping_face_boxes if resetLevels() cleared it.
+    *
+    * Building the lists costs O(P^2) in the number of patches P per level,
+    * and only numberOfEntries() reads them, so resetLevels() only clears
+    * them.
+    */
+   void maybeResetOverlappingBoxLists() const;
 };
 
 }
