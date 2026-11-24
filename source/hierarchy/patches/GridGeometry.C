@@ -100,6 +100,15 @@ template<int DIM> void GridGeometry<DIM>::computeBoundaryBoxesOnLevel(
    if (periodic_shift != IntVector<DIM>(0)) {
       domain_list.grow(periodic_shift);
    }
+   const BoxIndex grown_domain_index(domain_list);
+
+   /*
+    * Every box that getBoundaryBoxes() builds for a patch lies in the patch
+    * box grown by this width, so domain boxes outside it change nothing.
+    */
+   IntVector<DIM> region_width(1);
+   region_width.max(ghost_width);
+   std::vector<int> nearby;
 
    for (typename PatchLevel<DIM>::Iterator ip(&level); ip; ip++) {
       tbox::Pointer< Patch<DIM> > patch = level.getPatch(ip());
@@ -118,7 +127,17 @@ template<int DIM> void GridGeometry<DIM>::computeBoundaryBoxesOnLevel(
           * boundary boxes of the face type.
           */
 
-         getBoundaryBoxesFromDomainList(&boundaries[n], box, domain_list,
+         Box<DIM> region(box);
+         region.grow(region_width);
+         grown_domain_index.findIntersecting(region, nearby);
+         BoxList<DIM> nearby_domain_boxes;
+         for (std::size_t i = 0; i < nearby.size(); i++) {
+            nearby_domain_boxes.appendItem(
+               grown_domain_index.getBox(nearby[i]));
+         }
+
+         getBoundaryBoxesFromDomainList(&boundaries[n], box,
+                                        nearby_domain_boxes,
                                         ghost_width, periodic_shift);
 
          for (int j = 0; j < DIM; j++) {

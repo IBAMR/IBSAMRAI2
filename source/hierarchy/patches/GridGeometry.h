@@ -20,6 +20,7 @@
 #include "BoundaryBox.h"
 #include "BoxArray.h"
 #include "BoxList.h"
+#include "BoxTree.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
@@ -318,11 +319,15 @@ public:
 
 private:
 
+   // Bin index of the domain boxes; queries return box numbers in list order.
+   typedef typename BoxTree<DIM>::BinIndex BoxIndex;
+
    /*!
     * @brief Compute boundary boxes for patch from a prepared domain list
     *
     * Same as getBoundaryBoxes(), except that domain_list holds the domain
-    * boxes already grown by periodic_shift.
+    * boxes already grown by periodic_shift.  It may hold only the grown
+    * domain boxes that meet box grown by max(ghosts, 1).
     */
    void getBoundaryBoxesFromDomainList(
       tbox::Array< BoundaryBox<DIM> > boundaries[DIM],

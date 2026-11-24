@@ -12,8 +12,10 @@
 
 #include "BoxTree.h"
 #include "BoxGraphUtilities.h"
+#include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"
 
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
 
@@ -247,6 +249,315 @@ template<int DIM> void BoxTree<DIM>::removeIntersections(BoxList<DIM>& fragments
 }
 
 
+
+/*
+ *************************************************************************
+ *
+ * BinIndex
+ *
+ *************************************************************************
+ */
+
+template<int DIM> BoxTree<DIM>::BinIndex::BinIndex()
+:  d_use_bins(false)
+{
+}
+
+template<int DIM> BoxTree<DIM>::BinIndex::BinIndex(
+   const BoxList<DIM>& boxes)
+:  d_use_bins(false)
+{
+   std::vector< Box<DIM> > box_vector;
+   box_vector.reserve(boxes.getNumberOfItems());
+   for (typename BoxList<DIM>::Iterator b(boxes); b; b++) {
+      box_vector.push_back(b());
+   }
+   initialize(box_vector);
+}
+
+/*
+ * Class l holds the boxes no larger than base * 2^l in every direction and
+ * larger than base * 2^(l-1) in some; base(d) is the smallest extent in d.
+ */
+template<int DIM> void BoxTree<DIM>::BinIndex::initialize(
+   const std::vector< Box<DIM> >& boxes)
+{
+   d_boxes = boxes;
+   d_use_bins = false;
+   d_grids.clear();
+
+   const int num_boxes = static_cast<int>(d_boxes.size());
+   if (num_boxes <= s_max_scanned_boxes) {
+      return;
+   }
+
+   IntVector<DIM> base(0);
+   bool have_box = false;
+   for (int i = 0; i < num_boxes; ++i) {
+      if (!d_boxes[i].empty()) {
+         if (!have_box) {
+            base = d_boxes[i].numberCells();
+            have_box = true;
+         } else {
+            base.min(d_boxes[i].numberCells());
+         }
+      }
+   }
+   if (!have_box) {
+      return;
+   }
+
+   std::vector<int> size_class(num_boxes, -1);
+   int number_classes = 0;
+   for (int i = 0; i < num_boxes; ++i) {
+      if (d_boxes[i].empty()) {
+         continue;
+      }
+      int l = 0;
+      for (int d = 0; d < DIM; ++d) {
+         while ((static_cast<long>(base(d)) << l) < d_boxes[i].numberCells(d)) {
+            ++l;
+         }
+      }
+      size_class[i] = l;
+      number_classes = tbox::MathUtilities<int>::Max(number_classes, l + 1);
+   }
+
+   std::vector< std::pair< IntVector<DIM>, int > > entries;
+   for (int l = 0; l < number_classes; ++l) {
+      Grid grid;
+      for (int i = 0; i < num_boxes; ++i) {
+         if (size_class[i] == l) {
+            grid.bounding_box += d_boxes[i];
+         }
+      }
+      if (grid.bounding_box.empty()) {
+         continue;
+      }
+      double total_bins = 1.0;
+      for (int d = 0; d < DIM; ++d) {
+         grid.bin_size(d) = base(d) << l;
+         const int extent = grid.bounding_box.numberCells(d);
+         grid.number_bins(d) =
+            (extent + grid.bin_size(d) - 1) / grid.bin_size(d);
+         total_bins *= grid.number_bins(d);
+      }
+
+      entries.clear();
+      IntVector<DIM> lower(0), upper(0);
+      for (int i = 0; i < num_boxes; ++i) {
+         if (size_class[i] == l) {
+            getBinRange(grid, d_boxes[i], lower, upper);
+            IntVector<DIM> bin(lower);
+            do {
+               entries.push_back(std::make_pair(bin, i));
+            } while (nextBin(bin, lower, upper));
+         }
+      }
+      std::sort(entries.begin(), entries.end(), lessEntry);
+
+      grid.dense = total_bins <= 2.0 * static_cast<double>(entries.size());
+      grid.bin_boxes.resize(entries.size());
+      if (grid.dense) {
+         const int number_bins = static_cast<int>(total_bins);
+         grid.bin_start.assign(number_bins + 1, 0);
+         for (std::size_t e = 0; e < entries.size(); ++e) {
+            ++grid.bin_start[denseBinNumber(grid, entries[e].first) + 1];
+         }
+         for (int b = 0; b < number_bins; ++b) {
+            grid.bin_start[b + 1] += grid.bin_start[b];
+         }
+      } else {
+         for (std::size_t e = 0; e < entries.size(); ++e) {
+            if (e == 0 || lessBin(entries[e - 1].first, entries[e].first)) {
+               grid.bins.push_back(entries[e].first);
+               grid.bin_start.push_back(static_cast<int>(e));
+            }
+         }
+         grid.bin_start.push_back(static_cast<int>(entries.size()));
+      }
+      for (std::size_t e = 0; e < entries.size(); ++e) {
+         grid.bin_boxes[e] = entries[e].second;
+      }
+      d_grids.push_back(grid);
+   }
+   d_use_bins = true;
+}
+
+template<int DIM> void BoxTree<DIM>::BinIndex::findIntersecting(
+   const Box<DIM>& region,
+   std::vector<int>& numbers) const
+{
+   numbers.clear();
+   if (!d_use_bins) {
+      const int num_boxes = static_cast<int>(d_boxes.size());
+      for (int i = 0; i < num_boxes; ++i) {
+         if (d_boxes[i].intersects(region)) {
+            numbers.push_back(i);
+         }
+      }
+      return;
+   }
+
+   std::vector<int> candidates;
+   int contributing_bins = 0;
+   for (std::size_t g = 0; g < d_grids.size(); ++g) {
+      contributing_bins += findCandidates(d_grids[g], region, candidates);
+   }
+   numbers.reserve(candidates.size());
+   for (std::size_t c = 0; c < candidates.size(); ++c) {
+      if (d_boxes[candidates[c]].intersects(region)) {
+         numbers.push_back(candidates[c]);
+      }
+   }
+   if (contributing_bins > 1) {
+      // A box may meet several bins, and grids list their boxes separately.
+      std::sort(numbers.begin(), numbers.end());
+      numbers.erase(std::unique(numbers.begin(), numbers.end()),
+                    numbers.end());
+   }
+}
+
+template<int DIM> int BoxTree<DIM>::BinIndex::findCandidates(
+   const Grid& grid,
+   const Box<DIM>& region,
+   std::vector<int>& candidates) const
+{
+   IntVector<DIM> lower(0), upper(0);
+   if (!getBinRange(grid, region, lower, upper)) {
+      return 0;
+   }
+   int contributing_bins = 0;
+   double range_bins = 1.0;
+   for (int d = 0; d < DIM; ++d) {
+      range_bins *= upper(d) - lower(d) + 1;
+   }
+   if (grid.dense ||
+       range_bins <= static_cast<double>(grid.bins.size())) {
+      IntVector<DIM> bin(lower);
+      do {
+         const int b = findBin(grid, bin);
+         if (b >= 0 && grid.bin_start[b] < grid.bin_start[b + 1]) {
+            candidates.insert(candidates.end(),
+                              grid.bin_boxes.begin() + grid.bin_start[b],
+                              grid.bin_boxes.begin() + grid.bin_start[b + 1]);
+            ++contributing_bins;
+         }
+      } while (nextBin(bin, lower, upper));
+   } else {
+      // The region spans more bins than are occupied: test each occupied bin.
+      for (std::size_t b = 0; b < grid.bins.size(); ++b) {
+         bool inside = true;
+         for (int d = 0; d < DIM; ++d) {
+            inside = inside && lower(d) <= grid.bins[b](d) &&
+                     grid.bins[b](d) <= upper(d);
+         }
+         if (inside) {
+            candidates.insert(candidates.end(),
+                              grid.bin_boxes.begin() + grid.bin_start[b],
+                              grid.bin_boxes.begin() + grid.bin_start[b + 1]);
+            ++contributing_bins;
+         }
+      }
+   }
+   return contributing_bins;
+}
+
+template<int DIM> int BoxTree<DIM>::BinIndex::findBin(
+   const Grid& grid,
+   const IntVector<DIM>& bin)
+{
+   if (grid.dense) {
+      return denseBinNumber(grid, bin);
+   }
+   typename std::vector< IntVector<DIM> >::const_iterator it =
+      std::lower_bound(grid.bins.begin(), grid.bins.end(), bin, lessBin);
+   if (it == grid.bins.end() || lessBin(bin, *it)) {
+      return -1;
+   }
+   return static_cast<int>(it - grid.bins.begin());
+}
+
+template<int DIM> int BoxTree<DIM>::BinIndex::denseBinNumber(
+   const Grid& grid,
+   const IntVector<DIM>& bin)
+{
+   int b = bin(DIM - 1);
+   for (int d = DIM - 2; d >= 0; --d) {
+      b = b * grid.number_bins(d) + bin(d);
+   }
+   return b;
+}
+
+/*
+ * Set lower and upper to the range of bins of grid that meet region, and
+ * return false if region misses the grid's bounding box.
+ */
+template<int DIM> bool BoxTree<DIM>::BinIndex::getBinRange(
+   const Grid& grid,
+   const Box<DIM>& region,
+   IntVector<DIM>& lower,
+   IntVector<DIM>& upper)
+{
+   const Box<DIM> clipped = region * grid.bounding_box;
+   if (clipped.empty()) {
+      return false;
+   }
+   for (int d = 0; d < DIM; ++d) {
+      lower(d) = (clipped.lower(d) - grid.bounding_box.lower(d)) /
+                 grid.bin_size(d);
+      upper(d) = (clipped.upper(d) - grid.bounding_box.lower(d)) /
+                 grid.bin_size(d);
+   }
+   return true;
+}
+
+/*
+ * Order bins by their last index first, as dense bin numbers are ordered.
+ */
+template<int DIM> bool BoxTree<DIM>::BinIndex::lessBin(
+   const IntVector<DIM>& a,
+   const IntVector<DIM>& b)
+{
+   for (int d = DIM - 1; d >= 0; --d) {
+      if (a(d) != b(d)) {
+         return a(d) < b(d);
+      }
+   }
+   return false;
+}
+
+template<int DIM> bool BoxTree<DIM>::BinIndex::lessEntry(
+   const std::pair< IntVector<DIM>, int >& a,
+   const std::pair< IntVector<DIM>, int >& b)
+{
+   if (lessBin(a.first, b.first)) {
+      return true;
+   }
+   if (lessBin(b.first, a.first)) {
+      return false;
+   }
+   return a.second < b.second;
+}
+
+/*
+ * Advance bin through the range lower to upper, first index fastest, and
+ * return false after the last bin.
+ */
+template<int DIM> bool BoxTree<DIM>::BinIndex::nextBin(
+   IntVector<DIM>& bin,
+   const IntVector<DIM>& lower,
+   const IntVector<DIM>& upper)
+{
+   for (int d = 0; d < DIM; ++d) {
+      if (bin(d) < upper(d)) {
+         ++bin(d);
+         return true;
+      }
+      bin(d) = lower(d);
+   }
+   return false;
+}
 
 }
 }
