@@ -1337,7 +1337,7 @@ template<int DIM> void GriddingAlgorithm<DIM>::checkOverlappingPatches(
          TBOX_WARNING("PatchLevel has patches which overlap in index space\n"
                       <<"See GriddingAlgorithm::checkOverlappingPatches()\n");
       }
-      else if ( d_check_nonrefined_tags == 'e' ) {
+      else if ( d_check_overlapping_patches == 'e' ) {
          TBOX_ERROR("PatchLevel has patches which overlap in index space\n"
                     <<"See GriddingAlgorithm::checkOverlappingPatches()\n");
       }
