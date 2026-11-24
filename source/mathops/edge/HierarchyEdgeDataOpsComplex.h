@@ -351,13 +351,11 @@ private:
    PatchEdgeDataOpsComplex<DIM> d_patch_ops;
 
    /*!
-    * Set d_nonoverlapping_side_boxes to the correct value.
+    * Build d_nonoverlapping_edge_boxes if resetLevels() cleared it.
     *
-    * d_nonoverlapping_side_boxes is extremely expensive to compute, and for
-    * whatever reason SAMRAI calls resetLevels() in most linear algebra
-    * functions: this results in, for problems with lots of patches, the
-    * majority of runtime being spent recomputing overlap repeatedly in
-    * solvers when we never actually need the information.
+    * Building the lists costs O(P^2) in the number of patches P per level,
+    * and only numberOfEntries() reads them, so resetLevels() only clears
+    * them.
     */
    void maybeResetOverlappingBoxLists() const;
 };

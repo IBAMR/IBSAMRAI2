@@ -75,7 +75,6 @@ void HierarchyFaceDataOpsReal<DIM,TYPE>::resetLevels(
    const int coarsest_level,
    const int finest_level)
 {
-   int i;
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!d_hierarchy.isNull());
    TBOX_ASSERT(   (coarsest_level >= 0)
@@ -87,7 +86,17 @@ void HierarchyFaceDataOpsReal<DIM,TYPE>::resetLevels(
    d_finest_level = finest_level;
 
    for (int d = 0; d < DIM; d++) {
-   d_nonoverlapping_face_boxes[d].resizeArray(d_finest_level+1);
+      d_nonoverlapping_face_boxes[d].resizeArray(0);
+   }
+}
+
+template<int DIM, class TYPE>
+void HierarchyFaceDataOpsReal<DIM,TYPE>::maybeResetOverlappingBoxLists() const
+{
+   if (d_nonoverlapping_face_boxes[0].size() > 0)
+      return;
+   for (int d = 0; d < DIM; d++) {
+      d_nonoverlapping_face_boxes[d].resizeArray(d_finest_level+1);
    }
 
    for (int ln = d_coarsest_level; ln <= d_finest_level; ln++) {
@@ -97,7 +106,7 @@ void HierarchyFaceDataOpsReal<DIM,TYPE>::resetLevels(
 
       for (int nd = 0; nd < DIM; nd++) {
          face_boxes = level->getBoxes();
-         for (i = 0; i < n; i++) {
+         for (int i = 0; i < n; i++) {
             face_boxes[i] =
                pdat::FaceGeometry<DIM>::toFaceBox(face_boxes[i], nd);
          }
@@ -655,6 +664,7 @@ int HierarchyFaceDataOpsReal<DIM,TYPE>::numberOfEntries(
           && (d_finest_level >= d_coarsest_level)
           && (d_finest_level <= d_hierarchy->getFinestLevelNumber()) );
 #endif
+   maybeResetOverlappingBoxLists();
 
    int entries = 0;
 
