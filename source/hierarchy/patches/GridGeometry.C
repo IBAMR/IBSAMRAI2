@@ -96,6 +96,11 @@ template<int DIM> void GridGeometry<DIM>::computeBoundaryBoxesOnLevel(
    }
 #endif
 
+   BoxList<DIM> domain_list(domain);
+   if (periodic_shift != IntVector<DIM>(0)) {
+      domain_list.grow(periodic_shift);
+   }
+
    for (typename PatchLevel<DIM>::Iterator ip(&level); ip; ip++) {
       tbox::Pointer< Patch<DIM> > patch = level.getPatch(ip());
       const int n = DIM * ip();
@@ -113,8 +118,8 @@ template<int DIM> void GridGeometry<DIM>::computeBoundaryBoxesOnLevel(
           * boundary boxes of the face type.
           */
 
-         getBoundaryBoxes(&boundaries[n], box, domain, ghost_width,
-                          periodic_shift);
+         getBoundaryBoxesFromDomainList(&boundaries[n], box, domain_list,
+                                        ghost_width, periodic_shift);
 
          for (int j = 0; j < DIM; j++) {
 
@@ -544,6 +549,21 @@ template<int DIM> void GridGeometry<DIM>::getBoundaryBoxes(
    const IntVector<DIM>& ghosts, 
    const IntVector<DIM> &periodic_shift) const
 {
+   BoxList<DIM> domain_list(domain_boxes);
+   if (periodic_shift != IntVector<DIM>(0)) {
+      domain_list.grow(periodic_shift);
+   }
+   getBoundaryBoxesFromDomainList(boundaries, box, domain_list, ghosts,
+                                  periodic_shift);
+}
+
+template<int DIM> void GridGeometry<DIM>::getBoundaryBoxesFromDomainList(
+   tbox::Array< BoundaryBox<DIM> > boundaries[DIM],
+   const Box<DIM>& box,
+   const BoxList<DIM>& domain_list,
+   const IntVector<DIM>& ghosts,
+   const IntVector<DIM> &periodic_shift) const
+{
 
    const Index<DIM> ifirst = box.lower();
    const Index<DIM> ilast  = box.upper();
@@ -618,11 +638,6 @@ template<int DIM> void GridGeometry<DIM>::getBoundaryBoxes(
                      border.upper(j) = ilast(j) + ghosts(j);
                      border.lower(j) = ifirst(j) - ghosts(j);
                   }
-               }
-
-               BoxList<DIM> domain_list(domain_boxes);
-               if (num_per_dirs != 0) {
-                  domain_list.grow(periodic_shift);
                }
 
                /*

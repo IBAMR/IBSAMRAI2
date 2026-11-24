@@ -319,6 +319,19 @@ public:
 private:
 
    /*!
+    * @brief Compute boundary boxes for patch from a prepared domain list
+    *
+    * Same as getBoundaryBoxes(), except that domain_list holds the domain
+    * boxes already grown by periodic_shift.
+    */
+   void getBoundaryBoxesFromDomainList(
+      tbox::Array< BoundaryBox<DIM> > boundaries[DIM],
+      const Box<DIM>& box,
+      const BoxList<DIM>& domain_list,
+      const IntVector<DIM>& ghosts,
+      const IntVector<DIM>& periodic_shift) const;
+
+   /*!
     * @brief Check that the domain is valid for periodic boundary conditions
     */
    bool checkPeriodicValidity(const BoxArray<DIM>& domain);
