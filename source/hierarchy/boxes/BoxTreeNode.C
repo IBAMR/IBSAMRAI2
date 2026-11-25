@@ -11,8 +11,6 @@
 #define included_hier_BoxTreeNode_C
 
 #include "BoxTreeNode.h"
-#include "BoxGraphUtilities.h"
-#include "tbox/SAMRAI_MPI.h"
 
 
 namespace SAMRAI {
@@ -36,7 +34,6 @@ template<int DIM>  BoxTreeNode<DIM>::BoxTreeNode(
    int recurse_level)
 {
    d_dim = dim;
-   d_rank = tbox::SAMRAI_MPI::getRank();
 
    /*
     * Compute this node's domain, which is the bounding box
@@ -56,7 +53,6 @@ template<int DIM>  BoxTreeNode<DIM>::BoxTreeNode(
    min_length = (min_length < 1) ? 1 : min_length;
    if (len <= min_length || dim == 0) {
       d_box_triples = box_triples;
-      d_work.resizeArray( len );
       return;
    }
 
@@ -109,8 +105,6 @@ template<int DIM>  BoxTreeNode<DIM>::BoxTreeNode(
       d_tree = new BoxTreeNode<DIM>(d_box_triples, have_mapping, 
                                     min_length, d_dim-1, recurse_level+1);
       d_box_triples.setNull();
-   } else {
-      d_work.resizeArray( d_box_triples.size() );
    }
 
    /*
@@ -140,155 +134,21 @@ template<int DIM>  BoxTreeNode<DIM>::~BoxTreeNode()
 {
 }
 
-/*
- * ************************************************************************
- * 
- *  Append to "indices" the indice of the boxes owned by this
- *  node that intersect with "box."  Then recurse (1) for child
- *  nodes; (2) for the tree rooted at this node.
- * 
- * ************************************************************************
- */
-
-template<int DIM> void BoxTreeNode<DIM>::findOverlapIndices(
-   tbox::List<int> &indices,
-   const Box<DIM> & box,
-   bool find_local_boxes,
-   int recurse_level)
+template<int DIM> void BoxTreeNode<DIM>::appendTriplesInQueryOrder(
+   std::vector<Triple>& triples) const
 {
-   if (box.intersects(d_domain)) {
-      if (d_tree) {
-         d_tree->findOverlapIndices(indices, box, find_local_boxes);
-      }
-
-      /*
-       * "d_work.isNull()" if the calling BoxTree was not passed processor
-       * mapping information.  The import is that all indices int d_box_triples
-       * are unique, so we don't need to check for duplicates.
-       */
-      else if (d_work.isNull()) {
-         int len = d_box_triples.size();
-
-         //case 1: only interested in local overlapping boxes
-         if (find_local_boxes) {
-            for (int i=0; i<len; ++i) {
-               if (d_box_triples[i].owner == d_rank) {
-                  if (box.intersects(d_box_triples[i].box)) {
-                     indices.appendItem(d_box_triples[i].idx);
-                  }
-               }
-            }
-         //case 2: interested in all overlapping boxes
-         } else {
-            for (int i=0; i<len; ++i) {
-               if (box.intersects(d_box_triples[i].box)) {
-                  indices.appendItem(d_box_triples[i].idx);
-               }
-            }
-         }
-      }
-
-      /*
-       * If there is a mapping, then it's possible that same index
-       * could be appended more than once, so extra care is required
-       * to guard against duplicate indices.
-       */
-      else {
-
-         int len = d_box_triples.size();
-         int idx = 0;
-
-         //case 1: only interested in local overlapping boxes
-         if (find_local_boxes) {
-            for (int i=0; i<len; ++i) {
-               if (d_box_triples[i].owner == d_rank) {
-                  if (box.intersects(d_box_triples[i].box)) {
-                     d_work[idx++] = d_box_triples[i].idx;
-                  }
-               }
-            }
-         //case 2: interested in all overlapping boxes
-         } else {
-            for (int i=0; i<len; ++i) {
-               if (box.intersects(d_box_triples[i].box)) {
-                  d_work[idx++] = d_box_triples[i].idx;
-               }
-            }
-         }
-
-         for (int j=0; j<idx; ++j) {
-            indices.appendItem(d_work[j]);
-         }
-
-      }
-
-      if (d_left_child) {
-         d_left_child->findOverlapIndices(indices, box, 
-                                          find_local_boxes, recurse_level+1);
-      }
-
-      if (d_right_child) {
-         d_right_child->findOverlapIndices(indices, box, 
-                                           find_local_boxes, recurse_level+1);
+   if (d_tree) {
+      d_tree->appendTriplesInQueryOrder(triples);
+   } else {
+      for (int i = 0; i < d_box_triples.size(); ++i) {
+         triples.push_back(d_box_triples[i]);
       }
    }
-
-   /*
-    * check for and eliminate any duplicate indices that
-    * may have crept in during the recursive calls to 
-    * left or right children.  Note: this really only needs
-    * to be done before exiting at the top recursion level.
-    */
-
-   int size = indices.size();
-   if (size > 1) {
-      tbox::Array<int> sortme(size);
-      int j = 0;
-      for (tbox::List<int>::Iterator l(indices); l; l++) {
-         sortme[j++] = l();
-      }
-
-      int *ptr = sortme.getPointer();
-      qsort((void*)ptr, size, sizeof(int),
-         hier::BoxGraphUtilities<DIM>::qsortIntCompare);
-
-      indices.clearItems();
-      indices.appendItem(sortme[0]);
-      for (int k=1; k<size; ++k) {
-         if (sortme[k] != sortme[k-1]) {
-            indices.appendItem(sortme[k]);
-         }
-      }
+   if (d_left_child) {
+      d_left_child->appendTriplesInQueryOrder(triples);
    }
-
-}
-
-template<int DIM> void BoxTreeNode<DIM>::findOverlapBoxes(
-   BoxList<DIM> &overlap_boxes,
-   const Box<DIM> & box)
-{
-   if (box.intersects(d_domain)) {
-      if (d_tree) {
-         d_tree->findOverlapBoxes(overlap_boxes, box);
-      }
-
-      else {
-
-         int len = d_box_triples.size();
-         for (int i=0; i<len; ++i) {
-            if (box.intersects(d_box_triples[i].box)) {
-               overlap_boxes.appendItem( d_box_triples[i].box);
-            }
-         }
-      }
-
-      if (d_left_child) {
-         d_left_child->findOverlapBoxes(overlap_boxes, box);
-      }
-
-      if (d_right_child) {
-         d_right_child->findOverlapBoxes(overlap_boxes, box);
-      }
+   if (d_right_child) {
+      d_right_child->appendTriplesInQueryOrder(triples);
    }
 }
 

@@ -12,6 +12,7 @@
 
 #include "BoxTree.h"
 #include "BoxGraphUtilities.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"
 
@@ -26,18 +27,6 @@
 
 namespace SAMRAI {
    namespace hier {
-
-static inline void buildTboxArrayFromList(
-   tbox::Array<int> &array,
-   const tbox::List<int> &list)
-{
-   int len = list.getNumberOfItems();
-   array.resizeArray(len);   
-   int count = 0;
-   for (tbox::List<int>::Iterator j(list); j; j++) {
-      array[count++] = j();
-   }
-}
 
 /*
  * ************************************************************************
@@ -69,7 +58,7 @@ template<int DIM>  BoxTree<DIM>::BoxTree(
       box_triples[i].owner = box_mapping.getProcessorAssignment(idx);
    }
 
-   d_tree = new BoxTreeNode<DIM>(box_triples, d_have_mapping, min_length);
+   buildIndex(box_triples, min_length);
 }
 
 template<int DIM>  BoxTree<DIM>::BoxTree(
@@ -93,7 +82,7 @@ template<int DIM>  BoxTree<DIM>::BoxTree(
       box_triples[i].owner = -1;
    }
 
-   d_tree = new BoxTreeNode<DIM>(box_triples, d_have_mapping, min_length);
+   buildIndex(box_triples, min_length);
 }
 
 template<int DIM>  BoxTree<DIM>::BoxTree(
@@ -110,7 +99,7 @@ template<int DIM>  BoxTree<DIM>::BoxTree(
       box_triples[i].owner = -1;
    }
 
-   d_tree = new BoxTreeNode<DIM>(box_triples, d_have_mapping, min_length);
+   buildIndex(box_triples, min_length);
 }
 
 
@@ -157,17 +146,23 @@ template<int DIM> void BoxTree<DIM>::privateFindOverlapIndices(
    const Box<DIM>& box,
    bool find_local_overlaps) const
 {
+   std::vector<int> entries;
+   d_index.findIntersecting(box, entries);
+
+   std::vector<int> found;
+   found.reserve(entries.size());
+   for (std::size_t e = 0; e < entries.size(); ++e) {
+      if (!find_local_overlaps || d_entry_owners[entries[e]] == d_rank) {
+         found.push_back(d_entry_indices[entries[e]]);
+      }
+   }
+   std::sort(found.begin(), found.end());
+   found.erase(std::unique(found.begin(), found.end()), found.end());
+
    indices.setNull();
-   tbox::List<int> indices_list;
-   d_tree->findOverlapIndices(indices_list, box, find_local_overlaps);
-
-   buildTboxArrayFromList(indices, indices_list);
-
-   int len = indices.getSize();
-   if (len) {
-      int *idx_ptr = indices.getPointer();
-      qsort((void*)idx_ptr, len, sizeof(int),
-            BoxGraphUtilities<DIM>::qsortIntCompare);
+   indices.resizeArray(static_cast<int>(found.size()));
+   for (std::size_t i = 0; i < found.size(); ++i) {
+      indices[static_cast<int>(i)] = found[i];
    }
 }
 
@@ -184,8 +179,11 @@ template<int DIM> void BoxTree<DIM>::findOverlapBoxes(
    const Box<DIM>& box) const
 {
    overlap_boxes.clearItems();
-   tbox::List<int> indices_list;
-   d_tree->findOverlapBoxes(overlap_boxes, box);
+   std::vector<int> entries;
+   d_index.findIntersecting(box, entries);
+   for (std::size_t e = 0; e < entries.size(); ++e) {
+      overlap_boxes.appendItem(d_index.getBox(entries[e]));
+   }
 }
 
 /*
@@ -249,6 +247,34 @@ template<int DIM> void BoxTree<DIM>::removeIntersections(BoxList<DIM>& fragments
 }
 
 
+
+/*
+ * Build the tree only to list the triples in the order of its queries,
+ * and index them in that order.
+ */
+template<int DIM> void BoxTree<DIM>::buildIndex(
+   const tbox::Array<typename BoxTreeNode<DIM>::Triple>& box_triples,
+   int min_length)
+{
+   d_rank = tbox::SAMRAI_MPI::getRank();
+   std::vector<typename BoxTreeNode<DIM>::Triple> triples;
+   triples.reserve(box_triples.size());
+   {
+      const BoxTreeNode<DIM> tree(box_triples, d_have_mapping, min_length);
+      tree.appendTriplesInQueryOrder(triples);
+   }
+
+   std::vector< Box<DIM> > boxes;
+   boxes.reserve(triples.size());
+   d_entry_indices.reserve(triples.size());
+   d_entry_owners.reserve(triples.size());
+   for (std::size_t i = 0; i < triples.size(); ++i) {
+      boxes.push_back(triples[i].box);
+      d_entry_indices.push_back(triples[i].idx);
+      d_entry_owners.push_back(triples[i].owner);
+   }
+   d_index.initialize(boxes);
+}
 
 /*
  *************************************************************************

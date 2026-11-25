@@ -38,6 +38,12 @@ namespace SAMRAI {
  * BoxArray contains \b n boxes, then the setup phase (which is
  * invoked by the constructor) has an expected runtime complexity 
  * of O(n log(n)).
+ *
+ * The constructor builds the tree only to fix the order in which queries
+ * list boxes.  The queries use a BinIndex of the boxes and their periodic
+ * images, so their cost usually grows with the number of boxes near the
+ * query box rather than with n.  The queries return the same results, in
+ * the same order, as a search of the tree.
  * 
  * Following construction, two types of operations are supported by the 
  * member functions findOverlapIndices() and findLocalOverlapIndices().  
@@ -97,17 +103,11 @@ public:
     *               of length zero; otherwise the array must contain
     *               an entry for each box in \b boxes. 
     * @param box_mapping maps each box in \b boxes to a processor.
-    * @param min_length controls the partitioning of \b boxes amongst 
-    *                   child nodes in the tree.  
-    *                   Setting to a larger value tends to
-    *                   decrease the total number of nodes in the tree,
-    *                   and hence reduces memory requirements; however, a 
-    *                   larger value may also increase the cost of the
-    *                   findOverlapBoxes and removeIntersections operations.
-    *                   (and hence reduces memory requirements), but increase
-    *                   the cost of findOverlapBoxes.  Unless you are
-    *                   heavily invested in performance tweaking, please use
-    *                   the default value.  Really, I mean it.
+    * @param min_length controls the partitioning of \b boxes amongst
+    *                   child nodes in the tree, and so the order in which
+    *                   findOverlapBoxes() lists boxes.  It does not affect
+    *                   the cost of the queries.  Please use the default
+    *                   value.
     */
    BoxTree(const BoxArray<DIM>& boxes,
                  const tbox::Array< tbox::List< IntVector<DIM> > >& box_shifts,
@@ -304,11 +304,30 @@ private:
                                   const Box<DIM>& box,
                                   bool find_local_overlaps) const;
 
-   tbox::Pointer< BoxTreeNode<DIM> > d_tree;
+   /*
+    * Build a tree of box_triples to fix their order, and index them in
+    * that order.
+    */
+   void buildIndex(
+      const tbox::Array<typename BoxTreeNode<DIM>::Triple>& box_triples,
+      int min_length);
+
+   /*
+    * The boxes and periodic images of the tree, in the order in which the
+    * tree lists them, and for each its index in d_boxes and its owner.
+    */
+   BinIndex d_index;
+   std::vector<int> d_entry_indices;
+   std::vector<int> d_entry_owners;
 
    BoxArray<DIM> d_boxes;
 
    bool d_have_mapping;
+
+   /*!
+    * This processor's rank.
+    */
+   int d_rank;
 };
 
 

@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <vector>
 
 #include "Box.h"
 #include "BoxList.h"
@@ -60,8 +61,7 @@ public:
     *                   elements, than the list will never be partitioned
     *                   amongst child nodes.  Setting to a larger value
     *                   tends to decrease the total number of nodes in the tree
-    *                   (and hence reduces memory requirements), but increase
-    *                   the cost of findOverlappingBoxes.
+    *                   (and hence reduces memory requirements).
     * @param dim the dimension along which the domain will be cut
     *            when constructing child nodes.
     * @param recurse_level is a counter that is used internally to
@@ -81,37 +81,11 @@ public:
    ~BoxTreeNode();
 
    /*!
-    * @brief Compute the box array indices of boxes that overlap the given \b box.
-    *
-    * If \b find_local_boxes = false, then the return array, \b indices,
-    * contains the indices of the boxes (wrt the BoxArray that was passed
-    * to the constructor) and that overlap with the specified \b box.
-    * If \b find_local_boxes = true, then only the indices of those boxes
-    * that overlap and whose corresponding patches are mapped to this
-    * processor are returned.
-    *
-    * @param indices the indices of the overlapping boxes.
-    * @param box the specified box whose overlaps are requested.
-    * @param find_local_boxes switch to determine if all overlapping
-    *        boxes are returned, or only those boxes that overlap
-    *        and are local to this processor.
-    * @param recurse_level is a counter that is used internally to
-    *        keep track of the recurse level.  Do not change the
-    *        default value.
+    * @brief Append the triples of this node and its subtrees to \b triples:
+    * those of d_tree, or this node's own, then those of the left and right
+    * children.  BoxTree lists overlapping boxes in this order.
     */
-   void findOverlapIndices(tbox::List<int> &indices,
-                           const Box<DIM> & box,
-                           bool find_local_boxes,
-                           int recurse_level = 0);
-
-   /*!
-    * @brief Create a list of all boxes that overlap the given \b box.
-    *
-    * @param overlap_boxes boxlist containing boxes that overlap with box.
-    * @param box the specified box whose overlaps are requested.
-    */
-   void findOverlapBoxes(BoxList<DIM> &overlap_boxes,
-                         const Box<DIM> & box);
+   void appendTriplesInQueryOrder(std::vector<Triple>& triples) const;
 
    /*!
     * Counts the total number of nodes in all trees rooted at this
@@ -156,11 +130,6 @@ private:
    tbox::Array<Triple> d_box_triples;
 
    /*!
-    * Working space that is used in findOverlapIndices
-    */
-   tbox::Array<int> d_work;
-
-   /*!
     * The dimension along which the input box triples will be partitioned.
     */
    int d_dim;
@@ -171,11 +140,6 @@ private:
     * d_dim - 1.
     */
    tbox::Pointer< BoxTreeNode<DIM> > d_tree;
-
-   /*!
-    * This processor's rank.
-    */
-   int d_rank;
 };
 
 
