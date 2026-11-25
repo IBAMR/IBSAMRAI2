@@ -418,6 +418,31 @@ template<int DIM> void BoxTree<DIM>::BinIndex::findIntersecting(
    }
 }
 
+template<int DIM> bool BoxTree<DIM>::BinIndex::intersects(
+   const Box<DIM>& region) const
+{
+   if (!d_use_bins) {
+      for (std::size_t i = 0; i < d_boxes.size(); ++i) {
+         if (d_boxes[i].intersects(region)) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   std::vector<int> candidates;
+   for (std::size_t g = 0; g < d_grids.size(); ++g) {
+      candidates.clear();
+      findCandidates(d_grids[g], region, candidates);
+      for (std::size_t c = 0; c < candidates.size(); ++c) {
+         if (d_boxes[candidates[c]].intersects(region)) {
+            return true;
+         }
+      }
+   }
+   return false;
+}
+
 template<int DIM> int BoxTree<DIM>::BinIndex::findCandidates(
    const Grid& grid,
    const Box<DIM>& region,

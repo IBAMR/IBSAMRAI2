@@ -352,7 +352,7 @@ private:
    bool checkBoundaryBox(
       const BoundaryBox<DIM>& boundary_box,
       const Patch<DIM>& patch,
-      const BoxArray<DIM>& domain,
+      const BoxIndex& domain_index,
       const int num_per_dirs,
       const IntVector<DIM> &max_data_ghost_width ) const;
 

@@ -244,6 +244,11 @@ public:
       void findIntersecting(const Box<DIM>& region,
                             std::vector<int>& numbers) const;
 
+      /*!
+       * @brief Return true if any box intersects \b region.
+       */
+      bool intersects(const Box<DIM>& region) const;
+
    private:
       // One size class.  Bin i holds bin_boxes[bin_start[i]..bin_start[i+1]);
       // dense grids have every bin, sparse grids only occupied ones, in bins.
