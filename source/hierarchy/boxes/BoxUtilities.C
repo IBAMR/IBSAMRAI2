@@ -15,6 +15,11 @@
 
 #include <stdlib.h>
 
+#include <algorithm>
+#include <iterator>
+#include <vector>
+
+#include "BoxTree.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
@@ -1599,23 +1604,48 @@ template<int DIM> void BoxUtilities<DIM>::makeNonOverlappingBoxLists(
 
    box_list_array.resizeArray(nb);
 
-   // Copy boxes into a list to preserve the original box array.
-   BoxList<DIM> box_list(boxes);
+   // Only boxes j >= ib that overlap box ib can hold pieces inside it or
+   // lose pieces to it.  The index finds no empty box, and empty boxes are
+   // never removed.
+   tbox::Array< BoxList<DIM> > pieces(nb);
+   std::vector< Box<DIM> > box_vector(nb);
+   std::vector<int> empty_boxes;
+   for (int j = 0; j < nb; j++) {
+      pieces[j].appendItem(boxes[j]);
+      box_vector[j] = boxes[j];
+      if (boxes[j].empty()) {
+         empty_boxes.push_back(j);
+      }
+   }
+   typename BoxTree<DIM>::BinIndex index;
+   index.initialize(box_vector);
 
-   // Remove portion of index space represented by array box from list.
-   // Keep unique pieces on box list.
+   std::vector<int> overlapping, candidates;
    for (int ib = 0; ib < nb; ib++) {
-      Box<DIM> remove = boxes[ib];
+      const Box<DIM>& remove = boxes[ib];
 
-      for (typename tbox::List<Box<DIM> >::Iterator l(box_list); l; l++) {
-         Box<DIM> intersection = remove * l();
-         if (intersection == l()) {
-            box_list_array[ib].appendItem(l());
+      index.findIntersecting(remove, overlapping);
+      overlapping.erase(overlapping.begin(),
+                        std::lower_bound(overlapping.begin(),
+                                         overlapping.end(), ib));
+
+      candidates.clear();
+      std::merge(overlapping.begin(), overlapping.end(),
+                 empty_boxes.begin(), empty_boxes.end(),
+                 std::back_inserter(candidates));
+      for (std::size_t c = 0; c < candidates.size(); c++) {
+         for (typename tbox::List<Box<DIM> >::Iterator l(pieces[candidates[c]]);
+              l; l++) {
+            if ((remove * l()) == l()) {
+               box_list_array[ib].appendItem(l());
+            }
          }
       }
       box_list_array[ib].coalesceBoxes();
 
-      box_list.removeIntersections(remove);
+      for (std::size_t c = 0; c < overlapping.size(); c++) {
+         pieces[overlapping[c]].removeIntersections(remove);
+      }
    }
 }
 
