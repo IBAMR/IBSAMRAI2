@@ -13,6 +13,8 @@
 #include "SAMRAI_config.h"
 
 #include <stdlib.h>
+#include <utility>
+#include <vector>
 
 #include "Box.h"
 #include "BoxArray.h"
@@ -188,6 +190,101 @@ public:
    * @param list the list of boxes from which intersections are to be removed.
    */
   void removeIntersections(BoxList<DIM>& list) const;
+
+   /*!
+    * @brief Bin index of a sequence of boxes, for finding the boxes that
+    * intersect a given box.
+    *
+    * The boxes are numbered in the order in which they are given, and a
+    * query returns the numbers of the boxes it finds in increasing order,
+    * so the caller fixes the order of the results through the order of the
+    * boxes.  The boxes are sorted by size into classes whose bins grow by
+    * factors of two from the smallest box extent in each direction, so each
+    * box meets at most 2^DIM bins of its class.  A class stores every bin
+    * of its bounding box if there are at most twice as many bins as
+    * entries, and otherwise only its B occupied bins, in a sorted list.
+    * In each class a query visits the bins its range covers, at most
+    * (query extent / bin size + 1)^DIM and never more than the occupied
+    * bins, at a cost of log B per bin for a sorted list, and tests the
+    * boxes of those bins.  Sequences of at most 32 boxes are scanned
+    * instead.
+    */
+   class BinIndex
+   {
+   public:
+      /*!
+       * @brief Construct an index of no boxes.
+       */
+      BinIndex();
+
+      /*!
+       * @brief Construct an index of the boxes of \b boxes, numbered in
+       * list order.
+       */
+      explicit BinIndex(const BoxList<DIM>& boxes);
+
+      /*!
+       * @brief Index \b boxes, numbered in order, in place of the boxes
+       * indexed before.
+       */
+      void initialize(const std::vector< Box<DIM> >& boxes);
+
+      /*!
+       * @brief Return box number \b i.
+       */
+      const Box<DIM>& getBox(int i) const
+      {
+         return d_boxes[i];
+      }
+
+      /*!
+       * @brief Set \b numbers to the numbers of the boxes that intersect
+       * \b region, in increasing order.
+       */
+      void findIntersecting(const Box<DIM>& region,
+                            std::vector<int>& numbers) const;
+
+   private:
+      // One size class.  Bin i holds bin_boxes[bin_start[i]..bin_start[i+1]);
+      // dense grids have every bin, sparse grids only occupied ones, in bins.
+      struct Grid
+      {
+         IntVector<DIM> bin_size;
+         Box<DIM> bounding_box;
+         IntVector<DIM> number_bins;
+         bool dense;
+         std::vector< IntVector<DIM> > bins;
+         std::vector<int> bin_start;
+         std::vector<int> bin_boxes;
+      };
+
+      // Sequences of at most this many boxes are scanned.
+      static const int s_max_scanned_boxes = 32;
+
+      /*
+       * Append to candidates the boxes of grid's bins that meet region,
+       * and return the number of bins that contributed.
+       */
+      int findCandidates(const Grid& grid, const Box<DIM>& region,
+                         std::vector<int>& candidates) const;
+      /*
+       * Return the position of bin in grid's list of bins, or -1 if it is
+       * not occupied.
+       */
+      static int findBin(const Grid& grid, const IntVector<DIM>& bin);
+      static bool getBinRange(const Grid& grid, const Box<DIM>& region,
+                              IntVector<DIM>& lower, IntVector<DIM>& upper);
+      static int denseBinNumber(const Grid& grid, const IntVector<DIM>& bin);
+      static bool lessBin(const IntVector<DIM>& a, const IntVector<DIM>& b);
+      static bool lessEntry(const std::pair< IntVector<DIM>, int >& a,
+                            const std::pair< IntVector<DIM>, int >& b);
+      static bool nextBin(IntVector<DIM>& bin, const IntVector<DIM>& lower,
+                          const IntVector<DIM>& upper);
+
+      std::vector< Box<DIM> > d_boxes;
+      bool d_use_bins;
+      std::vector<Grid> d_grids;
+   };
 
 private:
    /*!

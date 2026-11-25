@@ -96,6 +96,20 @@ template<int DIM> void GridGeometry<DIM>::computeBoundaryBoxesOnLevel(
    }
 #endif
 
+   BoxList<DIM> domain_list(domain);
+   if (periodic_shift != IntVector<DIM>(0)) {
+      domain_list.grow(periodic_shift);
+   }
+   const BoxIndex grown_domain_index(domain_list);
+
+   /*
+    * Every box that getBoundaryBoxes() builds for a patch lies in the patch
+    * box grown by this width, so domain boxes outside it change nothing.
+    */
+   IntVector<DIM> region_width(1);
+   region_width.max(ghost_width);
+   std::vector<int> nearby;
+
    for (typename PatchLevel<DIM>::Iterator ip(&level); ip; ip++) {
       tbox::Pointer< Patch<DIM> > patch = level.getPatch(ip());
       const int n = DIM * ip();
@@ -113,8 +127,18 @@ template<int DIM> void GridGeometry<DIM>::computeBoundaryBoxesOnLevel(
           * boundary boxes of the face type.
           */
 
-         getBoundaryBoxes(&boundaries[n], box, domain, ghost_width,
-                          periodic_shift);
+         Box<DIM> region(box);
+         region.grow(region_width);
+         grown_domain_index.findIntersecting(region, nearby);
+         BoxList<DIM> nearby_domain_boxes;
+         for (std::size_t i = 0; i < nearby.size(); i++) {
+            nearby_domain_boxes.appendItem(
+               grown_domain_index.getBox(nearby[i]));
+         }
+
+         getBoundaryBoxesFromDomainList(&boundaries[n], box,
+                                        nearby_domain_boxes,
+                                        ghost_width, periodic_shift);
 
          for (int j = 0; j < DIM; j++) {
 
@@ -544,6 +568,21 @@ template<int DIM> void GridGeometry<DIM>::getBoundaryBoxes(
    const IntVector<DIM>& ghosts, 
    const IntVector<DIM> &periodic_shift) const
 {
+   BoxList<DIM> domain_list(domain_boxes);
+   if (periodic_shift != IntVector<DIM>(0)) {
+      domain_list.grow(periodic_shift);
+   }
+   getBoundaryBoxesFromDomainList(boundaries, box, domain_list, ghosts,
+                                  periodic_shift);
+}
+
+template<int DIM> void GridGeometry<DIM>::getBoundaryBoxesFromDomainList(
+   tbox::Array< BoundaryBox<DIM> > boundaries[DIM],
+   const Box<DIM>& box,
+   const BoxList<DIM>& domain_list,
+   const IntVector<DIM>& ghosts,
+   const IntVector<DIM> &periodic_shift) const
+{
 
    const Index<DIM> ifirst = box.lower();
    const Index<DIM> ilast  = box.upper();
@@ -618,11 +657,6 @@ template<int DIM> void GridGeometry<DIM>::getBoundaryBoxes(
                      border.upper(j) = ilast(j) + ghosts(j);
                      border.lower(j) = ifirst(j) - ghosts(j);
                   }
-               }
-
-               BoxList<DIM> domain_list(domain_boxes);
-               if (num_per_dirs != 0) {
-                  domain_list.grow(periodic_shift);
                }
 
                /*
