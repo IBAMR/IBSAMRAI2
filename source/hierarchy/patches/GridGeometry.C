@@ -101,6 +101,9 @@ template<int DIM> void GridGeometry<DIM>::computeBoundaryBoxesOnLevel(
       domain_list.grow(periodic_shift);
    }
    const BoxIndex grown_domain_index(domain_list);
+#ifdef DEBUG_CHECK_ASSERTIONS
+   const BoxIndex domain_index((BoxList<DIM>(domain)));
+#endif
 
    /*
     * Every box that getBoundaryBoxes() builds for a patch lies in the patch
@@ -145,7 +148,8 @@ template<int DIM> void GridGeometry<DIM>::computeBoundaryBoxesOnLevel(
 #ifdef DEBUG_CHECK_ASSERTIONS
             for (int k = 0; k < boundaries[n+j].getSize(); k++) {
                TBOX_ASSERT(checkBoundaryBox(boundaries[n+j][k], *patch,
-                                       domain, num_per_dirs, ghost_width));
+                                       domain_index, num_per_dirs,
+                                       ghost_width));
             }
 #endif
          }
@@ -1009,7 +1013,7 @@ template<int DIM> bool GridGeometry<DIM>::checkPeriodicValidity(
 template<int DIM> bool GridGeometry<DIM>::checkBoundaryBox(
    const BoundaryBox<DIM>& boundary_box,
    const Patch<DIM>& patch,
-   const BoxArray<DIM>& domain,
+   const BoxIndex& domain_index,
    const int num_per_dirs,
    const IntVector<DIM> &max_data_ghost_width ) const
 {
@@ -1077,12 +1081,7 @@ template<int DIM> bool GridGeometry<DIM>::checkBoundaryBox(
    /*
     * check that the boundary box is outside the physical domain.
     */
-   BoxList<DIM> domain_list(domain);
-   BoxList<DIM> bbox_list(bbox);
-
-   domain_list.intersectBoxes(bbox_list);
-   
-   if (domain_list.getNumberOfItems()) {
+   if (domain_index.intersects(bbox)) {
       return_val = false;
    }
 
