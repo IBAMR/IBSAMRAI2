@@ -22,6 +22,7 @@ template<int DIM>  CoarseFineBoundary<DIM>::CoarseFineBoundary()
    d_npatches[0] = -1;
    d_nblocks = 1;
    d_boundary_boxes.resizeArray(1);
+   d_local_patches.resizeArray(1);
    d_mblk_hierarchy.setNull();
 }
 
@@ -74,6 +75,7 @@ template<int DIM> void CoarseFineBoundary<DIM>::computeFromHierarchy(
    TBOX_ASSERT(max_ghost_width > IntVector<DIM>(-1));
 #endif
    d_boundary_boxes.resizeArray(1);
+   d_local_patches.resizeArray(1);
 
    const hier::PatchLevel<DIM>& level =
       dynamic_cast<const hier::PatchLevel<DIM>&> (*hierarchy.getPatchLevel(ln));
@@ -93,6 +95,7 @@ template<int DIM> void CoarseFineBoundary<DIM>::computeFromHierarchy(
    TBOX_ASSERT(max_ghost_width > IntVector<DIM>(-1));
 #endif
    d_boundary_boxes.resizeArray(d_nblocks);
+   d_local_patches.resizeArray(d_nblocks);
 
    const tbox::Pointer<hier::MultiblockPatchLevel<DIM> > level =
       hierarchy.getPatchLevel(ln);
@@ -119,6 +122,7 @@ template<int DIM> void CoarseFineBoundary<DIM>::computeFromLevel(
    clear();
 
    d_npatches[0] = level.getNumberOfPatches();
+   setLocalPatches(0, level);
 
    const hier::IntVector<DIM>& ratio = level.getRatio();
 
@@ -136,12 +140,9 @@ template<int DIM> void CoarseFineBoundary<DIM>::computeFromLevel(
 
    /*
     * The periodic adjusted domain is a (modified) copy of the
-    * domain (for the periodic case).  The periodic adjusted
-    * level is a (modified) copy of the level boxes (for the
-    * periodic case).
+    * domain (for the periodic case).
     */
    BoxArray<DIM> periodic_adjusted_phys_domain(level0.getBoxes());
-   BoxArray<DIM> periodic_adjusted_level_domain(level.getBoxes());
 
    /*
     * Add to periodic_adjusted_domain the continuation of the
@@ -150,48 +151,95 @@ template<int DIM> void CoarseFineBoundary<DIM>::computeFromLevel(
    if ( is_periodic ) {
       addPeriodicImageBoxes(periodic_adjusted_phys_domain,
                             level0.getShiftsForLevel());
-
-      addPeriodicImageBoxes(periodic_adjusted_level_domain,
-                            level.getShiftsForLevel());
    }
 
    periodic_adjusted_phys_domain.refine(ratio);
 
    /*
-    * Here we add some boxes outside of non-periodic boundaries to the
-    * adjusted level.  For each patch that touches a regular boundary,
-    * grow the patch box and any periodic images of the patch box by
-    * the max ghost width.  Remove intersections with the periodic
-    * adjusted physical domain.  Add what remains to the adjusted level.
-    *
-    * This will ensure that ensuing call to create boundary boxes will not
-    * create boundary boxes at the locations where the level touches a
-    * non-periodic physical boundary, but only where there is a coarse-fine
-    * interface in the domain interior (A periodic boundary is considered
-    * part of the domain interior for this purpose).
+    * The boundary boxes are computed for local patches only, and those of
+    * a patch depend only on the domain boxes that meet the patch box grown
+    * by max(1, max_ghost_width), the width that
+    * GridGeometry::computeBoundaryBoxesOnLevel() uses (the two must
+    * agree).  So the adjusted level domain below keeps, in order, only the
+    * boxes that meet such a region of a local patch, which gives each local
+    * patch the same boundary boxes as the whole adjusted level domain
+    * would.  When every patch is local, the filter would drop only boxes
+    * that change no boundary box, so it is skipped and every box is kept.
     */
+   const int num_patches = level.getNumberOfPatches();
+   bool all_patches_local = true;
+   for (int p = 0; p < num_patches; p++) {
+      if (!d_local_patches[0][p]) {
+         all_patches_local = false;
+         break;
+      }
+   }
+   typename BoxTree<DIM>::BinIndex local_index;
+   if (!all_patches_local) {
+      IntVector<DIM> region_width(1);
+      region_width.max(max_ghost_width);
+      std::vector< Box<DIM> > local_regions;
+      for (typename PatchLevel<DIM>::Iterator ip(&level); ip; ip++) {
+         local_regions.push_back(Box<DIM>::grow(level.getBoxForPatch(ip()),
+                                                region_width));
+      }
+      local_index.initialize(local_regions);
+   }
+   const typename BoxTree<DIM>::BinIndex* index =
+      all_patches_local ? NULL : &local_index;
+   std::vector<int> found;
 
-   BoxList<DIM> adjusted_level_domain_list(periodic_adjusted_level_domain);
+   /*
+    * The adjusted level domain is the level boxes, then their periodic
+    * images, then, for each patch that touches a regular boundary, the
+    * parts of the patch box and its images grown by the max ghost width
+    * that lie outside the physical domain.  These parts ensure that the
+    * boundary boxes are created only where there is a coarse-fine
+    * interface in the domain interior, not where the level touches a
+    * non-periodic physical boundary (a periodic boundary is part of the
+    * domain interior for this purpose).
+    */
+   BoxList<DIM> adjusted_level_domain_list;
    const tbox::Array< tbox::List< IntVector<DIM> > >& shifts =
       level.getShiftsForLevel();
 
-   int num_patches = level.getNumberOfPatches();
+   for (int p = 0; p < num_patches; p++) {
+      const Box<DIM>& patch_box = level.getBoxForPatch(p);
+      if (meetsRegions(patch_box, index, found)) {
+         adjusted_level_domain_list.appendItem(patch_box);
+      }
+   }
+   if ( is_periodic ) {
+      for (int p = 0; p < num_patches; p++) {
+         for (typename tbox::List< IntVector<DIM> >::Iterator sh(shifts[p]);
+              sh; sh++) {
+            const Box<DIM> image(Box<DIM>::shift(level.getBoxForPatch(p),
+                                                 sh()));
+            if (meetsRegions(image, index, found)) {
+               adjusted_level_domain_list.appendItem(image);
+            }
+         }
+      }
+   }
+
    for (int p = 0; p < num_patches; p++) {
       if (level.patchTouchesRegularBoundary(p)) {
          const Box<DIM>& patch_box = level.getBoxForPatch(p);
 
          for (typename tbox::List< IntVector<DIM> >::Iterator sh(shifts[p]);
               sh; sh++) {
-            BoxList<DIM> shift_boxes(Box<DIM>::shift(patch_box, sh()));
-            shift_boxes.grow(max_ghost_width);
-            shift_boxes.removeIntersections(periodic_adjusted_phys_domain);
-            adjusted_level_domain_list.unionBoxes(shift_boxes);
+            appendPartsNearRegions(adjusted_level_domain_list,
+                                   Box<DIM>::shift(patch_box, sh()),
+                                   max_ghost_width,
+                                   periodic_adjusted_phys_domain,
+                                   index);
          }
 
-         BoxList<DIM> no_shift_boxes(patch_box);
-         no_shift_boxes.grow(max_ghost_width);
-         no_shift_boxes.removeIntersections(periodic_adjusted_phys_domain);
-         adjusted_level_domain_list.unionBoxes(no_shift_boxes);
+         appendPartsNearRegions(adjusted_level_domain_list,
+                                patch_box,
+                                max_ghost_width,
+                                periodic_adjusted_phys_domain,
+                                index);
       }
 
    }
@@ -220,7 +268,7 @@ template<int DIM> void CoarseFineBoundary<DIM>::computeFromLevel(
     * them differently from regular boundaries.  State that all boundaries
     * are non-periodic boundaries.
     *
-    * Send the periodic-adjusted level boxes as the domain for the
+    * Send the adjusted level domain as the domain for the
     * remove-intersection-with-domain operation.  This causes that
     * operation to remove non-coarse-fine (that is, fine-fine) boxes
     * along the periodic boundaries, leaving the coarse-fine boundary
@@ -243,6 +291,51 @@ template<int DIM> void CoarseFineBoundary<DIM>::computeFromLevel(
 
 }
 
+template<int DIM> void CoarseFineBoundary<DIM>::setLocalPatches(
+   const int block_number,
+   const PatchLevel<DIM>& level)
+{
+   const int npatches = level.getNumberOfPatches();
+   tbox::Array<bool>& local = d_local_patches[block_number];
+   local.resizeArray(npatches);
+   for (int p = 0; p < npatches; p++) {
+      local[p] = level.getProcessorMapping().isMappingLocal(p);
+   }
+}
+
+template<int DIM> bool CoarseFineBoundary<DIM>::meetsRegions(
+   const Box<DIM>& box,
+   const typename BoxTree<DIM>::BinIndex* index,
+   std::vector<int>& found)
+{
+   if (index == NULL) {
+      return true;
+   }
+   index->findIntersecting(box, found);
+   return !found.empty();
+}
+
+template<int DIM> void CoarseFineBoundary<DIM>::appendPartsNearRegions(
+   BoxList<DIM>& list,
+   const Box<DIM>& box,
+   const IntVector<DIM>& ghost_width,
+   const BoxArray<DIM>& domain,
+   const typename BoxTree<DIM>::BinIndex* index)
+{
+   std::vector<int> found;
+   const Box<DIM> grown(Box<DIM>::grow(box, ghost_width));
+   if (!meetsRegions(grown, index, found)) {
+      return;
+   }
+   BoxList<DIM> parts(grown);
+   parts.removeIntersections(domain);
+   for (typename BoxList<DIM>::Iterator b(parts); b; b++) {
+      if (meetsRegions(b(), index, found)) {
+         list.appendItem(b());
+      }
+   }
+}
+
 template<int DIM> void CoarseFineBoundary<DIM>::computeFromLevel(
    const MultiblockPatchLevel<DIM>& level,
    const MultiblockPatchLevel<DIM>& level0,
@@ -260,6 +353,7 @@ template<int DIM> void CoarseFineBoundary<DIM>::computeFromLevel(
          d_npatches[i] = 0;
       } else {
          d_npatches[i] = block_level->getNumberOfPatches();
+         setLocalPatches(i, *block_level);
 
          const hier::IntVector<DIM>& ratio = block_level->getRatio();
 
@@ -447,6 +541,7 @@ template<int DIM> void CoarseFineBoundary<DIM>::addPeriodicImageBoxes(
 template<int DIM> void CoarseFineBoundary<DIM>::clear(const int block_number) {
    d_npatches[block_number] = -1;
    d_boundary_boxes[block_number].setNull();
+   d_local_patches[block_number].setNull();
 }
 
 
@@ -496,6 +591,12 @@ template<int DIM> const tbox::Array< BoundaryBox<DIM> >&
    TBOX_ASSERT( patch_num >= 0 && patch_num < d_npatches[block_num] );
    TBOX_ASSERT( boundary_type >= 0 && boundary_type <= DIM );
 #endif
+   if ( !d_local_patches[block_num][patch_num] ) {
+      TBOX_ERROR("CoarseFineBoundary::getBoundaries():  patch " << patch_num
+                 << " is not local to this processor.\n"
+                 << "Boundary boxes are computed for local patches only."
+                 << std::endl);
+   }
    return d_boundary_boxes[block_num][ patch_num*DIM + (boundary_type-1) ];
 }
 
@@ -504,6 +605,9 @@ template<int DIM> void CoarseFineBoundary<DIM>::printClassData( std::ostream &os
    os << "\n	number of patches: " << d_npatches[0];
    int pn, btype;
    for ( pn=0; pn<d_npatches[0]; ++pn ) {
+      if ( !d_local_patches[0][pn] ) {
+         continue;
+      }
       os << "\n		patch " << pn << '/' << d_npatches[0];
       for ( btype=0; btype<DIM; ++btype ) {
          os << "\n			type " << btype;
