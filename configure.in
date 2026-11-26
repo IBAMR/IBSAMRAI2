@@ -197,6 +197,26 @@ AC_PROG_CXX($CCC)
 BTNG_AC_LOG_VAR(with_CXX CXX CCC, after running compiler search)
 
 dnl
+dnl IBSAMRAI2 requires C++17.  Add -std=c++17 to CXX if the compiler's
+dnl default language standard is older.
+dnl
+AC_LANG_PUSH([C++])
+AC_MSG_CHECKING([whether $CXX compiles C++17 by default])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if __cplusplus < 201703L
+#error C++17 is required
+#endif]], [[]])],
+   [AC_MSG_RESULT([yes])],
+   [AC_MSG_RESULT([no])
+    CXX="$CXX -std=c++17"
+    AC_MSG_CHECKING([whether $CXX compiles C++17])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#if __cplusplus < 201703L
+#error C++17 is required
+#endif]], [[]])],
+       [AC_MSG_RESULT([yes])],
+       [AC_MSG_ERROR([IBSAMRAI2 requires a C++17 compiler.])])])
+AC_LANG_POP([C++])
+
+dnl
 dnl Set up the C compiler.  This macro must come first and be followed
 dnl AC_SEARCH_LIBS([strerror],[cposix]) before other compiler tests are run.  See the autoconfig
 dnl manual for details.

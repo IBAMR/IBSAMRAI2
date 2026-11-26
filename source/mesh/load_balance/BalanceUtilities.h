@@ -278,6 +278,23 @@ template<int DIM> struct BalanceUtilities
       int workload_data_id = -1);
 
 private:
+   /*
+    * binPack() scans all processors for each box up to this many
+    * processors, and uses binPackWithOrderedSet() beyond.
+    */
+   static const int s_max_scanned_processors = 16;
+
+   /*
+    * binPack()'s assignment for more than s_max_scanned_processors
+    * processors: the same choices in O(log nproc) per box.  work holds the
+    * starting workload of each processor and is updated.
+    */
+   static void binPackWithOrderedSet(
+      hier::ProcessorMapping& mapping,
+      const tbox::Array<double>& weights,
+      tbox::Array<double>& work,
+      const double avg_work);
+
    static math::PatchCellDataNormOpsReal<DIM,double> s_norm_ops;
 
    static void privateHeapify(
