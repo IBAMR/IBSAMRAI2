@@ -179,7 +179,7 @@ template<int DIM>  PatchLevel<DIM>::PatchLevel(
       d_boundary_boxes_created = true;
    }
 
-   setPatchTouchesBoundaryArrays();
+   setPatchTouchesBoundaryArrays(touches_regular_bdry, touches_periodic_bdry);
 
    grid_geometry->computeShiftsForLevel(d_shifts, *this, d_physical_domain);
 
@@ -251,7 +251,7 @@ template<int DIM>  PatchLevel<DIM>::PatchLevel(
       d_boundary_boxes_created = true;
    }
 
-   setPatchTouchesBoundaryArrays();
+   setPatchTouchesBoundaryArrays(touches_regular_bdry, touches_periodic_bdry);
 
    grid_geometry->computeShiftsForLevel(d_shifts, *this, d_physical_domain);
    t_level_constructor->stop();
@@ -528,7 +528,15 @@ template<int DIM> void hier::PatchLevel<DIM>::setRefinedPatchLevel(
       d_boundary_boxes_created = true;
    }
 
-   setPatchTouchesBoundaryArrays();
+   /*
+    * Refining the level changes no patch's boundary flags.
+    */
+   for (int p = 0; p < d_number_patches; p++) {
+      d_patch_touches_regular_boundary[p] =
+         coarse_level->d_patch_touches_regular_boundary[p];
+      d_patch_touches_periodic_boundary[p] =
+         coarse_level->d_patch_touches_periodic_boundary[p];
+   }
 
    d_geometry->computeShiftsForLevel(d_shifts, *this, d_physical_domain);
 
@@ -669,7 +677,15 @@ template<int DIM> void PatchLevel<DIM>::setCoarsenedPatchLevel(
                                     touches_periodic_bdry,
                                     defer_boundary_box_creation);
 
-   setPatchTouchesBoundaryArrays();
+   /*
+    * Coarsening the level changes no patch's boundary flags.
+    */
+   for (int p = 0; p < d_number_patches; p++) {
+      d_patch_touches_regular_boundary[p] =
+         fine_level->d_patch_touches_regular_boundary[p];
+      d_patch_touches_periodic_boundary[p] =
+         fine_level->d_patch_touches_periodic_boundary[p];
+   }
 
    if (!defer_boundary_box_creation) {
       d_boundary_boxes_created = true;
@@ -969,40 +985,27 @@ template<int DIM> tbox::Pointer< BoxTree<DIM> > PatchLevel<DIM>::getBoxTree()
  * ************************************************************************
  */
 
-template<int DIM> void PatchLevel<DIM>::setPatchTouchesBoundaryArrays()
+template<int DIM> void PatchLevel<DIM>::setPatchTouchesBoundaryArrays(
+   const tbox::Array< tbox::Array< tbox::Array<bool> > >& touches_regular_bdry,
+   const tbox::Array< tbox::Array< tbox::Array<bool> > >& touches_periodic_bdry)
 {
-   int npatches = getNumberOfPatches();
+   const int npatches = getNumberOfPatches();
 
    d_patch_touches_regular_boundary.resizeArray(npatches);
    d_patch_touches_periodic_boundary.resizeArray(npatches);
 
-   tbox::Array<int> tmp_reg_array(npatches);
-   tbox::Array<int> tmp_per_array(npatches);
-
-   for (int it = 0; it < npatches; it++) {
-      tmp_reg_array[it] = 0;
-      tmp_per_array[it] = 0;
-   }
-
-   for (typename PatchLevel<DIM>::Iterator p(this); p; p++) {
-      if (getPatch(p())->getPatchGeometry()->getTouchesRegularBoundary()) {
-         tmp_reg_array[p()] = 1;
-      }
-      if (getPatch(p())->getPatchGeometry()->getTouchesPeriodicBoundary()) {
-         tmp_per_array[p()] = 1;
-      }
-   }
-
-   tbox::SAMRAI_MPI::sumReduction(tmp_reg_array.getPointer(), npatches);
-   tbox::SAMRAI_MPI::sumReduction(tmp_per_array.getPointer(), npatches);
-
    for (int ip = 0; ip < npatches; ip++) {
-      d_patch_touches_regular_boundary[ip] = 
-         ((tmp_reg_array[ip] == 1) ? true : false);
-      d_patch_touches_periodic_boundary[ip] = 
-         ((tmp_per_array[ip] == 1) ? true : false);
+      bool regular = false;
+      bool periodic = false;
+      for (int axis = 0; axis < DIM; axis++) {
+         for (int side = 0; side < 2; side++) {
+            regular = regular || touches_regular_bdry[ip][axis][side];
+            periodic = periodic || touches_periodic_bdry[ip][axis][side];
+         }
+      }
+      d_patch_touches_regular_boundary[ip] = regular;
+      d_patch_touches_periodic_boundary[ip] = periodic;
    }
-   
 }
 
 /*
