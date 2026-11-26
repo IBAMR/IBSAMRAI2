@@ -11,6 +11,10 @@
 #define included_mesh_GriddingAlgorithm_C
 
 #include "GriddingAlgorithm.h"
+#include "BoxTree.h"
+
+#include <algorithm>
+#include <vector>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1991,11 +1995,10 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
       box_list.removeIntersections( overflow_box_list );
 
       /*
-       * If overlaps are to be avoided, at the possible expense of constructing
-       * boxes smaller than the minimum patch size, set
-       * "allow_patches_smaller_than_minimum_size_to_prevent_overlaps" to true
-       * in input.  Then the boxes are grown only in periodic directions.
-       * Extension to the boundary can still make boxes overlap.
+       * Boxes are grown to the minimum patch size, or only in periodic
+       * directions if "allow_patches_smaller_than_minimum_size_to_prevent_overlaps"
+       * is true in input.  Growth and extension to the boundary can make
+       * boxes overlap; resolveOverlappingBoxes() below removes the overlaps.
        */
 
       t_extend_to_domain_boundary->start();
@@ -2062,6 +2065,15 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
          extend_ghosts);
       t_extend_to_domain_boundary->stop();
 
+      /*
+       * Growth and extension can make boxes overlap.
+       */
+      resolveOverlappingBoxes(box_list,
+                              d_proper_nesting_boxes[coarse_level_number],
+                              level_domain,
+                              extend_ghosts,
+                              fine_level_number);
+
       t_box_massage->stop();
 
       if ( !box_list.isEmpty() ) {
@@ -2110,6 +2122,252 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
    }
 
    t_find_refinement->stop();
+}
+
+/*
+*************************************************************************
+*                                                                       *
+* Remove overlaps among the boxes of a new level, in the coarse index   *
+* space.  Take the first overlapping pair in list order, which is the   *
+* same on every processor; a BoxTree of the boxes finds candidates.    *
+* Replace the pair and every box its bounding                           *
+* box meets by that box if it adds only cells of the nesting domain.    *
+* Otherwise cover the pair's union by boxes that do not overlap and are *
+* each at least min_width wide.  Otherwise trim the smaller box, and    *
+* stop if a narrow piece is within min_width of the domain boundary.    *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> void GriddingAlgorithm<DIM>::resolveOverlappingBoxes(
+   hier::BoxList<DIM>& boxes,
+   const hier::BoxList<DIM>& nesting_domain,
+   const hier::BoxList<DIM>& physical_domain,
+   const hier::IntVector<DIM>& min_width,
+   const int fine_level_number) const
+{
+   for (;;) {
+      hier::BoxArray<DIM> array(boxes);
+      const int n = array.getNumberOfBoxes();
+      const hier::BoxTree<DIM> tree(array);
+      tbox::Array<int> found;
+
+      /*
+       * The first pair (a, b) in list order: the smallest a that meets a
+       * later box, and the first such b.  The tree returns sorted indices.
+       */
+      int a = -1;
+      int b = -1;
+      for (int i = 0; i < n && a < 0; i++) {
+         tree.findOverlapIndices(found, array[i]);
+         for (int f = 0; f < found.getSize(); f++) {
+            if (found[f] > i) {
+               a = i;
+               b = found[f];
+               break;
+            }
+         }
+      }
+      if (a < 0) {
+         return;
+      }
+
+      /*
+       * Merge: the bounding box of the pair, and of every box it meets, in
+       * turn, until it meets no other box.
+       */
+      std::vector<bool> in_group(n, false);
+      in_group[a] = in_group[b] = true;
+      hier::Box<DIM> merged(array[a]);
+      merged += array[b];
+      for (bool grew = true; grew; ) {
+         grew = false;
+         tree.findOverlapIndices(found, merged);
+         for (int f = 0; f < found.getSize(); f++) {
+            if (!in_group[found[f]]) {
+               in_group[found[f]] = true;
+               merged += array[found[f]];
+               grew = true;
+            }
+         }
+      }
+      hier::BoxList<DIM> added(merged);
+      for (int k = 0; k < n; k++) {
+         if (in_group[k]) {
+            added.removeIntersections(array[k]);
+         }
+      }
+      added.removeIntersections(nesting_domain);
+
+      hier::BoxList<DIM> result;
+      if (added.isEmpty()) {
+         for (int k = 0; k < n; k++) {
+            if (k == a) {
+               result.appendItem(merged);
+            } else if (!in_group[k]) {
+               result.appendItem(array[k]);
+            }
+         }
+         boxes = result;
+         continue;
+      }
+
+      /*
+       * Split: cover the union of the pair by boxes that do not overlap,
+       * each at least min_width wide.  Try removing the overlap from the
+       * smaller box, then from the larger one, then slabs of the union
+       * across each direction, coalesced.
+       */
+      const int small = (array[a].size() <= array[b].size()) ? a : b;
+      const int large = (small == a) ? b : a;
+      hier::BoxList<DIM> pieces;
+      bool split = false;
+      for (int t = 0; t < 2 + DIM && !split; t++) {
+         pieces.clearItems();
+         if (t < 2) {
+            const int cut = (t == 0) ? small : large;
+            const int keep = (t == 0) ? large : small;
+            pieces.appendItem(array[keep]);
+            hier::BoxList<DIM> rest(array[cut]);
+            rest.removeIntersections(array[keep]);
+            pieces.copyItems(rest);
+         } else {
+            const int d = t - 2;
+            std::vector<int> cuts;
+            cuts.push_back(array[a].lower(d));
+            cuts.push_back(array[a].upper(d) + 1);
+            cuts.push_back(array[b].lower(d));
+            cuts.push_back(array[b].upper(d) + 1);
+            std::sort(cuts.begin(), cuts.end());
+            cuts.erase(std::unique(cuts.begin(), cuts.end()), cuts.end());
+            for (std::size_t c = 0; c + 1 < cuts.size(); c++) {
+               hier::Box<DIM> slab(merged);
+               slab.lower(d) = cuts[c];
+               slab.upper(d) = cuts[c + 1] - 1;
+               const hier::Box<DIM> pa(array[a] * slab);
+               const hier::Box<DIM> pb(array[b] * slab);
+               hier::Box<DIM> both(pa);
+               both += pb;
+               hier::BoxList<DIM> gap(both);
+               gap.removeIntersections(pa);
+               gap.removeIntersections(pb);
+               if (!pa.empty() && !pb.empty() && gap.isEmpty()) {
+                  pieces.appendItem(both);
+               } else {
+                  if (!pa.empty()) {
+                     pieces.appendItem(pa);
+                  }
+                  hier::BoxList<DIM> rest(pb);
+                  rest.removeIntersections(pa);
+                  pieces.copyItems(rest);
+               }
+            }
+            pieces.coalesceBoxes();
+         }
+         /*
+          * Merge a narrow piece with another piece into their bounding box
+          * if it adds only cells of the nesting domain and meets no other
+          * box.
+          */
+         for (bool merged_one = true; merged_one; ) {
+            merged_one = false;
+            hier::BoxArray<DIM> pa(pieces);
+            const int np = pa.getNumberOfBoxes();
+            for (int i = 0; i < np && !merged_one; i++) {
+               if (pa[i].numberCells() >= min_width) {
+                  continue;
+               }
+               for (int j = 0; j < np && !merged_one; j++) {
+                  if (j == i) {
+                     continue;
+                  }
+                  hier::Box<DIM> bb(pa[i]);
+                  bb += pa[j];
+                  bool ok = true;
+                  for (int k = 0; k < np && ok; k++) {
+                     if (k != i && k != j && bb.intersects(pa[k])) {
+                        ok = false;
+                     }
+                  }
+                  if (ok) {
+                     tree.findOverlapIndices(found, bb);
+                     for (int f = 0; f < found.getSize() && ok; f++) {
+                        if (found[f] != a && found[f] != b) {
+                           ok = false;
+                        }
+                     }
+                  }
+                  if (ok) {
+                     hier::BoxList<DIM> extra(bb);
+                     extra.removeIntersections(pa[i]);
+                     extra.removeIntersections(pa[j]);
+                     extra.removeIntersections(nesting_domain);
+                     ok = extra.isEmpty();
+                  }
+                  if (ok) {
+                     hier::BoxList<DIM> next;
+                     for (int k = 0; k < np; k++) {
+                        if (k == i) {
+                           next.appendItem(bb);
+                        } else if (k != j) {
+                           next.appendItem(pa[k]);
+                        }
+                     }
+                     pieces = next;
+                     merged_one = true;
+                  }
+               }
+            }
+         }
+         split = true;
+         for (typename hier::BoxList<DIM>::Iterator p(pieces); p; p++) {
+            for (int dd = 0; dd < DIM; dd++) {
+               if (p().numberCells(dd) < min_width(dd)) {
+                  split = false;
+               }
+            }
+         }
+      }
+      if (!split) {
+         /*
+          * No split keeps every box min_width wide.  Remove the overlap from
+          * the smaller box and accept narrow pieces in the interior, where
+          * schedules fill their ghost cells from neighbors.  A narrow piece
+          * at a periodic boundary or within min_width of a wall would leave
+          * periodic images or boundary fills incomplete, so stop there.
+          */
+         pieces.clearItems();
+         pieces.appendItem(array[large]);
+         hier::BoxList<DIM> rest(array[small]);
+         rest.removeIntersections(array[large]);
+         for (typename hier::BoxList<DIM>::Iterator p(rest); p; p++) {
+            if (!(p().numberCells() >= min_width)) {
+               hier::BoxList<DIM> outside(hier::Box<DIM>::grow(p(), min_width));
+               outside.removeIntersections(physical_domain);
+               if (!outside.isEmpty()) {
+                  TBOX_ERROR(d_object_name << ":  "
+                     << "New boxes " << array[a] << " and " << array[b]
+                     << " on level " << fine_level_number << " (coarse "
+                     << "index space)\noverlap, and removing the overlap "
+                     << "leaves the box " << p() << ",\nnarrower than "
+                     << min_width << " cells, within that distance of the "
+                     << "domain boundary.\nChange smallest_patch_size, the "
+                     << "ghost cell width, or the proper nesting\nbuffer."
+                     << std::endl);
+               }
+            }
+         }
+         pieces.copyItems(rest);
+      }
+      for (int k = 0; k < n; k++) {
+         if (k == a) {
+            result.copyItems(pieces);
+         } else if (k != b) {
+            result.appendItem(array[k]);
+         }
+      }
+      boxes = result;
+   }
 }
 
 /*
