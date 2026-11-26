@@ -122,9 +122,10 @@ public:
 
    /**
     * Set the patch data pointer associated with the specified identifier.
-    * Note that this member function must be used with caution.  It can only
-    * be called for patch data indices that were previously allocated through
-    * one of the patch routines.  This member function does not check to see
+    * The identifier must be less than the patch descriptor's
+    * getMaxNumberRegisteredComponents(); the patch need not have allocated
+    * it, or any other component, before.  Note that this
+    * member function must be used with caution.  It does not check to see
     * whether the patch data types are already allocated, consistent, or
     * whether they have the same factory.  So, for example, a face centered
     * data type could be assigned to a location reserved for a cell centered
