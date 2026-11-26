@@ -1992,10 +1992,10 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
 
       /*
        * If overlaps are to be avoided, at the possible expense of constructing
-       * boxes smaller than the minimum patch size, set the
-       * "grow_after_nesting" argument to false in input.  By default, this
-       * argument is true.  If set false, the boxes will not be grown within
-       * the nesting domain and no overlaps will be introduced.
+       * boxes smaller than the minimum patch size, set
+       * "allow_patches_smaller_than_minimum_size_to_prevent_overlaps" to true
+       * in input.  Then the boxes are grown only in periodic directions.
+       * Extension to the boundary can still make boxes overlap.
        */
 
       t_extend_to_domain_boundary->start();
@@ -2051,6 +2051,16 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
                min_size);
          }
       }
+
+      /*
+       * Growth can leave a box closer to the boundary than the ghost width.
+       */
+      t_extend_to_domain_boundary->start();
+      (void) hier::BoxUtilities<DIM>::extendBoxesToDomainBoundary(
+         box_list,
+         level_domain,
+         extend_ghosts);
+      t_extend_to_domain_boundary->stop();
 
       t_box_massage->stop();
 

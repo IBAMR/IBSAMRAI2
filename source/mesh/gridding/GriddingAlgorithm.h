@@ -111,7 +111,9 @@ namespace SAMRAI {
  *       If fewer values are given, then the last element in the array will
  *       be used on each level without a specified input value.  For example,
  *       if only a single value is specified, then that value will be used on
- *       all levels.  See sample input below for more information.
+ *       all levels.  See sample input below for more information.  A patch
+ *       can be larger when the smallest patch size, the ghost width or the
+ *       cut factor leaves no way to cut it.
  *
  *    - \b    ratio_to_coarser
  *       Set of max_levels - 1 integer vectors, each of which indicates
