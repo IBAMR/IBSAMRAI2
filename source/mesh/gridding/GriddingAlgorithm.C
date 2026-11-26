@@ -81,7 +81,8 @@ template<int DIM> GriddingAlgorithm<DIM>::GriddingAlgorithm(
    bool register_for_restart)
    :
    d_check_nonrefined_tags('w'),
-   d_check_overlapping_patches('i')
+   d_check_overlapping_patches('i'),
+   d_keep_unchanged_levels(false)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
@@ -261,6 +262,14 @@ template<int DIM> GriddingAlgorithm<DIM>::GriddingAlgorithm(
   }
 
   getFromInput(input_db, is_from_restart);
+
+  if ( d_keep_unchanged_levels &&
+       !d_tag_init_strategy->canKeepUnchangedLevels() ) {
+     TBOX_ERROR(d_object_name << ":  "
+                << "Key data `keep_unchanged_levels' is true, but the tag "
+                << "and initialize\nstrategy cannot initialize kept levels "
+                << "(canKeepUnchangedLevels() returns false).");
+  }
 
   d_proper_nesting_boxes.resizeArray(d_max_levels);
   d_proper_nesting_complement.resizeArray(d_max_levels);
@@ -956,7 +965,8 @@ template<int DIM> void GriddingAlgorithm<DIM>::regridAllFinerLevels(
 *                                                                       *
 * (7) If a finer level should exist in the hierarchy, create its        *
 *     patches from the box description and initialize its data.  If     *
-*     necessary, discard old level.                                     *
+*     necessary, discard old level.  With keep_unchanged_levels, keep   *
+*     an existing level whose boxes and mapping are unchanged instead.  *
 *                                                                       *
 *************************************************************************
 */
@@ -1216,8 +1226,8 @@ template<int DIM> void GriddingAlgorithm<DIM>::regridFinerLevel(
          t_regrid_finer_create->start();
 
          /*
-          * Either remove pre-existing fine level from hierarchy and make
-          * a new level, or just make a new fine level for hierarchy.
+          * Keep an unchanged level (keep_unchanged_levels), or remove the
+          * pre-existing fine level, if any, and make a new one.
           */
 
          tbox::Pointer< hier::PatchLevel<DIM> > old_fine_level;
@@ -1227,30 +1237,53 @@ template<int DIM> void GriddingAlgorithm<DIM>::regridFinerLevel(
 
          if ( hierarchy->finerLevelExists(level_number) ) {
             old_fine_level = hierarchy->getPatchLevel(fine_level_number);
-            hierarchy->removePatchLevel(fine_level_number);
             ratio = old_fine_level->getRatio();
          }
 
-         hierarchy->makeNewPatchLevel(fine_level_number, ratio,
-                                      fine_boxes, mapping);
+         if ( d_keep_unchanged_levels &&
+              levelIsUnchanged(old_fine_level, fine_boxes, mapping) ) {
+            /*
+             * Keep the level: the same object and patch data.  The strategy
+             * initializes it at the point where it would initialize a new
+             * level.
+             */
+            tbox::plog << "GriddingAlgorithm: keeping level "
+                       << fine_level_number << " at time " << regrid_time
+                       << ": boxes and processor mapping unchanged"
+                       << std::endl;
+            d_tag_init_strategy->initializeKeptLevelData(hierarchy,
+                                                         fine_level_number,
+                                                         regrid_time,
+                                                         levelCanBeRefined(
+                                                            fine_level_number));
+         } else {
 
-         if (d_check_overlapping_patches != 'i') {
-            checkOverlappingPatches( hierarchy->getPatchLevel(fine_level_number) );
+            if ( !old_fine_level.isNull() ) {
+               hierarchy->removePatchLevel(fine_level_number);
+            }
+
+            hierarchy->makeNewPatchLevel(fine_level_number, ratio,
+                                         fine_boxes, mapping);
+
+            if (d_check_overlapping_patches != 'i') {
+               checkOverlappingPatches( hierarchy->getPatchLevel(fine_level_number) );
+            }
+
+            // "false" argument": const bool initial_time = false;
+            d_tag_init_strategy->initializeLevelData(hierarchy,
+                                                     fine_level_number,
+                                                     regrid_time,
+                                                     levelCanBeRefined(
+                                                        fine_level_number),
+                                                     false,
+                                                     old_fine_level);
+
+            /*
+             * Destroy old patch level, if such a level existed prior to regrid.
+             */
+            old_fine_level.setNull();
+
          }
-
-         // "false" argument": const bool initial_time = false;
-         d_tag_init_strategy->initializeLevelData(hierarchy,
-                                                  fine_level_number,
-                                                  regrid_time,
-                                                  levelCanBeRefined(
-                                                     fine_level_number),
-                                                  false,
-                                                  old_fine_level);
-
-         /*
-          * Destroy old patch level, if such a level existed prior to regrid.
-          */
-         old_fine_level.setNull();
          tbox::SAMRAI_MPI::barrier();
          t_regrid_finer_create->stop();
 
@@ -1292,6 +1325,46 @@ template<int DIM> void GriddingAlgorithm<DIM>::regridFinerLevel(
 
    } //  if level cannot be refined, the routine drops through...
 
+}
+
+
+/*
+*************************************************************************
+*                                                                       *
+* Whether a regrid may keep a level: it exists, and the new boxes, in   *
+* order, and the new processor mapping equal its own.  Boxes and        *
+* mapping are the same on every processor, so every processor decides   *
+* alike; Debug builds check it.                                         *
+*                                                                       *
+*************************************************************************
+*/
+template<int DIM> bool GriddingAlgorithm<DIM>::levelIsUnchanged(
+   const tbox::Pointer< hier::PatchLevel<DIM> >& old_level,
+   const hier::BoxArray<DIM>& new_boxes,
+   const hier::ProcessorMapping& new_mapping) const
+{
+   bool unchanged = !old_level.isNull();
+   if (unchanged) {
+      const hier::BoxArray<DIM>& old_boxes = old_level->getBoxes();
+      const hier::ProcessorMapping& old_mapping =
+         old_level->getProcessorMapping();
+      const int n = new_boxes.getNumberOfBoxes();
+      unchanged = (old_boxes.getNumberOfBoxes() == n) &&
+                  (old_mapping.getSizeOfMappingArray() == n) &&
+                  (new_mapping.getSizeOfMappingArray() == n);
+      for (int i = 0; i < n && unchanged; i++) {
+         unchanged = (old_boxes[i] == new_boxes[i]) &&
+            (old_mapping.getProcessorAssignment(i) ==
+             new_mapping.getProcessorAssignment(i));
+      }
+   }
+#ifdef DEBUG_CHECK_ASSERTIONS
+   const int flag = unchanged ? 1 : 0;
+   const int min_flag = tbox::SAMRAI_MPI::minReduction(flag);
+   const int max_flag = tbox::SAMRAI_MPI::maxReduction(flag);
+   TBOX_ASSERT(min_flag == max_flag);
+#endif
+   return(unchanged);
 }
 
 
@@ -2899,6 +2972,9 @@ template<int DIM> void GriddingAlgorithm<DIM>::getFromInput(
       TBOX_ERROR("GriddingAlgorithm: input parameter check_overlapping_patches\n"
                  <<"can only be i (ignore), w (warn) or e (error)");
    }
+
+   d_keep_unchanged_levels =
+      db->getBoolWithDefault("keep_unchanged_levels", d_keep_unchanged_levels);
 
    /*
     * Read input options for writing or reading refinement boxes.

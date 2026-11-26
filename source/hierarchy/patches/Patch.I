@@ -68,8 +68,12 @@ template<int DIM> inline
 tbox::Pointer< PatchData<DIM> > Patch<DIM>::getPatchData(const int id) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT((id >= 0) && (id < d_patch_data.getSize()));
+   TBOX_ASSERT((id >= 0) &&
+               (id < d_descriptor->getMaxNumberRegisteredComponents()));
 #endif
+   if (id < 0 || id >= d_patch_data.getSize()) {
+      return(tbox::Pointer< PatchData<DIM> >());
+   }
    return(d_patch_data[id]);
 }
 
@@ -81,8 +85,12 @@ tbox::Pointer< PatchData<DIM> > Patch<DIM>::getPatchData(
    int id = VariableDatabase<DIM>::getDatabase()->
             mapVariableAndContextToIndex(variable, context);
 #ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT((id >= 0) && (id < d_patch_data.getSize()));
+   TBOX_ASSERT((id >= 0) &&
+               (id < d_descriptor->getMaxNumberRegisteredComponents()));
 #endif
+   if (id < 0 || id >= d_patch_data.getSize()) {
+      return(tbox::Pointer< PatchData<DIM> >());
+   }
    return(d_patch_data[id]);
 }
 
@@ -91,9 +99,13 @@ void Patch<DIM>::setPatchData(
    const int id, 
    tbox::Pointer< PatchData<DIM> > data)
 {
+   const int ncomponents = d_descriptor->getMaxNumberRegisteredComponents();
 #ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT((id >= 0) && (id < d_patch_data.getSize()));
+   TBOX_ASSERT((id >= 0) && (id < ncomponents));
 #endif
+   if (ncomponents > d_patch_data.getSize()) {
+      d_patch_data.resizeArray(ncomponents);
+   }
    d_patch_data[id] = data;
 }
 

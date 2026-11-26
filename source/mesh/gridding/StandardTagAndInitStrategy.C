@@ -160,6 +160,25 @@ template<int DIM> void StandardTagAndInitStrategy<DIM>::resetDataToPreadvanceSta
                 << "\ndoes nothing) is executed" << std::endl);
 }
 
+
+template<int DIM> bool StandardTagAndInitStrategy<DIM>::canKeepUnchangedLevels() const
+{
+   return(false);
+}
+
+
+template<int DIM> void StandardTagAndInitStrategy<DIM>::initializeKeptLevelData(
+   const tbox::Pointer< hier::BasePatchHierarchy<DIM> > hierarchy,
+   const int level_number,
+   const double init_data_time,
+   const bool can_be_refined)
+{
+   NULL_USE(hierarchy);
+   NULL_USE(level_number);
+   NULL_USE(init_data_time);
+   NULL_USE(can_be_refined);
+}
+
 }
 }
 #endif
