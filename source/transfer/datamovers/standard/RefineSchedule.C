@@ -27,7 +27,10 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "RefinePatchStrategy.h"
+
+#include <vector>
 
 
 namespace SAMRAI {
@@ -1550,20 +1553,39 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
    int max_gcw = tbox::MathUtilities<int>::Max(growth.max(),1);
    hier::IntVector<DIM> dst_growth(max_gcw);
 
+   /*
+    * Find the pairs of remote destination and local source from the local
+    * sources.  The loop below adds their transactions in the order
+    * (destination, source) that a query for each destination gives.
+    */
+   std::vector< std::pair<int,int> > remote_pairs;
+   if (tbox::SAMRAI_MPI::getNodes() > 1) {
+      box_tree->findRemoteOverlapPairs(remote_pairs, *dst_level->getBoxTree(),
+                                       dst_growth);
+   }
+   std::size_t next_pair = 0;
+
    for (int dp = 0; dp < dst_npatches; dp++) {
+
+      if (!dst_mapping.isMappingLocal(dp)) {
+	 for ( ; next_pair < remote_pairs.size() &&
+		 remote_pairs[next_pair].first == dp; ++next_pair) {
+	    constructScheduleTransactions(fine_priority_schedule,
+					  coarse_priority_schedule,
+					  fill_boxes[dp].getBoxList(),
+					  dst_level, dp,
+					  src_level, remote_pairs[next_pair].second,
+					  use_time_interpolation);
+	 }
+	 continue;
+      }
 
       const hier::Box<DIM>& dst_box = dst_boxes[dp];
       hier::Box<DIM> dst_box_plus_ghosts = dst_box;
       dst_box_plus_ghosts.grow(dst_growth);
 
       tbox::Array<int> src_nabor_indices;
-      if (dst_mapping.isMappingLocal(dp)) {
-	 box_tree->findOverlapIndices(
-	    src_nabor_indices, dst_box_plus_ghosts);
-      } else {
-	 box_tree->findLocalOverlapIndices(
-	    src_nabor_indices, dst_box_plus_ghosts);
-      }
+      box_tree->findOverlapIndices(src_nabor_indices, dst_box_plus_ghosts);
 
       int src_len = src_nabor_indices.getSize();
       for (int spp = 0; spp < src_len; spp++) {
@@ -1580,6 +1602,10 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
       } // loop over source patches
 
    } // loop over destination patches
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT(next_pair == remote_pairs.size());
+#endif
 
    t_gen_sched_box_tree->stop();
 
