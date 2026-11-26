@@ -91,7 +91,9 @@ namespace SAMRAI {
  *       Note that when creating a communication schedule, a concrete
  *       instance of a RefinePatchStrategy<DIM> object may be required
  *       to supply physical boundary conditions as well as user-defined
- *       spatial data interpolation operations.
+ *       spatial data interpolation operations.  Creating a schedule that
+ *       fills from coarser hierarchy levels is collective: every processor
+ *       must create it.
  * -# Invoke the fillData() method in the communication schedule to 
  *       perform the data transfers.        
  *
