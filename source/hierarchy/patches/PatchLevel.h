@@ -474,10 +474,13 @@ public:
 private:
 
    /*
-    * Private member function that reduces patch boundary information
-    * across all (distributed) patches on level.
+    * Set the boundary flags of every patch on the level from the flags of
+    * each side, which GridGeometry::findPatchesTouchingBoundaries() computes
+    * for every patch.
     */
-   void setPatchTouchesBoundaryArrays();
+   void setPatchTouchesBoundaryArrays(
+      const tbox::Array< tbox::Array< tbox::Array<bool> > >& touches_regular_bdry,
+      const tbox::Array< tbox::Array< tbox::Array<bool> > >& touches_periodic_bdry);
 
    /*!
     * Allocate static timers.

@@ -165,9 +165,12 @@ template<int DIM> void GridGeometry<DIM>::findPatchesTouchingBoundaries(
 
    BoxList<DIM> domain_interior(domain);
 
-   for (typename PatchLevel<DIM>::Iterator ip(&level); ip; ip++) {
-      tbox::Pointer< Patch<DIM> > patch = level.getPatch(ip());
-      Box<DIM> box(patch->getBox());
+   /*
+    * Every processor computes the flags of every patch of the level, from
+    * the patch boxes that it holds, so that no communication is needed.
+    */
+   for (int ip = 0; ip < level.getNumberOfPatches(); ip++) {
+      const Box<DIM>& box = level.getBoxForPatch(ip);
 
       /*
        * Create a list of boxes inside a layer of one cell outside the patch.
@@ -185,8 +188,8 @@ template<int DIM> void GridGeometry<DIM>::findPatchesTouchingBoundaries(
       if (!touches_any_boundary) {
          for (int nd = 0; nd < DIM; nd++) {
             for (int side = 0; side < 2; side++) {
-               touches_regular_bdry[ip()][nd][side] = false;
-               touches_periodic_bdry[ip()][nd][side] = false;
+               touches_regular_bdry[ip][nd][side] = false;
+               touches_periodic_bdry[ip][nd][side] = false;
             }
          } 
       } else {
@@ -206,22 +209,22 @@ template<int DIM> void GridGeometry<DIM>::findPatchesTouchingBoundaries(
 
             if (lower_list.size()) {
                if (periodic_shift(nd)) {
-                  touches_regular_bdry[ip()][nd][0] = false; 
-                  touches_periodic_bdry[ip()][nd][0] = true; 
+                  touches_regular_bdry[ip][nd][0] = false; 
+                  touches_periodic_bdry[ip][nd][0] = true; 
                } else {
-                  touches_regular_bdry[ip()][nd][0] = true;
-                  touches_periodic_bdry[ip()][nd][0] = false;
+                  touches_regular_bdry[ip][nd][0] = true;
+                  touches_periodic_bdry[ip][nd][0] = false;
                }
                bdry_located = true;
             }
 
             if (upper_list.size()) {
                if (periodic_shift(nd)) {
-                  touches_regular_bdry[ip()][nd][1] = false;
-                  touches_periodic_bdry[ip()][nd][1] = true;
+                  touches_regular_bdry[ip][nd][1] = false;
+                  touches_periodic_bdry[ip][nd][1] = true;
                } else {
-                  touches_regular_bdry[ip()][nd][1] = true;
-                  touches_periodic_bdry[ip()][nd][1] = false;
+                  touches_regular_bdry[ip][nd][1] = true;
+                  touches_periodic_bdry[ip][nd][1] = false;
                }
                bdry_located = true;
             }
@@ -236,8 +239,8 @@ template<int DIM> void GridGeometry<DIM>::findPatchesTouchingBoundaries(
           */
          if (!bdry_located) {
             for (int nd = 0; nd < DIM; nd++) {
-               touches_periodic_bdry[ip()][nd][0] = false;
-               touches_periodic_bdry[ip()][nd][1] = false;
+               touches_periodic_bdry[ip][nd][0] = false;
+               touches_periodic_bdry[ip][nd][1] = false;
 
                bool lower_side = false;
                bool upper_side = false;
@@ -254,14 +257,14 @@ template<int DIM> void GridGeometry<DIM>::findPatchesTouchingBoundaries(
                }
 
                if (lower_side) { 
-                  touches_regular_bdry[ip()][nd][0] = true;
+                  touches_regular_bdry[ip][nd][0] = true;
                } else {
-                  touches_regular_bdry[ip()][nd][0] = false;
+                  touches_regular_bdry[ip][nd][0] = false;
                }
                if (upper_side) { 
-                  touches_regular_bdry[ip()][nd][1] = true;
+                  touches_regular_bdry[ip][nd][1] = true;
                } else {
-                  touches_regular_bdry[ip()][nd][1] = false;
+                  touches_regular_bdry[ip][nd][1] = false;
                }
             }
          }
