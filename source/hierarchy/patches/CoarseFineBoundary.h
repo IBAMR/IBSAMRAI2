@@ -15,9 +15,12 @@
 #include "tbox/DescribedClass.h"
 #include "tbox/Array.h"
 #include "BoundaryBox.h"
+#include "BoxTree.h"
 #include "MultiblockPatchHierarchy.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
+
+#include <vector>
 
 namespace SAMRAI {
     namespace hier {
@@ -211,8 +214,9 @@ public:
     * @brief Get an array of boundary boxes of a given type
     * for a specified patch.
     *
-    * The specified patch must exist in the level used to compute
-    * the internal state or it is an error.
+    * The specified patch must exist in the level used to compute the
+    * internal state and be local to this processor, or it is an error:
+    * boundary boxes are computed for local patches only.
     *
     * @param patch_num     Patch number
     * @param boundary_type Boundary box type (see BoundaryBox class).
@@ -227,8 +231,9 @@ public:
     * @brief Get an array of node boundary boxes for a specified patch
     *        (see BoundaryBox class).
     *
-    * The specified patch must exist in the level used to compute
-    * the internal state or it is an error.
+    * The specified patch must exist in the level used to compute the
+    * internal state and be local to this processor, or it is an error:
+    * boundary boxes are computed for local patches only.
     *
     * @param patch_num     Patch number
     * @param block_num     Block number (defaults to 0 for non-multiblock case)
@@ -242,8 +247,9 @@ public:
     *        (see BoundaryBox class).
     *
     * Note that edge boxes are only meaningful if problem dimension is > 1.
-    * The specified patch must exist in the level used to compute
-    * the internal state or it is an error.
+    * The specified patch must exist in the level used to compute the
+    * internal state and be local to this processor, or it is an error:
+    * boundary boxes are computed for local patches only.
     *
     * @param patch_num     Patch number
     * @param block_num     Block number (defaults to 0 for non-multiblock case)
@@ -257,8 +263,9 @@ public:
     *        (see BoundaryBox class).
     *
     * Note that face boxes are only meaningful if problem dimension is > 2.
-    * The specified patch must exist in the level used to compute
-    * the internal state or it is an error.
+    * The specified patch must exist in the level used to compute the
+    * internal state and be local to this processor, or it is an error:
+    * boundary boxes are computed for local patches only.
     *
     * @param patch_num     Patch number
     * @param block_num     Block number (defaults to 0 for non-multiblock case)
@@ -294,6 +301,31 @@ private:
    void addPeriodicImageBoxes(
       BoxArray<DIM>& boxes,
       const tbox::Array<tbox::List<IntVector<DIM> > >& shifts);
+
+   /*
+    * Record which patches of level are local, for block block_number.
+    */
+   void setLocalPatches(const int block_number, const PatchLevel<DIM>& level);
+
+   /*
+    * Whether box meets a box of index; every box does when index is NULL.
+    * found is scratch space.
+    */
+   static bool meetsRegions(const Box<DIM>& box,
+                            const typename BoxTree<DIM>::BinIndex* index,
+                            std::vector<int>& found);
+
+   /*
+    * Append to list the parts of box grown by ghost_width that lie outside
+    * domain and meet a box of index (every part when index is NULL), in the
+    * order removeIntersections() gives them.
+    */
+   static void appendPartsNearRegions(
+      BoxList<DIM>& list,
+      const Box<DIM>& box,
+      const IntVector<DIM>& ghost_width,
+      const BoxArray<DIM>& domain,
+      const typename BoxTree<DIM>::BinIndex* index);
 
    /*!
     * @brief Number of patches on the level for which coarse-fine
@@ -339,6 +371,12 @@ private:
     * GridGeometry<DIM>::computeBoundaryGeometry.
     */
    tbox::Array< tbox::Array< tbox::Array< BoundaryBox<DIM> > > > d_boundary_boxes;
+
+   /*!
+    * @brief For each block, whether each patch is local.  Boundary boxes
+    * are computed for the local patches only.
+    */
+   tbox::Array< tbox::Array<bool> > d_local_patches;
 
 
 };
