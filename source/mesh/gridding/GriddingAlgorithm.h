@@ -111,7 +111,9 @@ namespace SAMRAI {
  *       If fewer values are given, then the last element in the array will
  *       be used on each level without a specified input value.  For example,
  *       if only a single value is specified, then that value will be used on
- *       all levels.  See sample input below for more information.
+ *       all levels.  See sample input below for more information.  A patch
+ *       can be larger when the smallest patch size, the ghost width or the
+ *       cut factor leaves no way to cut it.
  *
  *    - \b    ratio_to_coarser
  *       Set of max_levels - 1 integer vectors, each of which indicates
@@ -186,19 +188,23 @@ namespace SAMRAI {
  *       nesting buffer value.  See sample input below for input file format.
  *
  *    - \b    allow_patches_smaller_than_ghostwidth
- *       If the smallest patch size provided in the input file is smaller
- *       than the maximum ghost width of all the registered variables, then
- *       by default the smallest patch size will be grown to the maximum
- *       ghost width.  Set this flag to true to override this default
- *       behavior and to allow the smallest patch size given in the input
- *       to remain in effect.  The default value is false.
+ *       Ignored, with a warning if true.  The smallest patch size is always
+ *       at least the maximum ghost width of all the registered variables.
+ *       Patches can still be smaller where overlaps are removed (see the next
+ *       parameter) or where
+ *       allow_patches_smaller_than_minimum_size_to_prevent_overlaps is true.
  *
  *    - \b    allow_patches_smaller_than_minimum_size_to_prevent_overlaps
- *       In order to enforce minimum patch size restrictions, boxes may be
- *       grown in gridding operations.  This may in turn lead to overlaps
- *       created between boxes. If overlaps are undesirable and you are
- *       willing to relax the minimum size constraints, set this parameter
- *       true.  By default, it is false.
+ *       In order to enforce minimum patch size restrictions, boxes are grown
+ *       in gridding operations, which can make them overlap.  The gridding
+ *       algorithm then removes the overlaps: it merges overlapping boxes, or
+ *       splits them into boxes at least the ghost width wide, or else trims
+ *       one of them, which can leave patches smaller than the minimum size,
+ *       and narrower than the ghost width away from the domain boundary.  It
+ *       stops if such a patch would lie within the ghost width of the domain
+ *       boundary.  Set this parameter true to grow boxes only in periodic
+ *       directions, which leaves boxes smaller than the minimum size instead
+ *       of growing them.  By default, it is false.
  *
  *    - \b    check_nonrefined_tags
  *       How to resolve user-specified tags that violates proper nesting.
@@ -677,6 +683,20 @@ private:
       const int coarse_level_number ) const;
 
    /*
+    * Remove overlaps among the new boxes of level fine_level_number, in the
+    * coarse index space: merge an overlapping pair and every box its
+    * bounding box meets into that box, or split the pair into boxes that
+    * do not overlap, or trim the smaller box, allowing narrow pieces away
+    * from the domain boundary.
+    */
+   void resolveOverlappingBoxes(
+      hier::BoxList<DIM>& boxes,
+      const hier::BoxList<DIM>& nesting_domain,
+      const hier::BoxList<DIM>& physical_domain,
+      const hier::IntVector<DIM>& min_width,
+      const int fine_level_number) const;
+
+   /*
     * Set patch size and ghost cell information needed to create new
     * refinement levels.  This method applies to levels that are being
     * used to build new finer levels (i.e. level_number is a coarser
@@ -909,14 +929,6 @@ private:
     * by default set false.
     */
    bool d_allow_patches_smaller_than_minimum_size_to_prevent_overlaps;
-
-   /*
-    * If the minimum box size given in input is smaller than the max ghost
-    * width, by default it is grown to the max ghost width.  This flag
-    * when set to true allows the given minimum box size to stay in effect,
-    * even if it is smaller than the max ghost width.
-    */
-   bool d_allow_patches_smaller_than_ghostwidth;
 
    bool d_barrier_before_clustering;
    bool d_sort_boxes_after_clustering;
