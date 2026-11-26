@@ -1473,7 +1473,7 @@ template<int DIM> void GriddingAlgorithm<DIM>::readLevelBoxes(
                                        fine_level_number, physical_domain,
                                        ratio_to_level_zero,
                                        smallest_patch,
-                                       getLargestPatchSize(fine_level_number),
+                                       largest_patch,
                                        patch_cut_factor, extend_ghosts);
      t_load_balance->stop();
    }
@@ -2089,7 +2089,7 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
             box_list, hierarchy, fine_level_number, physical_domain,
             ratio_to_level_zero,
             smallest_patch,
-            getLargestPatchSize(fine_level_number),
+            largest_patch,
             patch_cut_factor, extend_ghosts);
          t_load_balance->stop();
       }
