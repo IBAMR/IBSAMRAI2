@@ -579,6 +579,79 @@ template<int DIM> bool BoxUtilities<DIM>::extendBoxToDomainBoundary(
 /*
 *************************************************************************
 *                                                                       *
+* Find a step, slot or gap in the domain narrower than the ghost width. *
+* For each direction and side, the wall cells are the cells outside the *
+* domain next to it.  The run of cells outside the domain that starts   *
+* at a wall cell must be as long as the ghost width (no gap or slot),   *
+* and so must the run of cells inside the domain that starts at a       *
+* domain cell next to a wall cell in another direction (no step).       *
+*                                                                       *
+*************************************************************************
+*/
+
+template<int DIM> bool BoxUtilities<DIM>::findNarrowDomainFeature(
+   Index<DIM>& cell,
+   int& direction,
+   const BoxList<DIM>& domain,
+   const IntVector<DIM>& ghosts,
+   const IntVector<DIM>& periodic_shift)
+{
+   BoxList<DIM> dom(domain);
+   dom.grow(periodic_shift);
+   dom.simplifyBoxes();
+
+   for (int d = 0; d < DIM; d++) {
+      if (periodic_shift(d) != 0 || ghosts(d) <= 1) continue;
+      for (int side = -1; side <= 1; side += 2) {
+         IntVector<DIM> normal(0);
+         normal(d) = side;
+
+         BoxList<DIM> walls(dom);
+         walls.shift(normal);
+         walls.removeIntersections(dom);
+
+         BoxList<DIM> found;
+         int shift_back = 0;
+         for (int j = 1; j < ghosts(d) && found.isEmpty(); j++) {
+            found = walls;
+            found.shift(normal * j);
+            found.intersectBoxes(dom);
+            shift_back = j;
+         }
+
+         for (int t = 0; t < DIM && found.isEmpty(); t++) {
+            if (t == d || ghosts(t) == 0) continue;
+            for (int tside = -1; tside <= 1 && found.isEmpty(); tside += 2) {
+               IntVector<DIM> tangent(0);
+               tangent(t) = tside;
+               BoxList<DIM> next(walls);
+               next.shift(tangent);
+               next.intersectBoxes(dom);
+               for (int j = 1; j < ghosts(d) && found.isEmpty(); j++) {
+                  found = next;
+                  found.shift(normal * j);
+                  found.removeIntersections(dom);
+                  shift_back = j;
+               }
+               if (!found.isEmpty()) {
+                  found.shift(-tangent);
+               }
+            }
+         }
+
+         if (!found.isEmpty()) {
+            cell = found.getFirstItem().lower() - normal * shift_back;
+            direction = d;
+            return(true);
+         }
+      }
+   }
+   return(false);
+}
+
+/*
+*************************************************************************
+*                                                                       *
 * Grow each box in the list that is smaller than the specified minimum  *
 * size.  Each box that is grown must remain within the union of the     *
 * boxes of the given domain.  If the specified domain is an empty box   *
