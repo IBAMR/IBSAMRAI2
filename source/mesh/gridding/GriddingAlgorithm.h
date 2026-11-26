@@ -231,6 +231,25 @@ namespace SAMRAI {
  *       patches, see the input flag
  *       "allow_patches_smaller_than_minimum_size_to_prevent_overlaps" 
  *
+ *    - \b    keep_unchanged_levels
+ *       If true, a regrid keeps an existing level, the same PatchLevel object
+ *       with the patch data that a replaced level would have been initialized
+ *       from, whenever the new boxes, in the same order, and the new processor
+ *       mapping equal the level's own.  A kept level gets no copy, no boundary
+ *       fill, and no overwrite of values that patches share; the strategy's
+ *       initializeKeptLevelData() is called instead of initializeLevelData(),
+ *       at the same point, and resetHierarchyConfiguration() still covers the
+ *       level.  Each kept level writes a line "GriddingAlgorithm: keeping
+ *       level ..." to the log.  This applies whether the new boxes come from
+ *       tagging, from boxes read with read_regrid_boxes, or from user-supplied
+ *       refine boxes that are load balanced again.  Unchanged user-supplied
+ *       boxes that are not load balanced again keep the level, with or without
+ *       this key, and call neither initializeLevelData() nor
+ *       initializeKeptLevelData().  The tag and initialize strategy must
+ *       return true from canKeepUnchangedLevels(), or the constructor stops
+ *       with an error.  MultiblockGriddingAlgorithm does not read this key.
+ *       The default is false.  It is read from input only.
+ *
  *    - \b    write_regrid_boxes
  *       Output sequence of refine boxes to file.
  *
@@ -677,6 +696,15 @@ private:
       const int coarse_level_number ) const;
 
    /*
+    * Whether a regrid may keep old_level: it exists, and new_boxes, in
+    * order, and new_mapping equal its own.
+    */
+   bool levelIsUnchanged(
+      const tbox::Pointer< hier::PatchLevel<DIM> >& old_level,
+      const hier::BoxArray<DIM>& new_boxes,
+      const hier::ProcessorMapping& new_mapping) const;
+
+   /*
     * Set patch size and ghost cell information needed to create new
     * refinement levels.  This method applies to levels that are being
     * used to build new finer levels (i.e. level_number is a coarser
@@ -969,6 +997,12 @@ private:
      "check_overlapping_patches".
    */
    char d_check_overlapping_patches;
+
+   /*
+     Whether a regrid keeps a level whose boxes and processor mapping are
+     unchanged (input key "keep_unchanged_levels", default false).
+   */
+   bool d_keep_unchanged_levels;
 
    /*
     * Timers interspersed throughout the class (those timers used

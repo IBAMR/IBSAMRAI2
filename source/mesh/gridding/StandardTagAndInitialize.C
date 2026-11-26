@@ -180,6 +180,26 @@ template<int DIM> void StandardTagAndInitialize<DIM>::initializeLevelData(
    
 }
 
+template<int DIM> bool StandardTagAndInitialize<DIM>::canKeepUnchangedLevels() const
+{
+   return((d_tag_strategy != ((mesh::StandardTagAndInitStrategy<DIM>*)NULL))
+          && d_tag_strategy->canKeepUnchangedLevels());
+}
+
+template<int DIM> void StandardTagAndInitialize<DIM>::initializeKeptLevelData(
+   const tbox::Pointer< hier::BasePatchHierarchy<DIM> > hierarchy,
+   const int level_number,
+   const double init_data_time,
+   const bool can_be_refined)
+{
+   if (d_tag_strategy != ((mesh::StandardTagAndInitStrategy<DIM>*)NULL)) {
+      d_tag_strategy->initializeKeptLevelData(hierarchy,
+                                              level_number,
+                                              init_data_time,
+                                              can_be_refined);
+   }
+}
+
 /*
 *************************************************************************
 *                                                                       *
