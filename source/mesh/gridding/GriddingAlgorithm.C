@@ -168,7 +168,6 @@ template<int DIM> GriddingAlgorithm<DIM>::GriddingAlgorithm(
    d_largest_patch_size.resizeArray(d_max_levels);
 
    d_proper_nesting_buffer.resizeArray(d_max_levels);
-   d_allow_patches_smaller_than_ghostwidth = false;
    d_allow_patches_smaller_than_minimum_size_to_prevent_overlaps = false;
 
    for (int ln = 0; ln < d_max_levels; ln++) {
@@ -2143,19 +2142,7 @@ template<int DIM> void GriddingAlgorithm<DIM>::getGriddingParameters(
       hierarchy->getPatchDescriptor()->getMaxGhostWidth();
    max_ghosts = max_ghosts * d_tag_init_strategy->getErrorCoarsenRatio();
    smallest_patch = getSmallestPatchSize(level_number);
-   if (!d_allow_patches_smaller_than_ghostwidth) {
-      smallest_patch.max(max_ghosts);
-   } else {
-      hier::IntVector<DIM> periodic_dirs(
-         hierarchy->getGridGeometry()->getPeriodicShift());
-
-      for (int i = 0; i < DIM; i++) {
-         if (periodic_dirs(i)) {
-            smallest_patch(i) =
-               tbox::MathUtilities<int>::Max(smallest_patch(i), max_ghosts(i));
-         }
-      }
-   }
+   smallest_patch.max(max_ghosts);
 
    /*
     * Set largest patch size.
@@ -2540,19 +2527,11 @@ template<int DIM> void GriddingAlgorithm<DIM>::getFromInput(
 
    }
 
-   if (db->keyExists("allow_patches_smaller_than_ghostwidth")) {
-      d_allow_patches_smaller_than_ghostwidth =
-         db->getBoolWithDefault("allow_patches_smaller_than_ghostwidth",
-                                d_allow_patches_smaller_than_ghostwidth);
-
-      if (d_allow_patches_smaller_than_ghostwidth) {
-            TBOX_WARNING(d_object_name << ":  "
-                         << "Allowing patches smaller than the max "
-                         << "ghostwidth.  Note:  If periodic boundary "
-                         << "conditions are used, this flag is ignored "
-                         << "in the periodic directions.");
-
-      }
+   if (db->getBoolWithDefault("allow_patches_smaller_than_ghostwidth", false)) {
+      TBOX_WARNING(d_object_name << ":  "
+                   << "Ignoring allow_patches_smaller_than_ghostwidth.  The "
+                   << "smallest patch size\nis at least the maximum ghost "
+                   << "width of all the registered variables.");
    }
 
    if (db->keyExists("allow_patches_smaller_than_minimum_size_to_prevent_overlaps")) {

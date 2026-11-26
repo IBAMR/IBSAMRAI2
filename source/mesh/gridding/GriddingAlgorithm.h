@@ -186,12 +186,10 @@ namespace SAMRAI {
  *       nesting buffer value.  See sample input below for input file format.
  *
  *    - \b    allow_patches_smaller_than_ghostwidth
- *       If the smallest patch size provided in the input file is smaller
- *       than the maximum ghost width of all the registered variables, then
- *       by default the smallest patch size will be grown to the maximum
- *       ghost width.  Set this flag to true to override this default
- *       behavior and to allow the smallest patch size given in the input
- *       to remain in effect.  The default value is false.
+ *       Ignored, with a warning if true.  The smallest patch size is always
+ *       at least the maximum ghost width of all the registered variables.
+ *       Only allow_patches_smaller_than_minimum_size_to_prevent_overlaps
+ *       lets smaller patches through.
  *
  *    - \b    allow_patches_smaller_than_minimum_size_to_prevent_overlaps
  *       In order to enforce minimum patch size restrictions, boxes may be
@@ -909,14 +907,6 @@ private:
     * by default set false.
     */
    bool d_allow_patches_smaller_than_minimum_size_to_prevent_overlaps;
-
-   /*
-    * If the minimum box size given in input is smaller than the max ghost
-    * width, by default it is grown to the max ghost width.  This flag
-    * when set to true allows the given minimum box size to stay in effect,
-    * even if it is smaller than the max ghost width.
-    */
-   bool d_allow_patches_smaller_than_ghostwidth;
 
    bool d_barrier_before_clustering;
    bool d_sort_boxes_after_clustering;
