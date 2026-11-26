@@ -186,6 +186,32 @@ public:
 		       const bool allocate_data = true) = 0;
 
    /*!
+    * Whether this strategy initializes kept levels in
+    * initializeKeptLevelData(), so that a regrid may keep unchanged levels.
+    * GriddingAlgorithm stops with an error if its input sets
+    * keep_unchanged_levels and this returns false.  The default returns
+    * false.
+    */
+   virtual bool canKeepUnchangedLevels() const;
+
+   /*!
+    * Initialize data on a level that a regrid keeps instead of replacing
+    * it, because its boxes and processor mapping are unchanged (the
+    * GriddingAlgorithm input key keep_unchanged_levels).  It is called at
+    * the point where initializeLevelData() would be called for a replaced
+    * level.  The level is the same object, holding the patch data that
+    * initializeLevelData() would have read from the old level.  A level
+    * that user refine boxes keep without a new load balance gets neither
+    * call.  The default does nothing.  A strategy that implements it must
+    * also return true from canKeepUnchangedLevels().
+    */
+   virtual void
+   initializeKeptLevelData(const tbox::Pointer< hier::BasePatchHierarchy<DIM> > hierarchy,
+                           const int level_number,
+                           const double init_data_time,
+                           const bool can_be_refined);
+
+   /*!
     * After hierarchy levels have changed and data has been initialized on
     * the new levels, this routine can be used to reset any information
     * needed by the solution method that is particular to the hierarchy

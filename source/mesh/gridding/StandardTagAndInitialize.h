@@ -145,6 +145,24 @@ public:
 		       const bool allocate_data = true);
 
    /*!
+    * Return whether the StandardTagAndInitStrategy<DIM> data member can
+    * keep unchanged levels; false if there is none.  See
+    * TagAndInitializeStrategy<DIM>::canKeepUnchangedLevels().
+    */
+   bool canKeepUnchangedLevels() const;
+
+   /*!
+    * Pass the request to initialize data on a kept level to the
+    * StandardTagAndInitStrategy<DIM> data member.  See
+    * TagAndInitializeStrategy<DIM>::initializeKeptLevelData().
+    */
+   void
+   initializeKeptLevelData(const tbox::Pointer< hier::BasePatchHierarchy<DIM> > hierarchy,
+                           const int level_number,
+                           const double init_data_time,
+                           const bool can_be_refined);
+
+   /*!
     * Pass the request to reset information that depends on the hierarchy
     * configuration to the StandardTagAndInitStrategy<DIM> data member.  
     * For more information on the operations that must be performed, see 
