@@ -24,6 +24,8 @@
 #include "tbox/MessageStream.h"
 #include "tbox/Transaction.h"
 
+#include <map>
+
 namespace SAMRAI {
    namespace tbox {
 
@@ -151,19 +153,19 @@ private:
    Schedule(const Schedule&);		// not implemented
    void operator=(const Schedule&);	// not implemented
 
-   int d_nnodes;
-
-#ifdef LACKS_NAMESPACE_IN_DECLARE
-   Array< ScheduleMessageStream > d_incoming;
-   Array< ScheduleMessageStream > d_outgoing;
-#else
-   Array< Schedule::ScheduleMessageStream > d_incoming;
-   Array< Schedule::ScheduleMessageStream > d_outgoing;
-#endif
-
-   Array< List< Pointer< Transaction > > > d_send_set;
-   Array< List< Pointer< Transaction > > > d_recv_set;
-
+   /*
+    * The send and receive sets and message streams of each processor this
+    * one exchanges data with, by processor number.  Every communication
+    * phase visits the peers in increasing processor number.
+    */
+   struct Peer {
+      List< Pointer< Transaction > > d_send_set;
+      List< Pointer< Transaction > > d_recv_set;
+      ScheduleMessageStream d_incoming;
+      ScheduleMessageStream d_outgoing;
+   };
+   typedef std::map<int, Peer> PeerMap;
+   PeerMap d_peers;
 
    List< Pointer< Transaction > > d_local_set;
 

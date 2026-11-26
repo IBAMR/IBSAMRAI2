@@ -31,13 +31,6 @@ typedef List< Pointer< Transaction > >::Iterator ITERATOR;
 
 Schedule::Schedule()
 {
-   d_nnodes = SAMRAI_MPI::getNodes();
-
-   d_incoming.resizeArray(d_nnodes);
-   d_outgoing.resizeArray(d_nnodes);
-
-   d_send_set.resizeArray(d_nnodes);
-   d_recv_set.resizeArray(d_nnodes);
 }
 
 /*
@@ -74,9 +67,9 @@ void Schedule::addTransaction(
       d_local_set.addItem(transaction);
    } else {
       if (my_id == dst_id) {
-         d_recv_set[src_id].addItem(transaction);
+         d_peers[src_id].d_recv_set.addItem(transaction);
       } else if (my_id == src_id) {
-         d_send_set[dst_id].addItem(transaction);
+         d_peers[dst_id].d_send_set.addItem(transaction);
       }
    }
 }
@@ -102,9 +95,9 @@ void Schedule::appendTransaction(
       d_local_set.appendItem(transaction);
    } else {
       if (my_id == dst_id) {
-         d_recv_set[src_id].appendItem(transaction);
+         d_peers[src_id].d_recv_set.appendItem(transaction);
       } else if (my_id == src_id) {
-         d_send_set[dst_id].appendItem(transaction);
+         d_peers[dst_id].d_send_set.appendItem(transaction);
       }
    }
 }
@@ -162,14 +155,17 @@ void Schedule::finalizeCommunication()
 #ifdef HAVE_MPI
    std::vector<MPI_Request> requests;
    // Wait for both sends and recvs to complete
-   for (int p = 0; p < d_nnodes; p++) {
-      if (d_incoming[p].d_stream_in_use) {
-         requests.push_back(d_incoming[p].d_request_id);
-         d_incoming[p].d_request_id = MPI_REQUEST_NULL;
+   for (PeerMap::iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      ScheduleMessageStream& incoming = peer->second.d_incoming;
+      ScheduleMessageStream& outgoing = peer->second.d_outgoing;
+      if (incoming.d_stream_in_use) {
+         requests.push_back(incoming.d_request_id);
+         incoming.d_request_id = MPI_REQUEST_NULL;
       }
-      if (d_outgoing[p].d_stream_in_use) {
-         requests.push_back(d_outgoing[p].d_request_id);
-         d_outgoing[p].d_request_id = MPI_REQUEST_NULL;
+      if (outgoing.d_stream_in_use) {
+         requests.push_back(outgoing.d_request_id);
+         outgoing.d_request_id = MPI_REQUEST_NULL;
       }
    }
 
@@ -197,16 +193,18 @@ void Schedule::finalizeCommunication()
 void Schedule::calculateSendSizes()
 {
    SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::calculateSendSizes()");
-   for (int p = 0; p < d_nnodes; p++) {
+   for (PeerMap::iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      ScheduleMessageStream& outgoing = peer->second.d_outgoing;
       int bytes = 0;
-      d_outgoing[p].d_must_communicate_byte_size = false;
-      for (ITERATOR s(d_send_set[p]); s; s++) {
+      outgoing.d_must_communicate_byte_size = false;
+      for (ITERATOR s(peer->second.d_send_set); s; s++) {
          if (!s()->canEstimateIncomingMessageSize()) {
-            d_outgoing[p].d_must_communicate_byte_size = true;
+            outgoing.d_must_communicate_byte_size = true;
          }
          bytes += s()->computeOutgoingMessageSize();
       }
-      d_outgoing[p].d_bytes_in_stream = bytes;
+      outgoing.d_bytes_in_stream = bytes;
    }
 }
 
@@ -245,11 +243,14 @@ void Schedule::calculateReceiveSizes()
    int ierr = 0;
    std::vector<MPI_Request> requests;
 #endif
-   for (int p = 0; p < d_nnodes; p++) {
+   for (PeerMap::iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      const int p = peer->first;
+      ScheduleMessageStream& incoming = peer->second.d_incoming;
       int bytes = 0;
       bool needs_bytes = false;
 
-      for (ITERATOR r(d_recv_set[p]); r && !needs_bytes; r++) {
+      for (ITERATOR r(peer->second.d_recv_set); r && !needs_bytes; r++) {
          if (!r()->canEstimateIncomingMessageSize()) {
             needs_bytes = true;
          }
@@ -257,23 +258,23 @@ void Schedule::calculateReceiveSizes()
       }
 
       if (!needs_bytes) {
-         d_incoming[p].d_must_communicate_byte_size = false;
-         d_incoming[p].d_bytes_in_stream            = bytes;
-         d_incoming[p].d_stream_in_use              = false;
+         incoming.d_must_communicate_byte_size = false;
+         incoming.d_bytes_in_stream            = bytes;
+         incoming.d_stream_in_use              = false;
       } else {
-         d_incoming[p].d_must_communicate_byte_size = true;
-         d_incoming[p].d_stream_in_use              = true;
+         incoming.d_must_communicate_byte_size = true;
+         incoming.d_stream_in_use              = true;
 #ifdef HAVE_MPI
          SAMRAI_MPI::updateIncomingStatistics(1, sizeof(int));
-         ierr = MPI_Irecv(&d_incoming[p].d_bytes_in_stream,
+         ierr = MPI_Irecv(&incoming.d_bytes_in_stream,
                           1,
                           MPI_INT,
                           p,
                           SCHEDULE_SIZE_TAG,
                           SAMRAI_MPI::getCommunicator(),
-                          &d_incoming[p].d_request_id);
+                          &incoming.d_request_id);
          TBOX_ASSERT(ierr == 0);
-         requests.push_back(d_incoming[p].d_request_id);
+         requests.push_back(incoming.d_request_id);
 #endif
       }
    }
@@ -283,19 +284,22 @@ void Schedule::calculateReceiveSizes()
     * is needed
     */
 
-   for (int q = 0; q < d_nnodes; q++) {
-      if (d_outgoing[q].d_must_communicate_byte_size) {
+   for (PeerMap::iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      const int q = peer->first;
+      ScheduleMessageStream& outgoing = peer->second.d_outgoing;
+      if (outgoing.d_must_communicate_byte_size) {
 #ifdef HAVE_MPI
          SAMRAI_MPI::updateOutgoingStatistics(1, sizeof(int));
-         ierr = MPI_Isend(&d_outgoing[q].d_bytes_in_stream,
+         ierr = MPI_Isend(&outgoing.d_bytes_in_stream,
                           1,
                           MPI_INT,
                           q,
                           SCHEDULE_SIZE_TAG,
                           SAMRAI_MPI::getCommunicator(),
-                          &d_outgoing[q].d_request_id);
+                          &outgoing.d_request_id);
          TBOX_ASSERT(ierr == 0);
-         requests.push_back(d_outgoing[q].d_request_id);
+         requests.push_back(outgoing.d_request_id);
 #endif
       }
    }
@@ -307,13 +311,10 @@ void Schedule::calculateReceiveSizes()
    TBOX_ASSERT(ierr == 0);
 #endif
 
-   for (int w = 0; w < d_nnodes; w++) {
-      if (d_incoming[w].d_stream_in_use) {
-         d_incoming[w].d_stream_in_use = false;
-      }
-      if (d_outgoing[w].d_stream_in_use) {
-         d_outgoing[w].d_stream_in_use = false;
-      }
+   for (PeerMap::iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      peer->second.d_incoming.d_stream_in_use = false;
+      peer->second.d_outgoing.d_stream_in_use = false;
    }
 }
 
@@ -328,22 +329,25 @@ void Schedule::calculateReceiveSizes()
 void Schedule::postMessageReceives()
 {
    SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::postMessageReceives()");
-   for (int p = 0; p < d_nnodes; p++) {
-      const int bytes = d_incoming[p].d_bytes_in_stream;
+   for (PeerMap::iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      const int p = peer->first;
+      ScheduleMessageStream& incoming = peer->second.d_incoming;
+      const int bytes = incoming.d_bytes_in_stream;
       if (bytes == 0) {
-         d_incoming[p].d_stream_in_use = false;
+         incoming.d_stream_in_use = false;
       } else {
-         d_incoming[p].d_stream_in_use = true;
-         d_incoming[p].d_stream = MessageStream(bytes, MessageStream::Read);
+         incoming.d_stream_in_use = true;
+         incoming.d_stream = MessageStream(bytes, MessageStream::Read);
 #ifdef HAVE_MPI
          SAMRAI_MPI::updateIncomingStatistics(1, bytes);
-         int ierr = MPI_Irecv(d_incoming[p].d_stream.getBufferStart(),
+         int ierr = MPI_Irecv(incoming.d_stream.getBufferStart(),
                               bytes,
                               MPI_BYTE,
                               p,
                               SCHEDULE_DATA_TAG,
                               SAMRAI_MPI::getCommunicator(),
-                              &d_incoming[p].d_request_id);
+                              &incoming.d_request_id);
          TBOX_ASSERT(ierr == 0);
 #endif
       }
@@ -362,25 +366,28 @@ void Schedule::postMessageReceives()
 void Schedule::sendMessages()
 {
    SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::sendMessages()");
-   for (int p = 0; p < d_nnodes; p++) {
-      const int bytes = d_outgoing[p].d_bytes_in_stream;
+   for (PeerMap::iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      const int p = peer->first;
+      ScheduleMessageStream& outgoing = peer->second.d_outgoing;
+      const int bytes = outgoing.d_bytes_in_stream;
       if (bytes == 0) {
-         d_outgoing[p].d_stream_in_use = false;
+         outgoing.d_stream_in_use = false;
       } else {
-         d_outgoing[p].d_stream_in_use = true;
-         d_outgoing[p].d_stream = MessageStream(bytes, MessageStream::Write);
-         for (ITERATOR pack(d_send_set[p]); pack; pack++) {
-            pack()->packStream(d_outgoing[p].d_stream);
+         outgoing.d_stream_in_use = true;
+         outgoing.d_stream = MessageStream(bytes, MessageStream::Write);
+         for (ITERATOR pack(peer->second.d_send_set); pack; pack++) {
+            pack()->packStream(outgoing.d_stream);
          }
 #ifdef HAVE_MPI
          SAMRAI_MPI::updateOutgoingStatistics(1, bytes);
-         int ierr = MPI_Isend(d_outgoing[p].d_stream.getBufferStart(),
-                              d_outgoing[p].d_stream.getCurrentSize(),
+         int ierr = MPI_Isend(outgoing.d_stream.getBufferStart(),
+                              outgoing.d_stream.getCurrentSize(),
                               MPI_BYTE,
                               p,
                               SCHEDULE_DATA_TAG,
                               SAMRAI_MPI::getCommunicator(),
-                              &d_outgoing[p].d_request_id);
+                              &outgoing.d_request_id);
          TBOX_ASSERT(ierr == 0);
 #endif
       }
@@ -415,14 +422,16 @@ void Schedule::performLocalCopies()
 void Schedule::processIncomingMessages()
 {
    SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::processIncomingMessages()");
-   for (int p = 0; p < d_nnodes; p++) {
-      if (d_incoming[p].d_stream_in_use) {
-         for (ITERATOR recv(d_recv_set[p]); recv; recv++) {
-            recv()->unpackStream(d_incoming[p].d_stream);
+   for (PeerMap::iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      ScheduleMessageStream& incoming = peer->second.d_incoming;
+      if (incoming.d_stream_in_use) {
+         for (ITERATOR recv(peer->second.d_recv_set); recv; recv++) {
+            recv()->unpackStream(incoming.d_stream);
          }
 
-         d_incoming[p].d_stream_in_use = false;
-         d_incoming[p].d_stream = {};
+         incoming.d_stream_in_use = false;
+         incoming.d_stream = {};
       }
    }
 }
@@ -438,10 +447,12 @@ void Schedule::processIncomingMessages()
 void Schedule::deallocateSendBuffers()
 {
    SAMRAI_SETUP_TIMER_AND_SCOPE("tbox::Schedule::deallocateSendBuffers()");
-   for (int p = 0; p < d_nnodes; p++) {
-      if (d_outgoing[p].d_stream_in_use) {
-         d_outgoing[p].d_stream_in_use = false;
-         d_outgoing[p].d_stream = {};
+   for (PeerMap::iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      ScheduleMessageStream& outgoing = peer->second.d_outgoing;
+      if (outgoing.d_stream_in_use) {
+         outgoing.d_stream_in_use = false;
+         outgoing.d_stream = {};
       }
    }
 }
@@ -459,33 +470,39 @@ void Schedule::printClassData(std::ostream& stream) const
    stream << "Schedule::printClassData()" << std::endl;
    stream << "-------------------------------" << std::endl;
 
-   stream << "Number of nodes: " << d_nnodes << std::endl;
+   stream << "Number of peers: " << d_peers.size() << std::endl;
 
-   for (int s = 0; s < d_nnodes; s++) {
+   for (PeerMap::const_iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      const int s = peer->first;
+      const ScheduleMessageStream& incoming = peer->second.d_incoming;
+      const ScheduleMessageStream& outgoing = peer->second.d_outgoing;
       stream << "Incoming Message Stream: " << s << std::endl;
-      stream << "   bytes in stream: " << d_incoming[s].d_bytes_in_stream
+      stream << "   bytes in stream: " << incoming.d_bytes_in_stream
               << std::endl;
       stream << "   must communicate bytes size: "
-              << d_incoming[s].d_must_communicate_byte_size << std::endl;
-      stream << "   stream in use: " << d_incoming[s].d_stream_in_use << std::endl;
+              << incoming.d_must_communicate_byte_size << std::endl;
+      stream << "   stream in use: " << incoming.d_stream_in_use << std::endl;
       stream << "Outgoing Message Stream: " << s << std::endl;
-      stream << "   bytes in stream: " << d_outgoing[s].d_bytes_in_stream
+      stream << "   bytes in stream: " << outgoing.d_bytes_in_stream
               << std::endl;
       stream << "   must communicate bytes size: "
-              << d_outgoing[s].d_must_communicate_byte_size << std::endl;
-      stream << "   stream in use: " << d_outgoing[s].d_stream_in_use << std::endl;
+              << outgoing.d_must_communicate_byte_size << std::endl;
+      stream << "   stream in use: " << outgoing.d_stream_in_use << std::endl;
    }
 
-   for (int ss = 0; ss < d_nnodes; ss++) {
-      stream << "Send Set: " << ss << std::endl;
-      for (ITERATOR send(d_send_set[ss]); send; send++) {
+   for (PeerMap::const_iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      stream << "Send Set: " << peer->first << std::endl;
+      for (ITERATOR send(peer->second.d_send_set); send; send++) {
          send()->printClassData(stream);
       }
    }
 
-   for (int rs = 0; rs < d_nnodes; rs++) {
-      stream << "Receive Set: " << rs << std::endl;
-      for (ITERATOR recv(d_recv_set[rs]); recv; recv++) {
+   for (PeerMap::const_iterator peer = d_peers.begin(); peer != d_peers.end();
+        ++peer) {
+      stream << "Receive Set: " << peer->first << std::endl;
+      for (ITERATOR recv(peer->second.d_recv_set); recv; recv++) {
          recv()->printClassData(stream);
       }
    }
