@@ -27,7 +27,10 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "RefinePatchStrategy.h"
+
+#include <vector>
 
 
 namespace SAMRAI {
@@ -637,6 +640,23 @@ template<int DIM> void RefineSchedule<DIM>::finishScheduleConstruction(
    }
 
    /*
+    * Every processor needs the unfilled boxes of every patch to build the
+    * same coarse level, and the schedule generation computes them only for
+    * local patches.  Without a coarser level nothing is gathered, so only
+    * the processors that own unfilled boxes reach the error below; it
+    * aborts the job all the same.
+    */
+   if (next_coarser_level >= 0) {
+      gatherUnfilledBoxes(unfilled_boxes);
+      need_to_fill = false;
+      for (int p = 0; p < dst_npatches; p++) {
+	 if (unfilled_boxes[p].getNumberOfBoxes() > 0) {
+	    need_to_fill = true;
+	 }
+      }
+   }
+
+   /*
     * If there remain boxes to be filled from coarser levels, then
     * generate data to do this and recurse to the next coarser level.
     */
@@ -837,6 +857,75 @@ template<int DIM> void RefineSchedule<DIM>::finishScheduleConstruction(
 
    }
 
+}
+
+/*
+ * Replace the unfilled boxes of the remote patches of the destination
+ * level with those their owners computed.  Each processor sends, for each
+ * local patch with unfilled boxes, the patch number, the number of boxes,
+ * and the boxes in order.
+ */
+
+template<int DIM> void RefineSchedule<DIM>::gatherUnfilledBoxes(
+   tbox::Array< xfer::FillBoxSet<DIM> >& unfilled_boxes) const
+{
+   if (tbox::SAMRAI_MPI::getNodes() == 1) {
+      return;
+   }
+
+   const hier::ProcessorMapping& mapping = d_dst_level->getProcessorMapping();
+   const int npatches = unfilled_boxes.getSize();
+
+   std::vector<int> local;
+   for (int p = 0; p < npatches; p++) {
+      if (!mapping.isMappingLocal(p)) {
+	 unfilled_boxes[p] = xfer::FillBoxSet<DIM>();
+	 continue;
+      }
+      const hier::BoxList<DIM>& boxes = unfilled_boxes[p].getBoxList();
+      if (boxes.getNumberOfItems() == 0) {
+	 continue;
+      }
+      local.push_back(p);
+      local.push_back(boxes.getNumberOfItems());
+      for (typename hier::BoxList<DIM>::Iterator b(boxes); b; b++) {
+	 for (int d = 0; d < DIM; d++) {
+	    local.push_back(b().lower(d));
+	 }
+	 for (int d = 0; d < DIM; d++) {
+	    local.push_back(b().upper(d));
+	 }
+      }
+   }
+
+   const int local_size = static_cast<int>(local.size());
+   const int all_size = tbox::SAMRAI_MPI::sumReduction(local_size);
+   if (all_size == 0) {
+      return;
+   }
+   local.push_back(0);   // so that &local[0] is valid when nothing is local
+   std::vector<int> all(all_size);
+   tbox::SAMRAI_MPI::allGather(&local[0], local_size, &all[0], all_size);
+
+   int i = 0;
+   while (i < all_size) {
+      const int p = all[i++];
+      const int nboxes = all[i++];
+      hier::BoxList<DIM> boxes;
+      for (int k = 0; k < nboxes; k++) {
+	 hier::Box<DIM> box;
+	 for (int d = 0; d < DIM; d++) {
+	    box.lower(d) = all[i++];
+	 }
+	 for (int d = 0; d < DIM; d++) {
+	    box.upper(d) = all[i++];
+	 }
+	 boxes.appendItem(box);
+      }
+      if (!mapping.isMappingLocal(p)) {
+	 unfilled_boxes[p].resetFillBoxes(boxes);
+      }
+   }
 }
 
 /*
@@ -1284,7 +1373,8 @@ template<int DIM> void RefineSchedule<DIM>::refineScratchData() const
 *                                                                       *
 * The resulting transactions will only fill the regions of intersection *
 * between the fill_boxes and destination level boxes.  The remaining    *
-* box regions are returned in unfilled_boxes.                           *
+* box regions are returned in unfilled_boxes; the BOX_TREE method sets  *
+* them only for local destination patches.                              *
 *                                                                       *
 * This main schedule generation routine which passes control to one     *
 * of the algorithmic variations below based on boolean parameters set   *
@@ -1540,7 +1630,14 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
 
    tbox::Pointer< hier::BoxTree<DIM> > box_tree = src_level->getBoxTree();
 
+   /*
+    * Only the unfilled boxes of local patches are computed here;
+    * finishScheduleConstruction() gathers those of the other patches.
+    */
    for (int dp = 0; dp < dst_npatches; dp++) {
+      if (!dst_mapping.isMappingLocal(dp)) {
+	 continue;
+      }
       unfilled_boxes[dp] = fill_boxes[dp];
       box_tree->removeIntersections(unfilled_boxes[dp].getBoxListToChange());
    }
@@ -1550,20 +1647,39 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
    int max_gcw = tbox::MathUtilities<int>::Max(growth.max(),1);
    hier::IntVector<DIM> dst_growth(max_gcw);
 
+   /*
+    * Find the pairs of remote destination and local source from the local
+    * sources.  The loop below adds their transactions in the order
+    * (destination, source) that a query for each destination gives.
+    */
+   std::vector< std::pair<int,int> > remote_pairs;
+   if (tbox::SAMRAI_MPI::getNodes() > 1) {
+      box_tree->findRemoteOverlapPairs(remote_pairs, *dst_level->getBoxTree(),
+                                       dst_growth);
+   }
+   std::size_t next_pair = 0;
+
    for (int dp = 0; dp < dst_npatches; dp++) {
+
+      if (!dst_mapping.isMappingLocal(dp)) {
+	 for ( ; next_pair < remote_pairs.size() &&
+		 remote_pairs[next_pair].first == dp; ++next_pair) {
+	    constructScheduleTransactions(fine_priority_schedule,
+					  coarse_priority_schedule,
+					  fill_boxes[dp].getBoxList(),
+					  dst_level, dp,
+					  src_level, remote_pairs[next_pair].second,
+					  use_time_interpolation);
+	 }
+	 continue;
+      }
 
       const hier::Box<DIM>& dst_box = dst_boxes[dp];
       hier::Box<DIM> dst_box_plus_ghosts = dst_box;
       dst_box_plus_ghosts.grow(dst_growth);
 
       tbox::Array<int> src_nabor_indices;
-      if (dst_mapping.isMappingLocal(dp)) {
-	 box_tree->findOverlapIndices(
-	    src_nabor_indices, dst_box_plus_ghosts);
-      } else {
-	 box_tree->findLocalOverlapIndices(
-	    src_nabor_indices, dst_box_plus_ghosts);
-      }
+      box_tree->findOverlapIndices(src_nabor_indices, dst_box_plus_ghosts);
 
       int src_len = src_nabor_indices.getSize();
       for (int spp = 0; spp < src_len; spp++) {
@@ -1580,6 +1696,10 @@ template<int DIM> void RefineSchedule<DIM>::generateCommunicationScheduleBoxTree
       } // loop over source patches
 
    } // loop over destination patches
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT(next_pair == remote_pairs.size());
+#endif
 
    t_gen_sched_box_tree->stop();
 

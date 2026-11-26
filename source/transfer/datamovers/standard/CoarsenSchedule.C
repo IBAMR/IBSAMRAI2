@@ -21,6 +21,7 @@
 #include "PatchDescriptor.h"
 #include "ProcessorMapping.h"
 #include "tbox/ArenaManager.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/InputManager.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
@@ -543,20 +544,36 @@ template<int DIM> void CoarsenSchedule<DIM>::generateScheduleBoxTree()
    const hier::BoxArray<DIM>& dst_boxes = d_crse_level->getBoxes();
    const hier::ProcessorMapping& dst_mapping = d_crse_level->getProcessorMapping();
 
+   /*
+    * Find the pairs of remote destination and local source from the local
+    * sources.  The loop below adds their transactions in the order
+    * (destination, source) that a query for each destination gives.
+    */
+   std::vector< std::pair<int,int> > remote_pairs;
+   if (tbox::SAMRAI_MPI::getNodes() > 1) {
+      box_tree->findRemoteOverlapPairs(remote_pairs, *d_crse_level->getBoxTree(),
+                                       dst_growth);
+   }
+   std::size_t next_pair = 0;
+
    for (int dp = 0; dp < dst_npatches; dp++) {
+
+      if (!dst_mapping.isMappingLocal(dp)) {
+         for ( ; next_pair < remote_pairs.size() &&
+                 remote_pairs[next_pair].first == dp; ++next_pair) {
+            constructScheduleTransactions(d_crse_level, dp,
+                                          d_temp_crse_level,
+                                          remote_pairs[next_pair].second);
+         }
+         continue;
+      }
 
       const hier::Box<DIM>& dst_box = dst_boxes[dp];
       hier::Box<DIM> dst_box_plus_ghosts = dst_box;
       dst_box_plus_ghosts.grow(dst_growth);
 
       tbox::Array<int> src_nabor_indices;
-      if (dst_mapping.isMappingLocal(dp)) {
-         box_tree->findOverlapIndices(
-            src_nabor_indices, dst_box_plus_ghosts);
-      } else {
-         box_tree->findLocalOverlapIndices(
-            src_nabor_indices, dst_box_plus_ghosts);
-      }
+      box_tree->findOverlapIndices(src_nabor_indices, dst_box_plus_ghosts);
 
       int src_len = src_nabor_indices.getSize();
       for (int spp = 0; spp < src_len; spp++) {
@@ -569,6 +586,10 @@ template<int DIM> void CoarsenSchedule<DIM>::generateScheduleBoxTree()
       } // loop over source patches
 
    } // loop over destination patches
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT(next_pair == remote_pairs.size());
+#endif
 
    t_gen_sched_box_tree->stop();
 }

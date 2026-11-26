@@ -146,6 +146,8 @@ public:
     * and destination patch levels must reside in the same index space.
     * However, the levels do not have to be in the same AMR patch hierarchy.
     * In general, this constructor is called by a RefineAlgorithm<DIM> object.
+    * If next_coarser_level >= 0, the constructor is collective: every
+    * processor must construct the schedule.
     *
     * @param fill_pattern    Indicates which parts of the destination level
     *                        to fill.  See RefineSchedule for valid values.
@@ -332,6 +334,13 @@ private:
       bool skip_generate_schedule);
 
    /*!
+    * @brief Replace the unfilled boxes of the remote destination patches
+    * with those their owners computed.  Collective.
+    */
+   void gatherUnfilledBoxes(
+      tbox::Array< xfer::FillBoxSet<DIM> >& unfilled_boxes) const;
+
+   /*!
     * @brief Recursively fill the destination level with data at the
     * given time.
     *
@@ -375,7 +384,8 @@ private:
     *
     * The resulting transactions will only fill the regions of intersection 
     * between the fill_boxes and the destination level boxes.  The remaining 
-    * box regions are returned in unfilled_boxes.
+    * box regions are returned in unfilled_boxes; the BOX_TREE method sets
+    * them only for local destination patches.
     *
     * The generateCommunicationSchedule() routine invokes various versions 
     * of the schedule generation process implemented in the similarly named 
