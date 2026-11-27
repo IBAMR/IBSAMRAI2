@@ -166,6 +166,24 @@ template<int DIM> void GridGeometry<DIM>::findPatchesTouchingBoundaries(
    BoxList<DIM> domain_interior(domain);
 
    /*
+    * The domain and its periodic images: a cell outside them is outside the
+    * physical domain.
+    */
+   BoxList<DIM> image_domain(domain);
+   for (int d = 0; d < DIM; d++) {
+      if (periodic_shift(d) != 0) {
+         IntVector<DIM> shift(0);
+         shift(d) = periodic_shift(d);
+         BoxList<DIM> images;
+         for (typename BoxList<DIM>::Iterator b(image_domain); b; b++) {
+            images.appendItem(Box<DIM>::shift(b(), shift));
+            images.appendItem(Box<DIM>::shift(b(), -shift));
+         }
+         image_domain.catenateItems(images);
+      }
+   }
+
+   /*
     * Every processor computes the flags of every patch of the level, from
     * the patch boxes that it holds, so that no communication is needed.
     */
@@ -193,7 +211,7 @@ template<int DIM> void GridGeometry<DIM>::findPatchesTouchingBoundaries(
             }
          } 
       } else {
-         bool bdry_located = false;
+         bool regular_bdry_located = false;
          for (int nd = 0; nd < DIM; nd++) {
             BoxList<DIM> lower_list(bdry_list);
             BoxList<DIM> upper_list(bdry_list);
@@ -209,13 +227,13 @@ template<int DIM> void GridGeometry<DIM>::findPatchesTouchingBoundaries(
 
             if (lower_list.size()) {
                if (periodic_shift(nd)) {
-                  touches_regular_bdry[ip][nd][0] = false; 
-                  touches_periodic_bdry[ip][nd][0] = true; 
+                  touches_regular_bdry[ip][nd][0] = false;
+                  touches_periodic_bdry[ip][nd][0] = true;
                } else {
                   touches_regular_bdry[ip][nd][0] = true;
                   touches_periodic_bdry[ip][nd][0] = false;
+                  regular_bdry_located = true;
                }
-               bdry_located = true;
             }
 
             if (upper_list.size()) {
@@ -225,26 +243,30 @@ template<int DIM> void GridGeometry<DIM>::findPatchesTouchingBoundaries(
                } else {
                   touches_regular_bdry[ip][nd][1] = true;
                   touches_periodic_bdry[ip][nd][1] = false;
+                  regular_bdry_located = true;
                }
-               bdry_located = true;
             }
          }
 
          /*
-          * By this point, bdry_located will have been set to true almost 
-          * every time whenever touches_any_boundary is true.  The only way
-          * it will not be true is if the domain is not a parallelpiped, and
-          * the patch touches the boundary only at a location such as the
-          * concave corner of an L-shaped domain.
+          * A patch that touches no physical face can still touch the
+          * physical boundary only at an edge or a corner, such as the
+          * concave corner of an L-shaped domain, also when it touches a
+          * periodic face.  Cells next to the patch outside the domain and
+          * its periodic images find it.  A patch that touches a physical
+          * face already gets every boundary box from getBoundaryBoxes().
           */
-         if (!bdry_located) {
+         if (!regular_bdry_located) {
+            BoxList<DIM> physical_list(bdry_list);
+            physical_list.removeIntersections(image_domain);
             for (int nd = 0; nd < DIM; nd++) {
-               touches_periodic_bdry[ip][nd][0] = false;
-               touches_periodic_bdry[ip][nd][1] = false;
+               if (periodic_shift(nd)) {
+                  continue;
+               }
 
                bool lower_side = false;
                bool upper_side = false;
-               for (typename BoxList<DIM>::Iterator bl(bdry_list); bl; bl++) {
+               for (typename BoxList<DIM>::Iterator bl(physical_list); bl; bl++) {
                   if (bl().lower()(nd) < box.lower(nd)) {
                      lower_side = true;
                   }
