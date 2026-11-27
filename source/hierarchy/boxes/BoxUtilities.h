@@ -13,6 +13,7 @@
 #include "SAMRAI_config.h"
 #include "BoxArray.h"
 #include "BoxList.h"
+#include "Index.h"
 #include "IntVector.h"
 #include "tbox/Array.h"
 #include "tbox/List.h"
@@ -328,6 +329,22 @@ template<int DIM> struct BoxUtilities
    static bool extendBoxesToDomainBoundary(BoxList<DIM>& boxes,
                                            const BoxList<DIM>& domain,
                                            const IntVector<DIM>& ext_ghosts);
+
+   /**
+    * Find a step, slot or gap in the domain that is narrower than the given
+    * ghost cell width.  Near such a feature, a ghost box can reach cells
+    * outside the domain that no boundary box of the patch covers, or a
+    * boundary fill box can cover cells inside the domain, at any patch
+    * layout.  Directions in which periodic_shift is nonzero have no
+    * boundary.  If a feature is found, the function returns true and sets
+    * cell to a cell outside the domain next to it and direction to the
+    * direction in which it is too narrow.  Otherwise it returns false.
+    */
+   static bool findNarrowDomainFeature(Index<DIM>& cell,
+                                       int& direction,
+                                       const BoxList<DIM>& domain,
+                                       const IntVector<DIM>& ghosts,
+                                       const IntVector<DIM>& periodic_shift);
 
    /**
     * Grow each box in the list that is smaller than the specified minimum

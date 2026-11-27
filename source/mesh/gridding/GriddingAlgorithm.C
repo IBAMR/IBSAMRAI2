@@ -468,6 +468,22 @@ template<int DIM> void GriddingAlgorithm<DIM>::makeCoarsestLevel(
                  << "contain intersections with each other!");
       }
 
+      hier::Index<DIM> narrow_cell(0);
+      int narrow_dir = 0;
+      if ( hier::BoxUtilities<DIM>::findNarrowDomainFeature(
+              narrow_cell, narrow_dir, domain_list, extend_ghosts,
+              patch_hierarchy->getGridGeometry()->getPeriodicShift()) ) {
+         TBOX_ERROR(d_object_name << ":  "
+                 << "The physical domain has a step, slot or gap narrower\n"
+                 << "than the ghost cell width " << extend_ghosts
+                 << " in direction " << narrow_dir << ", next to cell "
+                 << narrow_cell << ".\nBoundary fills there would leave "
+                 << "ghost cells unset or overwrite cells\nin the domain at "
+                 << "any patch layout.  Widen the feature to at least the\n"
+                 << "ghost cell width or reduce the ghost cell width."
+                 << std::endl);
+      }
+
       if ( (d_max_levels > 1)
            && (!d_tag_init_strategy->coarsestLevelBoxesOK(domain)) ) {
          TBOX_ERROR(d_object_name << ":  "
