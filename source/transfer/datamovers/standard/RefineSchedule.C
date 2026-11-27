@@ -560,7 +560,9 @@ template<int DIM> void RefineSchedule<DIM>::finishScheduleConstruction(
    const int dst_npatches = d_dst_level->getNumberOfPatches();
    tbox::Array< xfer::FillBoxSet<DIM> > unfilled_boxes(dst_npatches);
 
-   if ( !src_level.isNull() && !skip_generate_schedule ) {
+   const bool generate_schedule =
+      !src_level.isNull() && !skip_generate_schedule;
+   if (generate_schedule) {
 
       t_gen_comm_sched->start();
       generateCommunicationSchedule(d_coarse_priority_level_schedule,
@@ -642,11 +644,12 @@ template<int DIM> void RefineSchedule<DIM>::finishScheduleConstruction(
    /*
     * Every processor needs the unfilled boxes of every patch to build the
     * same coarse level, and the schedule generation computes them only for
-    * local patches.  Without a coarser level nothing is gathered, so only
-    * the processors that own unfilled boxes reach the error below; it
-    * aborts the job all the same.
+    * local patches.  Without the generation every processor already has
+    * them all.  Without a coarser level nothing is gathered, so only the
+    * processors that own unfilled boxes reach the error below; it aborts
+    * the job all the same.
     */
-   if (next_coarser_level >= 0) {
+   if (generate_schedule && next_coarser_level >= 0) {
       gatherUnfilledBoxes(unfilled_boxes);
       need_to_fill = false;
       for (int p = 0; p < dst_npatches; p++) {
