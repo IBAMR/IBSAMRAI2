@@ -14,6 +14,7 @@
 #include "BoxTree.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <vector>
 
 #include <stdio.h>
@@ -2155,11 +2156,28 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
       t_extend_to_domain_boundary->stop();
 
       /*
-       * Growth and extension can make boxes overlap.
+       * Growth and extension can make boxes overlap.  Ghost cells outside
+       * the domain and its periodic images need a physical boundary fill.
        */
+      hier::BoxList<DIM> image_domain(level_domain);
+      const hier::IntVector<DIM> periodic_shift(
+         hierarchy->getGridGeometry()->getPeriodicShift(level->getRatio()));
+      for (int d = 0; d < DIM; d++) {
+         if (periodic_shift(d) != 0) {
+            hier::IntVector<DIM> shift(0);
+            shift(d) = periodic_shift(d);
+            hier::BoxList<DIM> images;
+            for (typename hier::BoxList<DIM>::Iterator b(image_domain); b; b++) {
+               images.appendItem(hier::Box<DIM>::shift(b(), shift));
+               images.appendItem(hier::Box<DIM>::shift(b(), -shift));
+            }
+            image_domain.catenateItems(images);
+         }
+      }
       resolveOverlappingBoxes(box_list,
                               d_proper_nesting_boxes[coarse_level_number],
                               level_domain,
+                              image_domain,
                               extend_ghosts,
                               fine_level_number);
 
@@ -2224,14 +2242,33 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
 * Otherwise cover the pair's union by boxes that do not overlap and are *
 * each at least min_width wide.  Otherwise trim the smaller box, and    *
 * stop if a narrow piece is within min_width of the domain boundary.    *
+* A new box whose ghost cells leave the domain must touch the outside,  *
+* since only such a box gets physical boundary boxes; stop if trimming  *
+* leaves one that does not.                                             *
 *                                                                       *
 *************************************************************************
 */
+
+template<int DIM> static bool missesBoundaryFill(
+   const hier::Box<DIM>& box,
+   const hier::BoxList<DIM>& image_domain,
+   const hier::IntVector<DIM>& ghosts)
+{
+   hier::BoxList<DIM> touching(hier::Box<DIM>::grow(box, hier::IntVector<DIM>(1)));
+   touching.removeIntersections(image_domain);
+   if (!touching.isEmpty()) {
+      return false;
+   }
+   hier::BoxList<DIM> outside(hier::Box<DIM>::grow(box, ghosts));
+   outside.removeIntersections(image_domain);
+   return !outside.isEmpty();
+}
 
 template<int DIM> void GriddingAlgorithm<DIM>::resolveOverlappingBoxes(
    hier::BoxList<DIM>& boxes,
    const hier::BoxList<DIM>& nesting_domain,
    const hier::BoxList<DIM>& physical_domain,
+   const hier::BoxList<DIM>& image_domain,
    const hier::IntVector<DIM>& min_width,
    const int fine_level_number) const
 {
@@ -2289,7 +2326,8 @@ template<int DIM> void GriddingAlgorithm<DIM>::resolveOverlappingBoxes(
       added.removeIntersections(nesting_domain);
 
       hier::BoxList<DIM> result;
-      if (added.isEmpty()) {
+      if (added.isEmpty() &&
+          !missesBoundaryFill(merged, image_domain, min_width)) {
          for (int k = 0; k < n; k++) {
             if (k == a) {
                result.appendItem(merged);
@@ -2307,7 +2345,13 @@ template<int DIM> void GriddingAlgorithm<DIM>::resolveOverlappingBoxes(
        * smaller box, then from the larger one, then slabs of the union
        * across each direction, coalesced.
        */
-      const int small = (array[a].size() <= array[b].size()) ? a : b;
+      std::int64_t cells_a = 1;
+      std::int64_t cells_b = 1;
+      for (int d = 0; d < DIM; d++) {
+         cells_a *= array[a].numberCells(d);
+         cells_b *= array[b].numberCells(d);
+      }
+      const int small = (cells_a <= cells_b) ? a : b;
       const int large = (small == a) ? b : a;
       hier::BoxList<DIM> pieces;
       bool split = false;
@@ -2415,6 +2459,10 @@ template<int DIM> void GriddingAlgorithm<DIM>::resolveOverlappingBoxes(
                   split = false;
                }
             }
+            if (!(p() == array[a]) && !(p() == array[b]) &&
+                missesBoundaryFill(p(), image_domain, min_width)) {
+               split = false;
+            }
          }
       }
       if (!split) {
@@ -2444,6 +2492,18 @@ template<int DIM> void GriddingAlgorithm<DIM>::resolveOverlappingBoxes(
                      << "ghost cell width, or the proper nesting\nbuffer."
                      << std::endl);
                }
+            }
+            if (missesBoundaryFill(p(), image_domain, min_width)) {
+               TBOX_ERROR(d_object_name << ":  "
+                  << "New boxes " << array[a] << " and " << array[b]
+                  << " on level " << fine_level_number << " (coarse "
+                  << "index space)\noverlap, and removing the overlap "
+                  << "leaves the box " << p() << ",\nwhose ghost cells "
+                  << "reach outside the domain without touching it, so no "
+                  << "physical\nboundary box fills them.  Change "
+                  << "smallest_patch_size, the ghost cell width, or the\n"
+                  << "tagging near the domain corner."
+                  << std::endl);
             }
          }
          pieces.copyItems(rest);
