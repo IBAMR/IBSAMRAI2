@@ -687,12 +687,15 @@ private:
     * coarse index space: merge an overlapping pair and every box its
     * bounding box meets into that box, or split the pair into boxes that
     * do not overlap, or trim the smaller box, allowing narrow pieces away
-    * from the domain boundary.
+    * from the domain boundary.  No new box may have ghost cells outside
+    * image_domain, the domain and its periodic images, unless it touches
+    * the outside: only such a box gets physical boundary boxes.
     */
    void resolveOverlappingBoxes(
       hier::BoxList<DIM>& boxes,
       const hier::BoxList<DIM>& nesting_domain,
       const hier::BoxList<DIM>& physical_domain,
+      const hier::BoxList<DIM>& image_domain,
       const hier::IntVector<DIM>& min_width,
       const int fine_level_number) const;
 
