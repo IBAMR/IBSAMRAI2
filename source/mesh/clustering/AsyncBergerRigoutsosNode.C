@@ -784,8 +784,8 @@ bool AsyncBergerRigoutsosNode<DIM>::runChildren_check()
 
    if ( d_lft_child->boxAccepted() &&
         d_rht_child->boxAccepted() &&
-        ( d_lft_child->d_box.size() + d_rht_child->d_box.size() >=
-          d_common->combine_tol*d_box.size() ) ) {
+        ( d_lft_child->d_box.size64() + d_rht_child->d_box.size64() >=
+          d_common->combine_tol*d_box.size64() ) ) {
 
       // Discard childrens' graph nodes in favor of recombination.
 
@@ -1551,7 +1551,7 @@ void AsyncBergerRigoutsosNode<DIM>::acceptOrSplitBox()
       for ( i=0; i<d_histogram[0].size(); ++i ) {
          num_tagged += d_histogram[0][i];
       }
-      int num_cells = d_box.size();
+      const std::int64_t num_cells = d_box.size64();
       double efficiency = ( num_cells == 0 ? 1.e0 :
                             ((double)num_tagged)/num_cells );
       if ( efficiency >= d_common->efficiency_tol ) {
