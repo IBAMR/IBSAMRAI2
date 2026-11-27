@@ -165,6 +165,19 @@ public:
    void findLocalOverlapIndices(tbox::Array<int>& indices,
                                 const Box<DIM>& box) const;
 
+   /*!
+    * @brief Find, for every box of \b other_tree not local to this
+    * processor, the local boxes that findLocalOverlapIndices() returns for
+    * that box grown by \b growth.
+    *
+    * The result holds the pairs (index in \b other_tree, index in this tree),
+    * sorted and without duplicates.  The cost is proportional to the local boxes and their
+    * neighbors.  Both trees need their processor mappings.
+    */
+   void findRemoteOverlapPairs(std::vector< std::pair<int,int> >& pairs,
+                               const BoxTree<DIM>& other_tree,
+                               const IntVector<DIM>& growth) const;
+
    //! @}
 
    /*!

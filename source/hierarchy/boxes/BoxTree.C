@@ -167,6 +167,49 @@ template<int DIM> void BoxTree<DIM>::privateFindOverlapIndices(
 }
 
 /*
+ * For nonempty boxes and nonnegative growth, a box B of other_tree grown
+ * by growth meets an entry E of this tree exactly when B meets E grown by
+ * growth, so a query with each local entry finds every pair.  The query
+ * also finds periodic images of B, so each candidate is tested against B
+ * itself.
+ */
+template<int DIM> void BoxTree<DIM>::findRemoteOverlapPairs(
+   std::vector< std::pair<int,int> >& pairs,
+   const BoxTree<DIM>& other_tree,
+   const IntVector<DIM>& growth) const
+{
+   if (!d_have_mapping || !other_tree.d_have_mapping) {
+      TBOX_ERROR("BoxTree<DIM>::findRemoteOverlapPairs() error!!"
+                 << "\n Both trees need processor mappings." << std::endl);
+   }
+
+   pairs.clear();
+   std::vector<int> found;
+   for (std::size_t e = 0; e < d_entry_owners.size(); ++e) {
+      if (d_entry_owners[e] != d_rank) {
+         continue;
+      }
+      const Box<DIM>& entry_box = d_index.getBox(static_cast<int>(e));
+      Box<DIM> region(entry_box);
+      region.grow(growth);
+      other_tree.d_index.findIntersecting(region, found);
+      for (std::size_t f = 0; f < found.size(); ++f) {
+         if (other_tree.d_entry_owners[found[f]] == d_rank) {
+            continue;
+         }
+         const int other = other_tree.d_entry_indices[found[f]];
+         Box<DIM> other_region(other_tree.d_boxes[other]);
+         other_region.grow(growth);
+         if (other_region.intersects(entry_box)) {
+            pairs.push_back(std::make_pair(other, d_entry_indices[e]));
+         }
+      }
+   }
+   std::sort(pairs.begin(), pairs.end());
+   pairs.erase(std::unique(pairs.begin(), pairs.end()), pairs.end());
+}
+
+/*
  *************************************************************************
  *
  * Routine that returns a list of boxes that overlap with the argument box.
