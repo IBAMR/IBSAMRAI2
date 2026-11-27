@@ -1024,7 +1024,8 @@ template<int DIM> double BalanceUtilities<DIM>::binPack(
     * d >= 0, or, if it fits nowhere, the largest d; equal values of d go to
     * the lowest processor number.  A scan of all processors costs O(nproc)
     * per box.  For more than s_max_scanned_processors processors, an
-    * ordered set gives the same choice in O(log nproc) per box.
+    * ordered set gives the same choice in O(log nproc) per box in the usual
+    * case; many work values that round to the same d make the walk longer.
     */
    if (nproc <= s_max_scanned_processors) {
       for (int b = 0; b < nboxes; b++) {

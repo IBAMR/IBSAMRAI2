@@ -286,8 +286,9 @@ private:
 
    /*
     * binPack()'s assignment for more than s_max_scanned_processors
-    * processors: the same choices in O(log nproc) per box.  work holds the
-    * starting workload of each processor and is updated.
+    * processors: the same choices in O(log nproc) per box in the usual
+    * case.  work holds the starting workload of each processor and is
+    * updated.
     */
    static void binPackWithOrderedSet(
       hier::ProcessorMapping& mapping,
