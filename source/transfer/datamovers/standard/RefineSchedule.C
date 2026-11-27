@@ -643,13 +643,14 @@ template<int DIM> void RefineSchedule<DIM>::finishScheduleConstruction(
 
    /*
     * Every processor needs the unfilled boxes of every patch to build the
-    * same coarse level, and the schedule generation computes them only for
-    * local patches.  Without the generation every processor already has
-    * them all.  Without a coarser level nothing is gathered, so only the
+    * same coarse level, and the BOX_TREE schedule generation computes them
+    * only for local patches.  Without it every processor already has them
+    * all.  Without a coarser level nothing is gathered, so only the
     * processors that own unfilled boxes reach the error below; it aborts
     * the job all the same.
     */
-   if (generate_schedule && next_coarser_level >= 0) {
+   if (generate_schedule && s_schedule_generation_method == "BOX_TREE" &&
+       next_coarser_level >= 0) {
       gatherUnfilledBoxes(unfilled_boxes);
       need_to_fill = false;
       for (int p = 0; p < dst_npatches; p++) {
