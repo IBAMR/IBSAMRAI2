@@ -170,11 +170,8 @@ namespace SAMRAI {
  *       nesting buffer value.  See sample input below for input file format.
  *
  *    - \b    allow_patches_smaller_than_ghostwidth
- *       In order to enforce minimum patch size restrictions, boxes may be
- *       grown in gridding operations.  This may in turn lead to overlaps
- *       created between boxes. If overlaps are undesirable and you are
- *       willing to relax the minimum size constraints, set this parameter
- *       true.  By default, it is false.
+ *       Ignored, with a warning if true.  The smallest patch size is always
+ *       at least the maximum ghost width of all the registered variables.
  *
  *    - \b    write_regrid_boxes
  *       Output sequence of refine boxes to file.
@@ -773,7 +770,6 @@ private:
    hier::BoxIOUtility<DIM>* d_regrid_box_utility;
 
    tbox::Array<int> d_proper_nesting_buffer;
-   bool d_allow_patches_smaller_than_ghostwidth;
    bool d_allow_patches_smaller_than_minimum_size_to_prevent_overlaps;
    tbox::Array<double> d_efficiency_tolerance;
    tbox::Array<double> d_combine_efficiency;

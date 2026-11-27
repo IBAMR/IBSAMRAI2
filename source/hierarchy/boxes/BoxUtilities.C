@@ -779,21 +779,22 @@ template<int DIM> bool BoxUtilities<DIM>::findBestCutPointsForDirectionGivenMax(
 
    cut_points.clearItems();
 
+   int min = min_size;
+   if (min % cut_factor) min = (min/cut_factor+1)*cut_factor;
+
    bool chop_ok = ( ((box.numberCells(idir) % cut_factor)
                     || (box.numberCells(idir) <= max_size)
-                    || (box.numberCells(idir) < 2*min_size))
+                    || (box.numberCells(idir) < 2*min))
                     ? false : true );
 
    if (chop_ok) {
 
-      int min = min_size; 
-      int max = max_size; 
+      int max = max_size;
 
       chop_ok = false;
 
       int len = box.numberCells(idir);
 
-      if (min % cut_factor) min = (min/cut_factor+1)*cut_factor;
       if (max % cut_factor) max = (max/cut_factor)*cut_factor;
 
       /* make sure that max >= min.  In the case that
@@ -811,7 +812,10 @@ template<int DIM> bool BoxUtilities<DIM>::findBestCutPointsForDirectionGivenMax(
       int num_wide_boxes = num_boxes;
       int min_width = min;
 
-      num_boxes = (len-1)/max + 1;
+      /*
+       * The min constraint takes priority: no box may be narrower than min.
+       */
+      num_boxes = tbox::MathUtilities<int>::Min((len-1)/max + 1, len/min);
       int len_remaining = len - num_boxes * min;
 
       if (len_remaining > 0) {

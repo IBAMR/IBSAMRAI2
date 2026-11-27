@@ -168,7 +168,6 @@ template<int DIM> GriddingAlgorithm<DIM>::GriddingAlgorithm(
    d_largest_patch_size.resizeArray(d_max_levels);
 
    d_proper_nesting_buffer.resizeArray(d_max_levels);
-   d_allow_patches_smaller_than_ghostwidth = false;
    d_allow_patches_smaller_than_minimum_size_to_prevent_overlaps = false;
 
    for (int ln = 0; ln < d_max_levels; ln++) {
@@ -1473,7 +1472,7 @@ template<int DIM> void GriddingAlgorithm<DIM>::readLevelBoxes(
                                        fine_level_number, physical_domain,
                                        ratio_to_level_zero,
                                        smallest_patch,
-                                       getLargestPatchSize(fine_level_number),
+                                       largest_patch,
                                        patch_cut_factor, extend_ghosts);
      t_load_balance->stop();
    }
@@ -1993,10 +1992,10 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
 
       /*
        * If overlaps are to be avoided, at the possible expense of constructing
-       * boxes smaller than the minimum patch size, set the
-       * "grow_after_nesting" argument to false in input.  By default, this
-       * argument is true.  If set false, the boxes will not be grown within
-       * the nesting domain and no overlaps will be introduced.
+       * boxes smaller than the minimum patch size, set
+       * "allow_patches_smaller_than_minimum_size_to_prevent_overlaps" to true
+       * in input.  Then the boxes are grown only in periodic directions.
+       * Extension to the boundary can still make boxes overlap.
        */
 
       t_extend_to_domain_boundary->start();
@@ -2053,6 +2052,16 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
          }
       }
 
+      /*
+       * Growth can leave a box closer to the boundary than the ghost width.
+       */
+      t_extend_to_domain_boundary->start();
+      (void) hier::BoxUtilities<DIM>::extendBoxesToDomainBoundary(
+         box_list,
+         level_domain,
+         extend_ghosts);
+      t_extend_to_domain_boundary->stop();
+
       t_box_massage->stop();
 
       if ( !box_list.isEmpty() ) {
@@ -2089,7 +2098,7 @@ template<int DIM> void GriddingAlgorithm<DIM>::findRefinementBoxes(
             box_list, hierarchy, fine_level_number, physical_domain,
             ratio_to_level_zero,
             smallest_patch,
-            getLargestPatchSize(fine_level_number),
+            largest_patch,
             patch_cut_factor, extend_ghosts);
          t_load_balance->stop();
       }
@@ -2143,19 +2152,7 @@ template<int DIM> void GriddingAlgorithm<DIM>::getGriddingParameters(
       hierarchy->getPatchDescriptor()->getMaxGhostWidth();
    max_ghosts = max_ghosts * d_tag_init_strategy->getErrorCoarsenRatio();
    smallest_patch = getSmallestPatchSize(level_number);
-   if (!d_allow_patches_smaller_than_ghostwidth) {
-      smallest_patch.max(max_ghosts);
-   } else {
-      hier::IntVector<DIM> periodic_dirs(
-         hierarchy->getGridGeometry()->getPeriodicShift());
-
-      for (int i = 0; i < DIM; i++) {
-         if (periodic_dirs(i)) {
-            smallest_patch(i) =
-               tbox::MathUtilities<int>::Max(smallest_patch(i), max_ghosts(i));
-         }
-      }
-   }
+   smallest_patch.max(max_ghosts);
 
    /*
     * Set largest patch size.
@@ -2540,19 +2537,11 @@ template<int DIM> void GriddingAlgorithm<DIM>::getFromInput(
 
    }
 
-   if (db->keyExists("allow_patches_smaller_than_ghostwidth")) {
-      d_allow_patches_smaller_than_ghostwidth =
-         db->getBoolWithDefault("allow_patches_smaller_than_ghostwidth",
-                                d_allow_patches_smaller_than_ghostwidth);
-
-      if (d_allow_patches_smaller_than_ghostwidth) {
-            TBOX_WARNING(d_object_name << ":  "
-                         << "Allowing patches smaller than the max "
-                         << "ghostwidth.  Note:  If periodic boundary "
-                         << "conditions are used, this flag is ignored "
-                         << "in the periodic directions.");
-
-      }
+   if (db->getBoolWithDefault("allow_patches_smaller_than_ghostwidth", false)) {
+      TBOX_WARNING(d_object_name << ":  "
+                   << "Ignoring allow_patches_smaller_than_ghostwidth.  The "
+                   << "smallest patch size\nis at least the maximum ghost "
+                   << "width of all the registered variables.");
    }
 
    if (db->keyExists("allow_patches_smaller_than_minimum_size_to_prevent_overlaps")) {
