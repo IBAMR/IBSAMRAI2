@@ -8,6 +8,7 @@
 //
 
 #include "tbox/MathUtilities.h"
+#include "tbox/Utilities.h"
 
 #ifndef NULL
 #define NULL (0)
@@ -152,16 +153,28 @@ int Box<DIM>::numberCells(const int i) const
 }
 
 template<int DIM> inline
-int Box<DIM>::size() const
+std::int64_t Box<DIM>::size64() const
 {
-   int mysize = 0;
+   std::int64_t mysize = 0;
    if (!empty()) {
       mysize = 1;
-      for (int i = 0; i < DIM; i++) 
-	 mysize *= (d_hi(i)-d_lo(i)+1);
+      for (int i = 0; i < DIM; i++) {
+	 mysize *= static_cast<std::int64_t>(d_hi(i)) - d_lo(i) + 1;
+      }
    }
-
    return mysize;
+}
+
+template<int DIM> inline
+int Box<DIM>::size() const
+{
+   const std::int64_t mysize = size64();
+   if (mysize > tbox::MathUtilities<int>::getMax()) {
+      TBOX_ERROR("Box<DIM>::size(): the box " << *this
+		 << " has more cells than an int holds; use size64()."
+		 << std::endl);
+   }
+   return static_cast<int>(mysize);
 }
 
 

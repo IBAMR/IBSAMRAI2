@@ -395,7 +395,7 @@ template<int DIM> bool BalanceUtilities<DIM>::privateFindBestCutDimension(
       }
    }
 
-   if (size_test_box.size() > 1) {
+   if (size_test_box.size64() > 1) {
 
       /*
        * Find good cut points along some box dimension, starting with longest
@@ -696,7 +696,7 @@ template<int DIM> void BalanceUtilities<DIM>::privateRecursiveBisectionUniformSi
                                            cut_index,
                                            bad_cut_points);
 
-         double box_lo_workload = (double)box_lo.size();
+         double box_lo_workload = (double)box_lo.size64();
          privateRecursiveBisectionUniformSingleBox(out_boxes,
                                                    out_workloads,
                                                    box_lo,
@@ -710,7 +710,7 @@ template<int DIM> void BalanceUtilities<DIM>::privateRecursiveBisectionUniformSi
          hier::BoxList<DIM> boxes_hi;
          tbox::List<double> work_hi;
 
-         double box_hi_workload = (double)box_hi.size();
+         double box_hi_workload = (double)box_hi.size64();
          privateRecursiveBisectionUniformSingleBox(boxes_hi,
                                                    work_hi,
                                                    box_hi,
@@ -1187,7 +1187,7 @@ template<int DIM> void BalanceUtilities<DIM>::recursiveBisectionUniform(
 #ifdef DEBUG_CHECK_ASSERTIONS
       TBOX_ASSERT(!box2chop.empty());
 #endif
-      double boxwork = (double)box2chop.size();
+      double boxwork = (double)box2chop.size64();
 
       if (boxwork <= ( (1.0 + workload_tolerance) * ideal_workload )) {
 

@@ -263,9 +263,9 @@ void AsyncBergerRigoutsos<DIM>::findBoxesContainingTags(
    t_globalize_boxes->stop();
 
    if ( d_log_cluster_summary ) {
-      int number_cells = 0;
+      std::int64_t number_cells = 0;
       for ( typename hier::BoxList<DIM>::Iterator bi(boxes); bi; bi++ ) {
-         number_cells += bi().size();
+         number_cells += bi().size64();
       }
       tbox::plog << "After globalize: "
            << number_cells << " cells in "

@@ -17,6 +17,8 @@
 #include <iostream>
 #endif
 
+#include <cstdint>
+
 #include "Index.h"
 #include "IntVector.h"
 #include "tbox/DatabaseBox.h"
@@ -142,8 +144,16 @@ public:
    /**
     * Calculate the number of indices represented by the box.  If the box
     * is empty, then the number of index points within the box is zero.
+    * Stop with an error if the number does not fit in an int; size64()
+    * returns it for any box.
     */
    int size() const;
+
+   /**
+    * Return the number of indices represented by the box as a 64-bit
+    * integer, which holds it for boxes with fewer than 2^63 indices.
+    */
+   std::int64_t size64() const;
 
    /**
     *  Return the dimension of the box that is longest.
