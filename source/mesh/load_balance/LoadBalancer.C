@@ -580,7 +580,7 @@ template<int DIM> void LoadBalancer<DIM>::chopUniformSingleBox(
    const int nboxes = out_boxes.getNumberOfBoxes();
    out_workloads.resizeArray(nboxes);
    for (int ib = 0; ib < nboxes; ib++) {
-      out_workloads[ib] = (double)(out_boxes[ib].size());
+      out_workloads[ib] = (double)(out_boxes[ib].size64());
    }
 
 }
@@ -630,7 +630,7 @@ template<int DIM> void LoadBalancer<DIM>::chopBoxesWithUniformWorkload(
 
    double total_work = 0.0;
    for (typename hier::BoxList<DIM>::Iterator ib0(tmp_in_boxes_list); ib0; ib0++) {
-      total_work += ib0().size();
+      total_work += ib0().size64();
    }
 
    double work_factor = getMaxWorkloadFactor(level_number);
@@ -720,7 +720,7 @@ template<int DIM> void LoadBalancer<DIM>::chopBoxesWithNonuniformWorkload(
    const int num_tmp_patches = tmp_level_boxes.getNumberOfBoxes();
    tbox::Array<double> tmp_level_workloads(num_tmp_patches);
    for (int i = 0; i < num_tmp_patches; i++) {
-      tmp_level_workloads[i] = tmp_level_boxes[i].size();
+      tmp_level_workloads[i] = tmp_level_boxes[i].size64();
    }
 
    hier::ProcessorMapping tmp_level_mapping;

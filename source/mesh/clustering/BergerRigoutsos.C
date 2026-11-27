@@ -208,7 +208,7 @@ template<int DIM> void BergerRigoutsos<DIM>::findBoxesContainingTagsOriginal(
       hier::Box<DIM> tag_bound_box;
       hist_box.findBoundBoxForTags(tag_bound_box, min_box);
 
-      int num_cells = tag_bound_box.size();
+      const std::int64_t num_cells = tag_bound_box.size64();
       double efficiency = ( num_cells == 0 ? 1.e0 :
                           ((double) num_tags)/((double) num_cells) );
       t_compute->stop();
@@ -248,9 +248,9 @@ template<int DIM> void BergerRigoutsos<DIM>::findBoxesContainingTagsOriginal(
             t_compute->start();
             if ( ((box_list_lft.getNumberOfItems() > 1) ||
                   (box_list_rgt.getNumberOfItems() > 1)) ||
-                 ( (double) (box_list_lft.getFirstItem().size()
-                           + box_list_rgt.getFirstItem().size())
-                  < ((double) tag_bound_box.size())*combine_tol ) ) {
+                 ( (double) (box_list_lft.getFirstItem().size64()
+                           + box_list_rgt.getFirstItem().size64())
+                  < ((double) tag_bound_box.size64())*combine_tol ) ) {
 
                boxes.catenateItems(box_list_lft);
                boxes.catenateItems(box_list_rgt);
@@ -337,7 +337,7 @@ template<int DIM> void BergerRigoutsos<DIM>::findBoxesContainingTagsBinaryTree(
          if (tbox::SAMRAI_MPI::getRank() == 0) {
             t_compute->start();
             hist_box.findBoundBoxForTags(tag_bound_box, min_box);
-            int num_cells = tag_bound_box.size();
+            const std::int64_t num_cells = tag_bound_box.size64();
             double efficiency = ( num_cells == 0 ? 1.e0 :
                                 ((double) num_tags)/((double) num_cells) );
 
@@ -407,9 +407,9 @@ template<int DIM> void BergerRigoutsos<DIM>::findBoxesContainingTagsBinaryTree(
             if (tbox::SAMRAI_MPI::getRank() == 0) {
                if ( ((box_list_lft.getNumberOfItems() > 1) ||
                      (box_list_rgt.getNumberOfItems() > 1)) ||
-                    ( (double) (box_list_lft.getFirstItem().size()
-                              + box_list_rgt.getFirstItem().size())
-                     < ((double) tag_bound_box.size())*combine_tol ) ) {
+                    ( (double) (box_list_lft.getFirstItem().size64()
+                              + box_list_rgt.getFirstItem().size64())
+                     < ((double) tag_bound_box.size64())*combine_tol ) ) {
 
                   boxes.catenateItems(box_list_lft);
                   boxes.catenateItems(box_list_rgt);
@@ -522,7 +522,7 @@ template<int DIM> void BergerRigoutsos<DIM>::findBoxesContainingTagsCommunicator
           */
          if (tbox::SAMRAI_MPI::getRank() == 0) {
             hist_box.findBoundBoxForTags(tag_bound_box, min_box);
-            int num_cells = tag_bound_box.size();
+            const std::int64_t num_cells = tag_bound_box.size64();
             double efficiency = ( num_cells == 0 ? 1.e0 :
                                 ((double) num_tags)/((double) num_cells) );
 
@@ -609,9 +609,9 @@ template<int DIM> void BergerRigoutsos<DIM>::findBoxesContainingTagsCommunicator
             if (tbox::SAMRAI_MPI::getRank() == 0) {
                if ( ((box_list_lft.getNumberOfItems() > 1) ||
                      (box_list_rgt.getNumberOfItems() > 1)) ||
-                    ( (double) (box_list_lft.getFirstItem().size()
-                              + box_list_rgt.getFirstItem().size())
-                     < ((double) tag_bound_box.size())*combine_tol ) ) {
+                    ( (double) (box_list_lft.getFirstItem().size64()
+                              + box_list_rgt.getFirstItem().size64())
+                     < ((double) tag_bound_box.size64())*combine_tol ) ) {
    
                   boxes.catenateItems(box_list_lft);
                   boxes.catenateItems(box_list_rgt);
