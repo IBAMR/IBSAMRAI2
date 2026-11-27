@@ -4188,6 +4188,69 @@ for btng_log_vars_index in $btng_log_vars ; do
   echo "configure:4188:" "after running compiler search: $btng_log_vars_index is $btng_log_vars_value" >&5;
 done
 
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether $CXX compiles C++17 by default" >&5
+printf %s "checking whether $CXX compiles C++17 by default... " >&6; }
+
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#if __cplusplus < 201703L
+#error C++17 is required
+#endif
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; }
+else case e in #(
+  e) { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf '%s\n' "no" >&6; }
+    CXX="$CXX -std=c++17"
+    { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking whether $CXX compiles C++17" >&5
+printf %s "checking whether $CXX compiles C++17... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#if __cplusplus < 201703L
+#error C++17 is required
+#endif
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; }
+else case e in #(
+  e) as_fn_error $? "IBSAMRAI2 requires a C++17 compiler." "$LINENO" 5 ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
 
 
 

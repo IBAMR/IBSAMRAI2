@@ -19,6 +19,9 @@
 #include "tbox/Utilities.h"
 #include "tbox/MathUtilities.h"
 
+#include <set>
+#include <utility>
+
 namespace SAMRAI {
     namespace mesh {
 
@@ -901,6 +904,81 @@ template<int DIM> double BalanceUtilities<DIM>::computeNonUniformWorkload(
 }
 
 /*
+ * The scan's choice through an ordered set of (work, processor number).
+ * d = avg_work - (work + weight) does not increase with the work, so in
+ * that order the processors where the box fits (d >= 0) come first.
+ */
+template<int DIM> void BalanceUtilities<DIM>::binPackWithOrderedSet(
+   hier::ProcessorMapping& mapping,
+   const tbox::Array<double>& weights,
+   tbox::Array<double>& work,
+   const double avg_work)
+{
+   const int nboxes = weights.getSize();
+   const int nproc = work.getSize();
+
+   typedef std::set< std::pair<double,int> > ProcSet;
+   ProcSet procs;
+   for (int p = 0; p < nproc; p++) {
+      procs.insert(std::make_pair(work[p], p));
+   }
+
+   for (int b = 0; b < nboxes; b++) {
+      const double weight = weights[b];
+
+      // First processor, in order, where the box does not fit.
+      typename ProcSet::iterator it =
+         procs.upper_bound(std::make_pair(avg_work - weight, nproc));
+      while (it != procs.end() && avg_work-(it->first+weight) >= 0.0) {
+         ++it;
+      }
+      while (it != procs.begin()) {
+         typename ProcSet::iterator prev = it;
+         --prev;
+         if (avg_work-(prev->first+weight) >= 0.0) break;
+         it = prev;
+      }
+
+      int proc;
+      if (it != procs.begin()) {
+         // Largest fitting work; other work values can round to the same d.
+         typename ProcSet::iterator last = it;
+         --last;
+         const double best = avg_work-(last->first+weight);
+         typename ProcSet::iterator first =
+            procs.lower_bound(std::make_pair(last->first, -1));
+         proc = first->second;
+         while (first != procs.begin()) {
+            typename ProcSet::iterator prev = first;
+            --prev;
+            if (avg_work-(prev->first+weight) != best) break;
+            first = procs.lower_bound(std::make_pair(prev->first, -1));
+            proc = tbox::MathUtilities<int>::Min(proc, first->second);
+         }
+      } else {
+         // Smallest work; other work values can round to the same d.
+         const double best = avg_work-(procs.begin()->first+weight);
+         proc = procs.begin()->second;
+         typename ProcSet::iterator next =
+            procs.upper_bound(std::make_pair(procs.begin()->first, nproc));
+         while (next != procs.end() &&
+                avg_work-(next->first+weight) == best) {
+            proc = tbox::MathUtilities<int>::Min(proc, next->second);
+            next = procs.upper_bound(std::make_pair(next->first, nproc));
+         }
+      }
+
+      // Reuse the node: no allocation per box.
+      typename ProcSet::node_type node =
+         procs.extract(std::make_pair(work[proc], proc));
+      work[proc] += weight;
+      node.value() = std::make_pair(work[proc], proc);
+      procs.insert(std::move(node));
+      mapping.setProcessorAssignment(b, proc);
+   }
+}
+
+/*
 *************************************************************************
 *									*
 * Construct a processor mapping using the collection of weights and	*
@@ -941,23 +1019,33 @@ template<int DIM> double BalanceUtilities<DIM>::binPack(
    }
 
    /*
-    * Assign each box to the processor with the lowest workload
+    * Assign each box to the processor where it fits most tightly under the
+    * average workload: the smallest d = avg_work - (work + weight) with
+    * d >= 0, or, if it fits nowhere, the largest d; equal values of d go to
+    * the lowest processor number.  A scan of all processors costs O(nproc)
+    * per box.  For more than s_max_scanned_processors processors, an
+    * ordered set gives the same choice in O(log nproc) per box in the usual
+    * case; many work values that round to the same d make the walk longer.
     */
-   for (int b = 0; b < nboxes; b++) {
-      const double weight = weights[b];
+   if (nproc <= s_max_scanned_processors) {
+      for (int b = 0; b < nboxes; b++) {
+         const double weight = weights[b];
 
-      int proc = 0;
-      double diff = avg_work-(work[0]+weight);
-      for (int p = 1; p < nproc; p++) {
-         const double d = avg_work-(work[p]+weight);
-         if (((diff>0.0)&&(d>=0.0)&&(d<diff)) || ((diff<0.0)&&(d>diff))) {
-            diff = d;
-            proc = p;
+         int proc = 0;
+         double diff = avg_work-(work[0]+weight);
+         for (int p = 1; p < nproc; p++) {
+            const double d = avg_work-(work[p]+weight);
+            if (((diff>0.0)&&(d>=0.0)&&(d<diff)) || ((diff<0.0)&&(d>diff))) {
+               diff = d;
+               proc = p;
+            }
          }
-      }
 
-      work[proc] += weight;
-      mapping.setProcessorAssignment(b, proc);
+         work[proc] += weight;
+         mapping.setProcessorAssignment(b, proc);
+      }
+   } else {
+      binPackWithOrderedSet(mapping, weights, work, avg_work);
    }
 
    /*
